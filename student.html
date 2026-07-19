@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LÀM BÀI THI - TBS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' }, startup: { typeset: false } };
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = { 
+                theme: { 
+                    extend: { 
+                        colors: { main: '#0ea5e9', mainDark: '#0284c7', mainLight: '#e0f2fe', tbsGold: '#f59e0b' }, 
+                        fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'] } 
+                    } 
+                } 
+            };
+        }
+        if (typeof marked !== 'undefined') { marked.setOptions({ breaks: true, mangle: false, headerIds: false }); }
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://unpkg.com/mathlive"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="text-slate-800">
+    <div class="bg-particles"></div>
+    <audio id="audio-correct" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+    <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
+    <audio id="audio-powerup" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
+    <header class="glass sticky top-0 z-40 px-6 py-3 flex flex-col md:flex-row justify-between items-center rounded-b-3xl mx-4 mt-0 gap-4 md:gap-0 shadow-sm border-b-4 border-main">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 flex items-center justify-center bg-white rounded-full p-1 shadow-md">
+                <img src="logo.png" alt="Logo TBS" class="w-10 h-10 rounded-full object-contain" onerror="this.style.display='none';">
+            </div>
+            <div>
+                <h1 class="text-base font-black text-slate-700 uppercase tracking-widest">MÃ ĐỀ: <span id="header-play-code" class="text-main">---</span></h1>
+                <span id="header-student-name" class="font-bold text-xs text-slate-500 truncate max-w-[200px]">Thí sinh</span>
+            </div>
+        </div>
+
+        <div id="timer-container" class="hidden flex flex-col items-center glass px-6 py-1 rounded-2xl relative">
+            <div class="text-2xl font-display font-black text-main tabular-nums" id="timer-display">00:00</div>
+            <div id="streak-indicator" class="absolute -bottom-3 hidden bg-white border border-amber-300 text-amber-500 font-bold text-[10px] px-2 py-0.5 rounded-full shadow-sm"><i class="fa-solid fa-fire text-red-500"></i> Combo: <span id="streak-count">0</span></div>
+        </div>
+
+        <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden')" class="px-4 py-2 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition text-xs shadow-sm"><i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Thoát</button>
+    </header>
+
+    <main id="app-content" class="flex-grow p-6 flex flex-col items-center justify-center w-full max-w-5xl mx-auto relative z-10">
+        <div class="text-center mt-20 text-main"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br><span class="font-bold">Đang tải dữ liệu bài thi...</span></div>
+    </main>
+
+    <footer id="scoreboard" class="hidden glass sticky bottom-0 z-40 w-full p-4 mt-auto border-t border-white/50">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex-grow bg-gradient-to-r from-main to-mainDark rounded-2xl p-3 text-center shadow-lg border border-sky-300">
+                <div class="text-[10px] font-bold text-sky-100 uppercase tracking-wider mb-0.5">TỔNG ĐIỂM HIỆN TẠI</div>
+                <div class="text-3xl font-black text-white" id="student-total-score">0</div>
+            </div>
+            <div class="flex flex-col items-center shrink-0">
+                <button onclick="document.getElementById('submit-confirm-modal').classList.remove('hidden')" id="btn-submit-score" class="w-24 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg flex flex-col items-center justify-center hover:scale-105 transition border-2 border-white">
+                    <i class="fa-solid fa-cloud-arrow-up text-lg mb-0.5"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Nộp Bài</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <div id="exit-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl text-center max-w-md w-full shadow-2xl border-2 border-rose-100">
+            <h3 class="text-xl font-black text-slate-800 mb-2">Thoát Bài Thi?</h3>
+            <p class="text-sm text-slate-500 mb-6">Tiến trình làm bài của thầy/trò sẽ được tự động lưu tạm tại thiết bị này.</p>
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('exit-confirm-modal').classList.add('hidden')" class="flex-1 py-2.5 bg-slate-100 rounded-xl font-bold text-sm">Ở lại</button>
+                <button onclick="window.location.href='index.html'" class="flex-1 py-2.5 bg-rose-500 text-white rounded-xl font-bold text-sm shadow-md">Thoát</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="submit-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl text-center max-w-md w-full shadow-2xl border-2 border-mainLight">
+            <h3 class="text-xl font-black text-slate-800 mb-2">Xác Nhận Nộp Bài</h3>
+            <p class="text-sm text-slate-500 mb-6">Kết quả sẽ được đồng bộ lên hệ thống dữ liệu đám mây của Tổ Toán & Tin.</p>
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('submit-confirm-modal').classList.add('hidden')" class="flex-1 py-2.5 bg-slate-100 rounded-xl font-bold text-sm">Kiểm tra lại</button>
+                <button onclick="forceSubmitScore()" class="flex-1 py-2.5 bg-main text-white rounded-xl font-bold text-sm shadow-md">Xác nhận nộp</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resume-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl text-center max-w-md w-full shadow-2xl border-2 border-mainLight">
+            <h3 class="text-xl font-black text-slate-800 mb-2">Tiếp tục bài thi dở?</h3>
+            <p class="text-sm text-slate-500 mb-6">Hệ thống phát hiện tiến trình cũ chưa hoàn thành của bạn.</p>
+            <div class="flex gap-4">
+                <button onclick="startGame(false)" class="flex-1 py-2.5 bg-slate-100 rounded-xl font-bold text-sm">Làm lại từ đầu</button>
+                <button onclick="startGame(true)" class="flex-1 py-2.5 bg-main text-white rounded-xl font-bold text-sm shadow-md">Tiếp tục</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cheat-warning-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-3xl text-center max-w-md w-full shadow-2xl border-4 border-amber-300 zoom-in">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Nhắc nhở làm bài</h3>
+            <p class="text-slate-600 mb-4 font-medium">Hệ thống nhận thấy bạn vừa rời khỏi màn hình làm bài. Trong chế độ thi nghiêm túc, điều này không được phép.</p>
+            <div class="bg-amber-50 p-3 rounded-xl mb-6 font-bold text-amber-700">
+                Lần nhắc nhở: <span id="violation-count-display" class="text-2xl">0</span> / <span id="violation-max-display">3</span>
+            </div>
+            <button onclick="document.getElementById('cheat-warning-modal').classList.add('hidden')" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold btn-3d tracking-wider">Đã hiểu, Quay lại bài thi</button>
+        </div>
+    </div>
+
+    <div id="stats-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center shadow-2xl border-2 border-mainLight">
+            <h3 class="text-2xl font-black text-main mb-4">HOÀN THÀNH BÀI THI!</h3>
+            <div id="stats-content" class="space-y-4"></div>
+            <button onclick="window.location.href='index.html'" class="w-full mt-6 py-3 bg-main text-white rounded-xl font-bold">Về trang chủ Portal</button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG & FIREBASE INIT (Moved to config.js)
+
+        let GAME_DATA = null;
+        let state = { currentPlayCode: '', currentSettings: null, studentList: [], studentId: '', studentName: '', studentClass: '', timer: { totalSeconds: 0, remaining: 0, intervalId: null, isRunning: false }, currentRound: null, currentQuestion: null, answeredQuestions: [], userChoices: {}, stats: { round1: { total: 0, correct: 0 }, round2: { total: 0, correct: 0 }, round3: { total: 0, correct: 0 } }, streak: 0, violationCount: 0, shuffledOptions: {}, powerups: { freeze: 1, fifty: 1 }, score: 0, scoreR1: 0, scoreR2: 0, scoreR3: 0 };
+
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (!code) { window.location.href = 'index.html'; return; }
+            state.currentPlayCode = code.toUpperCase();
+            document.getElementById('header-play-code').innerText = state.currentPlayCode;
+
+            try {
+                let snap = await db.collection("SharedGames").doc(state.currentPlayCode).get();
+                if(!snap.exists) throw new Error("Đề thi không tồn tại!");
+                let d = snap.data(); GAME_DATA = d.data; state.currentSettings = d.settings || {};
+                try { let snap = await db.collection("Students").get(); snap.forEach(doc => state.studentList.push(doc.data())); } catch(e){}
+                renderStudentSetupScreen();
+            } catch(e) { alert(e.message); window.location.href = 'index.html'; }
+        };
+
+        // showToast, playSound, triggerMathJax are moved to config.js
+
+        function renderStudentSetupScreen() {
+            let modeBadge = state.currentSettings.examMode === 'exam' 
+                ? `<div class="bg-rose-50 text-rose-600 px-4 py-1 inline-block font-bold text-xs rounded-full border border-rose-200 shadow-sm"><i class="fa-solid fa-lock mr-1"></i> Chế độ Thi nghiêm túc</div>`
+                : `<div class="bg-sky-50 text-main px-4 py-1 inline-block font-bold text-xs rounded-full border border-sky-200 shadow-sm"><i class="fa-solid fa-gamepad mr-1"></i> Chế độ Luyện tập</div>`;
+
+            document.getElementById('app-content').innerHTML = `
+                <div class="glass-panel p-6 rounded-3xl w-full max-w-md text-center fade-in border-t-4 border-main bg-white/80">
+                    <h2 class="text-2xl font-black text-slate-700 mb-1">ĐĂNG NHẬP THÍ SINH</h2>
+                    <div class="mb-6">${modeBadge}</div>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mã định danh Học sinh (ID):</label>
+                            <input type="text" id="indiv-id" placeholder="Nhập ID số..." class="w-full p-3 border border-slate-200 bg-white rounded-xl font-bold text-slate-700 outline-none focus:border-main uppercase tracking-wider shadow-sm" oninput="handleIdInput()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mật mã bảo vệ bài thi cá nhân:</label>
+                            <input type="password" id="student-personal-password" placeholder="Tự tạo mật mã riêng..." class="w-full p-3 border border-slate-200 bg-white rounded-xl font-bold text-slate-700 outline-none focus:border-main shadow-sm">
+                        </div>
+                        <div id="student-info-display" class="hidden bg-sky-50 p-3 rounded-xl border border-sky-100 text-center">
+                            <span id="display-name" class="font-black text-main text-base block"></span>
+                            <span id="display-class" class="text-xs font-bold text-slate-500"></span>
+                        </div>
+                    </div>
+                    <button onclick="checkResumeGame()" class="w-full mt-6 py-3.5 bg-main text-white font-black rounded-xl text-base hover:bg-mainDark btn-3d tracking-wider uppercase">Bắt đầu làm bài</button>
+                </div>
+            `;
+        }
+
+        function handleIdInput() {
+            let val = document.getElementById('indiv-id').value.trim();
+            let box = document.getElementById('student-info-display');
+            if(!val || !state.studentList.length) { box.classList.add('hidden'); return; }
+            let found = state.studentList.find(s => String(s.id).toLowerCase() === val.toLowerCase());
+            if(found) {
+                document.getElementById('display-name').innerText = found.name;
+                document.getElementById('display-class').innerText = "Lớp: " + found.cls;
+                state.studentName = found.name; state.studentClass = found.cls; box.classList.remove('hidden');
+            } else { box.classList.add('hidden'); state.studentName = ''; }
+        }
+
+        async function checkResumeGame() {
+            let sId = document.getElementById('indiv-id').value.trim().toUpperCase();
+            let sPw = document.getElementById('student-personal-password').value.trim();
+            if(!sId || !sPw) { showToast("Vui lòng điền đủ ID và Mật mã bảo mật!", true); return; }
+
+            let btn = document.querySelector('button[onclick="checkResumeGame()"]');
+            let oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang kiểm tra...';
+            btn.disabled = true;
+
+            try {
+                let docSnap = await db.collection("Students").doc(sId).get();
+                if (!docSnap.exists) {
+                    throw new Error("Không tìm thấy mã học sinh này!");
+                }
+                let sData = docSnap.data();
+                if (sData.password !== sPw) {
+                    throw new Error("Mật mã không chính xác!");
+                }
+                
+                state.studentId = sData.id;
+                state.studentName = sData.name;
+                state.studentClass = sData.cls;
+
+                if (sData.password === '123456') {
+                    // Show change password UI
+                    document.getElementById('app-content').innerHTML = `
+                        <div class="glass-panel p-6 rounded-3xl w-full max-w-md text-center fade-in border-t-4 border-amber-500 bg-white/80">
+                            <h2 class="text-2xl font-black text-amber-600 mb-2">ĐỔI MẬT KHẨU MỚI</h2>
+                            <p class="text-sm font-bold text-slate-500 mb-6">Bạn đang dùng mật khẩu mặc định. Hãy đổi để bảo mật tài khoản!</p>
+                            <div class="space-y-4 text-left">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mật khẩu mới:</label>
+                                    <input type="password" id="new-password" class="w-full p-3 border border-slate-200 bg-white rounded-xl font-bold text-slate-700 outline-none focus:border-amber-500 shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nhập lại mật khẩu mới:</label>
+                                    <input type="password" id="new-password-confirm" class="w-full p-3 border border-slate-200 bg-white rounded-xl font-bold text-slate-700 outline-none focus:border-amber-500 shadow-sm">
+                                </div>
+                            </div>
+                            <button onclick="submitNewPassword()" class="w-full mt-6 py-3.5 bg-amber-500 text-white font-black rounded-xl text-base hover:bg-amber-600 btn-3d tracking-wider uppercase">Cập nhật & Vào thi</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                proceedToGame();
+
+            } catch(e) {
+                showToast(e.message, true);
+            } finally {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        }
+
+        async function submitNewPassword() {
+            let p1 = document.getElementById('new-password').value.trim();
+            let p2 = document.getElementById('new-password-confirm').value.trim();
+            if (!p1 || !p2) return showToast("Vui lòng điền đủ 2 ô!", true);
+            if (p1 !== p2) return showToast("Mật khẩu không khớp!", true);
+            if (p1 === '123456') return showToast("Vui lòng chọn mật khẩu khác 123456!", true);
+
+            let btn = document.querySelector('button[onclick="submitNewPassword()"]');
+            let oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang lưu...';
+            btn.disabled = true;
+
+            try {
+                await db.collection("Students").doc(state.studentId).update({ password: p1 });
+                showToast("Đổi mật khẩu thành công!");
+                proceedToGame();
+            } catch(e) {
+                showToast("Có lỗi xảy ra: " + e.message, true);
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        }
+
+        function proceedToGame() {
+            document.getElementById('header-student-name').innerText = state.studentName ? `${state.studentName} (${state.studentClass})` : `ID: ${state.studentId}`;
+            if(localStorage.getItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId)) {
+                document.getElementById('resume-confirm-modal').classList.remove('hidden');
+            } else { startGame(false); }
+        }
+
+        function startGame(resume = false) {
+            document.getElementById('resume-confirm-modal').classList.add('hidden');
+            if(resume) {
+                let cache = JSON.parse(localStorage.getItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId));
+                state.score = cache.score; state.scoreR1 = cache.scoreR1||0; state.scoreR2 = cache.scoreR2||0; state.scoreR3 = cache.scoreR3||0;
+                state.timer.remaining = cache.timer; state.answeredQuestions = cache.answeredQuestions||[];
+                state.userChoices = cache.userChoices||{}; state.stats = cache.stats; state.streak = cache.streak||0;
+                state.shuffledOptions = cache.shuffledOptions||{}; state.powerups = cache.powerups;
+            } else {
+                state.timer.remaining = state.currentSettings.timeLimit ? state.currentSettings.timeLimit * 60 : 3600;
+            }
+            document.getElementById('scoreboard').classList.remove('hidden');
+            document.getElementById('timer-container').classList.remove('hidden');
+            if(state.currentSettings.examMode !== 'exam') document.getElementById('streak-indicator').classList.remove('hidden');
+            
+            setupAntiCheat(); startTimer(); updateScoreUI(); renderDashboard();
+        }
+
+        function setupAntiCheat() {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            if (state.currentSettings.examMode === 'exam') {
+                document.addEventListener("visibilitychange", handleVisibilityChange);
+            }
+        }
+        function handleVisibilityChange() {
+            if (document.visibilityState === 'hidden') {
+                let limit = 3;
+                state.violationCount++; 
+                if (state.violationCount >= limit) { forceSubmitScore(); } 
+                else {
+                    document.getElementById('violation-max-display').innerText = limit;
+                    document.getElementById('violation-count-display').innerText = state.violationCount;
+                    document.getElementById('cheat-warning-modal').classList.remove('hidden');
+                }
+            }
+        }
+
+        function startTimer() {
+            state.timer.isRunning = true;
+            state.timer.intervalId = setInterval(() => {
+                state.timer.remaining--; updateTimerDisplay();
+                if(state.timer.remaining % 10 === 0) { localStorage.setItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId, JSON.stringify({ score: state.score, scoreR1: state.scoreR1, scoreR2: state.scoreR2, scoreR3: state.scoreR3, timer: state.timer.remaining, answeredQuestions: state.answeredQuestions, userChoices: state.userChoices, stats: state.stats, streak: state.streak, shuffledOptions: state.shuffledOptions, powerups: state.powerups })); }
+                if(state.timer.remaining <= 0) { forceSubmitScore(); }
+            }, 1000);
+        }
+        function updateTimerDisplay() { document.getElementById('timer-display').innerText = `${Math.floor(state.timer.remaining / 60).toString().padStart(2, '0')}:${(state.timer.remaining % 60).toString().padStart(2, '0')}`; }
+        function updateScoreUI() { document.getElementById('student-total-score').innerText = state.score; }
+
+        function renderDashboard() {
+            state.currentRound = null; state.currentQuestion = null;
+            document.getElementById('app-content').innerHTML = `
+                <div class="glass-panel p-6 rounded-3xl w-full max-w-4xl text-center fade-in bg-white/80">
+                    <h2 class="text-xl font-black text-slate-700 mb-6 uppercase tracking-wider">CẤU TRÚC ĐỀ THI ĐỊNH HƯỚNG BGD</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div onclick="selectRound('round1')" class="bg-white p-6 rounded-2xl cursor-pointer hover:border-main border-2 transition shadow-sm border-slate-100">
+                            <i class="fa-solid fa-list-check text-3xl text-main mb-2"></i>
+                            <h3 class="font-bold text-slate-700">Phần I: Trắc nghiệm</h3>
+                            <span class="text-xs text-slate-400 font-bold block mt-1">${GAME_DATA.round1?GAME_DATA.round1.length:0} Câu hỏi</span>
+                        </div>
+                        <div onclick="selectRound('round2')" class="bg-white p-6 rounded-2xl cursor-pointer hover:border-main border-2 transition shadow-sm border-slate-100">
+                            <i class="fa-solid fa-check-double text-3xl text-amber-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-700">Phần II: Đúng / Sai</h3>
+                            <span class="text-xs text-slate-400 font-bold block mt-1">${GAME_DATA.round2?GAME_DATA.round2.length:0} Đơn vị câu thức</span>
+                        </div>
+                        <div onclick="selectRound('round3')" class="bg-white p-6 rounded-2xl cursor-pointer hover:border-main border-2 transition shadow-sm border-slate-100">
+                            <i class="fa-solid fa-keyboard text-3xl text-rose-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-700">Phần III: Trả lời ngắn</h3>
+                            <span class="text-xs text-slate-400 font-bold block mt-1">${GAME_DATA.round3?GAME_DATA.round3.length:0} Câu hỏi số</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectRound(roundId) {
+            state.currentRound = roundId;
+            let btns = (GAME_DATA[roundId]||[]).map(q => {
+                let isAns = (roundId==='round1'||roundId==='round3') ? state.answeredQuestions.includes(`${roundId}_${q.id}`) : [0,1,2,3].every(i=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
+                return `<button onclick="openQuestion('${q.id}')" class="w-12 h-12 rounded-xl font-black text-sm border-2 transition ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-inner':'bg-white text-slate-600 border-slate-200 hover:border-main hover:text-main'}">${q.id}</button>`;
+            }).join('');
+            document.getElementById('app-content').innerHTML = `
+                <div class="w-full max-w-4xl fade-in">
+                    <button onclick="renderDashboard()" class="mb-4 px-4 py-2 bg-white rounded-xl shadow-sm font-bold text-xs text-slate-600 border"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
+                    <div class="flex flex-wrap gap-3 bg-white/60 p-4 rounded-2xl border">${btns}</div>
+                </div>
+            `;
+        }
+
+        function openQuestion(qId) {
+            let q = GAME_DATA[state.currentRound].find(x => String(x.id) === String(qId)); if(!q) return;
+            state.currentQuestion = q;
+            let isAnsAll = (state.currentRound==='round1'||state.currentRound==='round3') ? state.answeredQuestions.includes(`${state.currentRound}_${q.id}`) : q.statements?.every((_,i)=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
+            
+            let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
+            let isRev = state.isSubmitted; 
+
+            let html = `
+                <div class="w-full max-w-4xl fade-in flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <button onclick="selectRound('${state.currentRound}')" class="px-4 py-1.5 bg-white border shadow-sm rounded-xl font-bold text-xs text-slate-600"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại danh sách</button>
+                        <span class="px-4 py-1 bg-main text-white rounded-full font-black text-xs uppercase shadow-sm">Câu hỏi số ${q.id}</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl mb-4 shadow-sm border border-slate-100 text-lg font-bold leading-relaxed">
+                        ${marked.parse(q.text || "")}
+                        ${q.image ? `<img src="${q.image}" class="mt-4 max-h-60 mx-auto rounded-xl shadow-sm">` : ''}
+                    </div>
+            `;
+
+            if (state.currentRound === 'round1') {
+                let qK = `round1_${q.id}`; let isAns = state.answeredQuestions.includes(qK);
+                if (!state.shuffledOptions[qK]) {
+                    let opts = (q.options||[]).map(o => ({ text: o, isCorrect: String(o).trim() === String(q.answer).trim() }));
+                    opts.sort(()=>Math.random()-0.5); state.shuffledOptions[qK] = opts;
+                }
+                html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">` + state.shuffledOptions[qK].map((opt, i) => {
+                    let cls = "bg-white border-slate-200 hover:border-main";
+                    if (isAns) {
+                        let isSel = (state.userChoices[qK]?.optText === String(opt.text).trim());
+                        if (isExam && !isRev) {
+                            if(isSel) cls = "bg-sky-100 text-sky-700 border-sky-400";
+                            else cls = "opacity-40 pointer-events-none";
+                        } else {
+                            if (isSel) {
+                                cls = state.userChoices[qK].isCorrect ? "bg-green-500 text-white border-green-600 shadow" : "bg-red-500 text-white border-red-600 shake-wrong shadow";
+                            } else if (opt.isCorrect) { cls = "bg-green-100 border-green-400 text-green-800 pointer-events-none"; }
+                            else { cls = "opacity-40 pointer-events-none"; }
+                        }
+                    }
+                    return `<button onclick="checkAnswer(this, ${opt.isCorrect}, ${i})" ${isAns?'disabled':''} class="flex items-center gap-3 p-3 rounded-xl font-bold text-left border-2 transition ${cls}"><span class="w-8 h-8 rounded-lg flex items-center justify-center font-black bg-slate-100 text-slate-500">${['A','B','C','D'][i]}</span><div class="math-scroll">${marked.parseInline(opt.text||"")}</div></button>`;
+                }).join('') + `</div>`;
+            } 
+            else if (state.currentRound === 'round2') {
+                html += `<div class="flex flex-col gap-2.5">` + (q.statements||[]).map((s, i) => {
+                    let qK = `round2_${q.id}_${i}`; let isA = state.answeredQuestions.includes(qK);
+                    let tC="bg-slate-50 border-slate-200 hover:bg-green-500 hover:text-white", fC="bg-slate-50 border-slate-200 hover:bg-red-500 hover:text-white";
+                    if(isExam && !isRev) {
+                        tC="bg-slate-50 border-slate-200 hover:bg-sky-500 hover:text-white"; fC="bg-slate-50 border-slate-200 hover:bg-sky-500 hover:text-white";
+                    }
+                    if (isA && state.userChoices[qK]) {
+                        let ch = state.userChoices[qK];
+                        if (isExam && !isRev) {
+                            if(ch.userChoice) { tC = "bg-sky-500 text-white border-sky-600 shadow"; fC = "opacity-30 pointer-events-none"; }
+                            else { fC = "bg-sky-500 text-white border-sky-600 shadow"; tC = "opacity-30 pointer-events-none"; }
+                        } else {
+                            if(ch.userChoice) { tC = ch.isCorrect ? "bg-green-500 text-white border-green-600 shadow" : "bg-red-500 text-white border-red-600 shake-wrong shadow"; fC = "opacity-30 pointer-events-none"; }
+                            else { fC = ch.isCorrect ? "bg-green-500 text-white border-green-600 shadow" : "bg-red-500 text-white border-red-600 shake-wrong shadow"; tC = "opacity-30 pointer-events-none"; }
+                        }
+                    }
+                    return `<div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm"><div class="font-bold flex-grow text-base"><span class="text-main mr-1">${s.label})</span> ${marked.parseInline(s.text||"")}</div><div class="flex gap-2"><button onclick="checkTF(this, true, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${tC}">ĐÚNG</button><button onclick="checkTF(this, false, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${fC}">SAI</button></div></div>`;
+                }).join('') + `</div>`;
+            } 
+            else if (state.currentRound === 'round3') {
+                let qK = `round3_${q.id}`; let isA = state.answeredQuestions.includes(qK);
+                let boxHtml = '';
+                if(isA && state.userChoices[qK]) {
+                    if (isExam && !isRev) {
+                        boxHtml = `<div class="mt-3 p-3 rounded-xl font-bold text-center border text-sky-700 border-sky-400 bg-sky-50">Đã lưu lựa chọn</div>`;
+                    } else {
+                        boxHtml = `<div class="mt-3 p-3 rounded-xl font-bold text-center border ${state.userChoices[qK].isCorrect?'text-green-600 border-green-400 bg-green-50':'text-red-600 border-red-400 bg-red-50'}">${state.userChoices[qK].isCorrect?'Chính xác!':`Sai. Đáp án đúng chuẩn: ${q.answer}`}</div>`;
+                    }
+                }
+                html += `<div class="flex flex-col gap-2">
+                    <div class="flex rounded-xl overflow-hidden border-2 border-mainLight shadow-sm">
+                        <math-field id="r3-input" value="${state.userChoices[qK]?.userVal||''}" ${isA?'disabled':''} class="flex-grow p-3 font-bold outline-none text-xl bg-white min-h-[55px] text-mainDark" math-virtual-keyboard-policy="manual"></math-field>
+                        <button onclick="checkR3Answer(document.getElementById('r3-input').value)" ${isA?'disabled':''} class="px-6 bg-main text-white font-black hover:bg-mainDark transition text-lg"><i class="fa-solid fa-paper-plane"></i> NỘP</button>
+                    </div>
+                    ${!isA ? `<button onclick="document.getElementById('r3-input').executeCommand('toggleVirtualKeyboard')" class="py-1 px-3 text-xs bg-sky-50 text-sky-600 font-bold rounded-lg border border-sky-200 shadow-sm w-max hover:bg-sky-100 transition"><i class="fa-solid fa-keyboard mr-1"></i> Bàn phím Toán</button>` : ''}
+                    ${boxHtml}
+                </div>`;
+            }
+
+            if(q.explanation && ((isExam && isRev) || (!isExam && isAnsAll))) {
+                html += `<div class="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200 text-slate-700 text-sm"><b class="text-amber-800"><i class="fa-solid fa-lightbulb"></i> Hướng dẫn giải:</b><div class="mt-1">${marked.parse(q.explanation)}</div></div>`;
+            }
+            document.getElementById('app-content').innerHTML = html + `</div>`; triggerMathJax();
+        }
+
+        function showFloatingPoints(pts, isPenalty=false) {
+            let el = document.createElement('div'); el.className = `floating-points text-2xl font-black ${isPenalty?'text-red-500':'text-green-500'}`; el.innerHTML = isPenalty ? `-${pts}` : `+${pts}`;
+            el.style.left = '50%'; el.style.top = '40%'; document.body.appendChild(el); setTimeout(() => el.remove(), 1200);
+        }
+
+        function checkAnswer(btn, isC, idx) {
+            let q = state.currentQuestion; let qK = `round1_${q.id}`; if(state.answeredQuestions.includes(qK)) return;
+            state.answeredQuestions.push(qK); state.userChoices[qK] = { isCorrect: isC, optText: String(state.shuffledOptions[qK][idx].text).trim() };
+            let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
+            if(!isExam) {
+                let pts = q.points || 10;
+                if(isC) { playSound('correct'); state.scoreR1 += pts; state.stats.round1.correct++; showFloatingPoints(pts); } else { playSound('wrong'); }
+                state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
+            }
+            openQuestion(q.id);
+        }
+
+        function checkTF(btn, uC, isC, idx) {
+            let q = state.currentQuestion; let qK = `round2_${q.id}_${idx}`; if(state.answeredQuestions.includes(qK)) return;
+            state.answeredQuestions.push(qK); state.userChoices[qK] = { userChoice: uC, isCorrect: (uC === isC) };
+            let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
+            if(!isExam) {
+                let pts = 10, penalty = 5; 
+                if(uC === isC) { playSound('correct'); state.scoreR2 += pts; state.stats.round2.correct++; showFloatingPoints(pts); } 
+                else { playSound('wrong'); state.scoreR2 -= penalty; showFloatingPoints(penalty, true); }
+                state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
+            }
+            openQuestion(q.id);
+        }
+
+        function checkR3Answer(uA) {
+            if(!uA || !uA.trim()) return;
+            let q = state.currentQuestion; let qK = `round3_${q.id}`; if(state.answeredQuestions.includes(qK)) return;
+            state.answeredQuestions.push(qK);
+            
+            const normLatex = (s) => String(s).replace(/\\frac{([^{}]+)}{([^{}]+)}/g, "$1/$2").replace(/\\cdot/g, "*").replace(/\\times/g, "*").replace(/\\/g, "").trim();
+            
+            let rawUser = normLatex(uA); let rawCorrect = String(q.answer).trim();
+            let isC = (rawUser.toLowerCase() === rawCorrect.toLowerCase());
+            
+            if(!isC) {
+                const norm = (s) => String(s).toLowerCase().replace(/\s/g,'').replace(/,/g,'.');
+                let uMath = norm(rawUser), cMath = norm(rawCorrect);
+                if(uMath === cMath) { isC = true; } else {
+                    const parseFrac = (s) => { if(s.includes('/')) { let p = s.split('/'); return Number(p[0])/Number(p[1]); } return Number(s); };
+                    if(!isNaN(parseFrac(uMath)) && !isNaN(parseFrac(cMath)) && Math.abs(parseFrac(uMath) - parseFrac(cMath)) < 0.001) isC = true;
+                }
+            }
+            state.userChoices[qK] = { userVal: uA, isCorrect: isC };
+            let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
+            if(!isExam) {
+                let pts = q.points || 15;
+                if(isC) { playSound('correct'); state.scoreR3 += pts; state.stats.round3.correct++; showFloatingPoints(pts); } else { playSound('wrong'); }
+                state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
+            }
+            openQuestion(q.id);
+        }
+
+        async function forceSubmitScore() {
+            clearInterval(state.timer.intervalId); document.removeEventListener("visibilitychange", handleVisibilityChange);
+            let btn = document.getElementById('btn-submit-score'); if(btn) btn.disabled = true;
+            
+            let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
+            if(isExam) {
+                state.scoreR1 = 0; state.scoreR2 = 0; state.scoreR3 = 0;
+                if(state.currentSettings.round1Ids) { state.currentSettings.round1Ids.forEach(id => { let qK = `round1_${id}`; if(state.userChoices[qK] && state.userChoices[qK].isCorrect) state.scoreR1 += 0.25; }); }
+                if(state.currentSettings.round2Ids) { state.currentSettings.round2Ids.forEach(id => { let correctCount = 0; for(let j=0; j<4; j++) { let k = `round2_${id}_${j}`; if(state.userChoices[k] && state.userChoices[k].isCorrect) correctCount++; } if(correctCount === 1) state.scoreR2 += 0.1; else if(correctCount === 2) state.scoreR2 += 0.25; else if(correctCount === 3) state.scoreR2 += 0.5; else if(correctCount === 4) state.scoreR2 += 1.0; }); }
+                if(state.currentSettings.round3Ids) { state.currentSettings.round3Ids.forEach(id => { let qK = `round3_${id}`; if(state.userChoices[qK] && state.userChoices[qK].isCorrect) state.scoreR3 += 0.5; }); }
+                state.score = state.scoreR1 + state.scoreR2 + state.scoreR3;
+                state.score = Math.round(state.score * 100) / 100; state.scoreR1 = Math.round(state.scoreR1 * 100) / 100; state.scoreR2 = Math.round(state.scoreR2 * 100) / 100; state.scoreR3 = Math.round(state.scoreR3 * 100) / 100;
+            }
+            
+            state.isSubmitted = true;
+            let payload = { action: "submitScore", khoi: "12", id: state.studentId, name: state.studentName||"Khách", cls: state.studentClass||"Tự do", code: state.currentPlayCode, score: state.score, scoreR1: state.scoreR1, scoreR2: state.scoreR2, scoreR3: state.scoreR3, date: new Date().toLocaleDateString('vi-VN') };
+            try { await fetch(GOOGLE_WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }); showToast("Nộp bài thành công!"); } catch(e){}
+            localStorage.removeItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId);
+            
+            document.getElementById('scoreboard').classList.add('hidden');
+            document.getElementById('stats-content').innerHTML = `
+                <div class="bg-sky-50 p-4 rounded-xl border border-sky-100 text-slate-700">
+                    <span class="text-5xl font-black text-main block">${state.score}</span>
+                    <span class="text-xs font-bold uppercase text-slate-400">Tổng điểm đạt được</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 text-xs font-bold text-slate-600 text-center">
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                        <div class="text-main mb-1">PHẦN 1</div>
+                        <div class="text-lg">${state.scoreR1}đ</div>
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                        <div class="text-amber-500 mb-1">PHẦN 2</div>
+                        <div class="text-lg">${state.scoreR2}đ</div>
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                        <div class="text-rose-500 mb-1">PHẦN 3</div>
+                        <div class="text-lg">${state.scoreR3}đ</div>
+                    </div>
+                </div>
+            `;
+            
+            let closeBtn = document.querySelector('#stats-modal button');
+            if(closeBtn) {
+                closeBtn.innerText = "Xem lại bài thi & Hướng dẫn giải";
+                closeBtn.onclick = () => {
+                    document.getElementById('stats-modal').classList.add('hidden');
+                    renderDashboard(); 
+                };
+            }
+            
+            document.getElementById('stats-modal').classList.remove('hidden'); triggerConfetti(); updateScoreUI();
+        }
+    </script>
+</body>
+</html>
