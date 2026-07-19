@@ -347,9 +347,19 @@
                     if(avatar && user.photoURL) { avatar.src = user.photoURL; avatar.classList.remove('hidden'); }
                     document.getElementById('user-email').innerText = user.email;
                     
-                    try { let authDoc = await db.collection("GameData").doc("AuthorizedTeachers").get(); if(authDoc.exists) state.authorizedEmails = authDoc.data().list; } catch(e) {}
+                    try { 
+                        let authDoc = await db.collection("GameData").doc("AuthorizedTeachers").get(); 
+                        if(authDoc.exists) {
+                            state.authorizedEmails = authDoc.data().list || [];
+                        }
+                    } catch(e) {}
                     
                     let cleanEmail = user.email.toLowerCase().trim();
+                    let superAdminClean = SUPER_ADMIN_EMAIL.toLowerCase().trim();
+                    if (!state.authorizedEmails.map(e => e.toLowerCase().trim()).includes(superAdminClean)) {
+                        state.authorizedEmails.push(SUPER_ADMIN_EMAIL);
+                    }
+
                     if (state.authorizedEmails.map(e => e.toLowerCase().trim()).includes(cleanEmail)) {
                         state.isTeacher = true;
                         renderTeacherSetupScreen();
