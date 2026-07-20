@@ -40,6 +40,48 @@
     <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
     <audio id="audio-powerup" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
+    <!-- Persistent Floating Menu Bar (Always Visible) -->
+    <div id="persistent-hamburger-container" class="hidden fixed top-3 right-4 z-[99999] flex items-center gap-2">
+        <button onclick="toggleHeaderVisibility()" id="btn-toggle-header" title="Ẩn/Hiện thanh tiêu đề" class="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border-2 border-slate-200 text-slate-600 hover:text-main hover:border-main shadow-lg flex items-center justify-center transition">
+            <i class="fa-solid fa-eye-slash" id="icon-toggle-header"></i>
+        </button>
+        <button onclick="toggleStudentMenu(event)" id="persistent-menu-btn" title="Danh mục bài thi" class="w-10 h-10 rounded-full bg-main text-white shadow-lg flex items-center justify-center hover:bg-mainDark transition text-lg border-2 border-white">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        
+        <!-- Persistent Dropdown Menu -->
+        <div id="persistent-dropdown-menu" class="absolute top-12 right-0 w-64 bg-white rounded-2xl shadow-2xl border-2 border-mainLight z-[99999] hidden flex flex-col p-2 zoom-in">
+            <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">DANH MỤC BÀI THI</div>
+            <button onclick="toggleHeaderVisibility()" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 flex items-center justify-between text-xs">
+                <span><i class="fa-solid fa-eye-slash w-5 text-sky-500"></i> Ẩn/Hiện Thanh Tiêu Đề</span>
+                <span id="menu-header-status" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">Hiện</span>
+            </button>
+            <button onclick="renderDashboard(); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs">
+                <i class="fa-solid fa-house w-5 text-indigo-500"></i> Bảng Tổng Quan
+            </button>
+            <button onclick="selectRound('round1'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+                <span><i class="fa-solid fa-list-check w-5 text-sky-500"></i> Phần I: Trắc nghiệm</span>
+                <span class="text-[10px] bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full font-black" id="menu-r1-count">0</span>
+            </button>
+            <button onclick="selectRound('round2'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+                <span><i class="fa-solid fa-check-double w-5 text-amber-500"></i> Phần II: Đúng / Sai</span>
+                <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-black" id="menu-r2-count">0</span>
+            </button>
+            <button onclick="selectRound('round3'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+                <span><i class="fa-solid fa-keyboard w-5 text-rose-500"></i> Phần III: Trả lời ngắn</span>
+                <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-black" id="menu-r3-count">0</span>
+            </button>
+            <div class="border-t border-slate-100 mt-1 pt-1 flex gap-2">
+                <button onclick="document.getElementById('submit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-black text-xs text-center shadow-sm hover:brightness-105">
+                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Nộp Bài
+                </button>
+                <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-bold text-xs text-center transition">
+                    <i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Thoát
+                </button>
+            </div>
+        </div>
+    </div>
+
     <header class="glass sticky top-0 z-40 px-6 py-3 flex flex-col md:flex-row justify-between items-center rounded-b-3xl mx-4 mt-0 gap-4 md:gap-0 shadow-sm border-b-4 border-main">
         <div class="flex items-center gap-3">
             <div class="w-12 h-12 flex items-center justify-center bg-white rounded-full p-1 shadow-md">
@@ -294,9 +336,62 @@
             }
             document.getElementById('scoreboard').classList.remove('hidden');
             document.getElementById('timer-container').classList.remove('hidden');
+            let pMenu = document.getElementById('persistent-hamburger-container');
+            if (pMenu) pMenu.classList.remove('hidden');
+
             if(state.currentSettings.examMode !== 'exam') document.getElementById('streak-indicator').classList.remove('hidden');
             
+            updateStreakDisplay();
             setupAntiCheat(); startTimer(); updateScoreUI(); renderDashboard();
+        }
+
+        function toggleHeaderVisibility() {
+            let header = document.querySelector('header');
+            if (!header) return;
+            let isHidden = header.classList.toggle('hidden');
+            let icon = document.getElementById('icon-toggle-header');
+            let status = document.getElementById('menu-header-status');
+            if (isHidden) {
+                if(icon) icon.className = "fa-solid fa-eye text-main";
+                if(status) status.innerText = "Đã ẩn";
+                showToast("Đã ẩn thanh tiêu đề để tối ưu màn hình!");
+            } else {
+                if(icon) icon.className = "fa-solid fa-eye-slash";
+                if(status) status.innerText = "Hiện";
+                showToast("Đã hiện thanh tiêu đề!");
+            }
+        }
+
+        function updateStreakDisplay() {
+            let indicator = document.getElementById('streak-indicator');
+            let countEl = document.getElementById('streak-count');
+            if (countEl) countEl.innerText = state.streak;
+            if (indicator) {
+                if (state.streak >= 2) {
+                    indicator.classList.remove('hidden');
+                } else {
+                    indicator.classList.add('hidden');
+                }
+            }
+        }
+
+        function triggerComboNotification(count) {
+            if (count < 2) return;
+            let comboText = `🔥 STREAK COMBO x${count}!`;
+            if (count >= 5) comboText = `⚡ THẦN TỐC COMBO x${count}! 🚀`;
+            else if (count >= 3) comboText = `🔥 SIÊU COMBO x${count}! 💥`;
+
+            let comboEl = document.createElement('div');
+            comboEl.className = 'fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100000] pointer-events-none animate-bounce flex flex-col items-center';
+            comboEl.innerHTML = `
+                <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-white px-8 py-4 rounded-full shadow-2xl border-4 border-white font-black text-2xl md:text-3xl tracking-wider uppercase drop-shadow-2xl flex items-center gap-3">
+                    <i class="fa-solid fa-fire text-amber-300 text-3xl animate-pulse"></i>
+                    <span>${comboText}</span>
+                </div>
+            `;
+            document.body.appendChild(comboEl);
+            try { triggerConfetti(); } catch(e){}
+            setTimeout(() => comboEl.remove(), 1600);
         }
 
         function setupAntiCheat() {
@@ -366,18 +461,9 @@
             
             document.getElementById('app-content').innerHTML = `
                 <div class="w-full max-w-4xl fade-in">
-                    <!-- Hamburger Menu Header -->
-                    <div class="flex items-center justify-between mb-4 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200 relative">
+                    <div class="flex items-center justify-between mb-4 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200">
                         <h2 class="font-black text-main text-lg uppercase tracking-wider">${title}</h2>
-                        <button id="student-menu-btn" onclick="toggleStudentMenu(event)" class="text-slate-500 hover:text-main transition text-2xl p-1"><i class="fa-solid fa-bars"></i></button>
-                        
-                        <!-- Dropdown Menu -->
-                        <div id="student-dropdown-menu" class="absolute top-14 right-0 w-64 bg-white rounded-2xl shadow-2xl border-2 border-mainLight z-[9999] hidden flex flex-col p-2 zoom-in">
-                            <button onclick="renderDashboard()" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-house w-6"></i> Tổng quan</button>
-                            <button onclick="selectRound('round1')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-list-check w-6"></i> Phần I</button>
-                            <button onclick="selectRound('round2')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-check-double w-6"></i> Phần II</button>
-                            <button onclick="selectRound('round3')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition"><i class="fa-solid fa-keyboard w-6"></i> Phần III</button>
-                        </div>
+                        <span class="text-xs font-bold text-slate-400">Chọn câu hỏi bên dưới</span>
                     </div>
                     <div class="flex flex-wrap gap-3 bg-white/60 p-4 rounded-2xl border">${btns}</div>
                 </div>
@@ -385,14 +471,29 @@
         }
 
         function toggleStudentMenu(e) {
-            e.stopPropagation();
-            let m = document.getElementById('student-dropdown-menu');
-            if(m) m.classList.toggle('hidden');
+            if(e) e.stopPropagation();
+            let m = document.getElementById('persistent-dropdown-menu');
+            if(m) {
+                m.classList.toggle('hidden');
+                if (GAME_DATA) {
+                    let r1 = document.getElementById('menu-r1-count'); if(r1) r1.innerText = (GAME_DATA.round1||[]).length;
+                    let r2 = document.getElementById('menu-r2-count'); if(r2) r2.innerText = (GAME_DATA.round2||[]).length;
+                    let r3 = document.getElementById('menu-r3-count'); if(r3) r3.innerText = (GAME_DATA.round3||[]).length;
+                }
+            }
         }
 
         function openQuestion(qId) {
-            let q = GAME_DATA[state.currentRound].find(x => String(x.id) === String(qId)); if(!q) return;
+            let currentRoundData = GAME_DATA[state.currentRound] || [];
+            let currentIndex = currentRoundData.findIndex(x => String(x.id) === String(qId));
+            if(currentIndex === -1) return;
+            let q = currentRoundData[currentIndex];
             state.currentQuestion = q;
+
+            let prevId = currentIndex > 0 ? currentRoundData[currentIndex - 1].id : null;
+            let nextId = currentIndex < currentRoundData.length - 1 ? currentRoundData[currentIndex + 1].id : null;
+            let totalQs = currentRoundData.length;
+
             let isAnsAll = (state.currentRound==='round1'||state.currentRound==='round3') ? state.answeredQuestions.includes(`${state.currentRound}_${q.id}`) : q.statements?.every((_,i)=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
             
             let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
@@ -401,8 +502,8 @@
             let html = `
                 <div class="w-full max-w-4xl fade-in flex flex-col">
                     <div class="flex justify-between items-center mb-3">
-                        <button onclick="selectRound('${state.currentRound}')" class="px-4 py-1.5 bg-white border shadow-sm rounded-xl font-bold text-xs text-slate-600"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại danh sách</button>
-                        <span class="px-4 py-1 bg-main text-white rounded-full font-black text-xs uppercase shadow-sm">Câu hỏi số ${q.id}</span>
+                        <button onclick="selectRound('${state.currentRound}')" class="px-4 py-1.5 bg-white border shadow-sm rounded-xl font-bold text-xs text-slate-600 hover:bg-sky-50 transition"><i class="fa-solid fa-arrow-left mr-1"></i> Danh sách phần thi</button>
+                        <span class="px-4 py-1 bg-main text-white rounded-full font-black text-xs uppercase shadow-sm">Câu ${currentIndex + 1} / ${totalQs}</span>
                     </div>
                     <div class="bg-white p-6 rounded-2xl mb-4 shadow-sm border border-slate-100 text-lg font-bold leading-relaxed">
                         ${marked.parse(q.text || "")}
@@ -473,10 +574,24 @@
                 </div>`;
             }
 
-            if(q.explanation && ((isExam && isRev) || (!isExam && isAnsAll))) {
-                html += `<div class="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200 text-slate-700 text-sm"><b class="text-amber-800"><i class="fa-solid fa-lightbulb"></i> Hướng dẫn giải:</b><div class="mt-1">${marked.parse(q.explanation)}</div></div>`;
-            }
-            document.getElementById('app-content').innerHTML = html + `</div>`; triggerMathJax();
+            let explHtml = (q.explanation && ((isExam && isRev) || (!isExam && isAnsAll))) ? `<div class="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200 text-slate-700 text-sm"><b class="text-amber-800"><i class="fa-solid fa-lightbulb"></i> Hướng dẫn giải:</b><div class="mt-1">${marked.parse(q.explanation)}</div></div>` : '';
+            
+            let navHtml = `
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-200 gap-3">
+                    <button ${prevId ? `onclick="openQuestion('${prevId}')"` : 'disabled'} class="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition ${prevId ? 'bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white border border-sky-200 shadow-sm' : 'bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed border border-slate-200'}">
+                        <i class="fa-solid fa-arrow-left"></i> <span>Câu trước</span>
+                    </button>
+                    <button onclick="selectRound('${state.currentRound}')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs sm:text-sm transition border border-slate-200 shadow-sm">
+                        <i class="fa-solid fa-grip mr-1"></i> Danh sách câu (${currentIndex + 1}/${totalQs})
+                    </button>
+                    <button ${nextId ? `onclick="openQuestion('${nextId}')"` : 'disabled'} class="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition ${nextId ? 'bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white border border-sky-200 shadow-sm' : 'bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed border border-slate-200'}">
+                        <span>Câu tiếp</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('app-content').innerHTML = html + explHtml + navHtml + `</div>`; 
+            triggerMathJax();
         }
 
         function showFloatingPoints(pts, isPenalty=false) {
@@ -490,7 +605,18 @@
             let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
             if(!isExam) {
                 let pts = q.points || 10;
-                if(isC) { playSound('correct'); state.scoreR1 += pts; state.stats.round1.correct++; showFloatingPoints(pts); } else { playSound('wrong'); }
+                if(isC) { 
+                    state.streak++;
+                    playSound('correct'); 
+                    state.scoreR1 += pts; 
+                    state.stats.round1.correct++; 
+                    showFloatingPoints(pts); 
+                    triggerComboNotification(state.streak);
+                } else { 
+                    state.streak = 0;
+                    playSound('wrong'); 
+                }
+                updateStreakDisplay();
                 state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
             }
             openQuestion(q.id);
@@ -502,8 +628,21 @@
             let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
             if(!isExam) {
                 let pts = 10, penalty = 5; 
-                if(uC === isC) { playSound('correct'); state.scoreR2 += pts; state.stats.round2.correct++; showFloatingPoints(pts); } 
-                else { playSound('wrong'); state.scoreR2 -= penalty; showFloatingPoints(penalty, true); }
+                if(uC === isC) { 
+                    state.streak++;
+                    playSound('correct'); 
+                    state.scoreR2 += pts; 
+                    state.stats.round2.correct++; 
+                    showFloatingPoints(pts); 
+                    triggerComboNotification(state.streak);
+                } 
+                else { 
+                    state.streak = 0;
+                    playSound('wrong'); 
+                    state.scoreR2 -= penalty; 
+                    showFloatingPoints(penalty, true); 
+                }
+                updateStreakDisplay();
                 state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
             }
             openQuestion(q.id);
@@ -531,7 +670,18 @@
             let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
             if(!isExam) {
                 let pts = q.points || 15;
-                if(isC) { playSound('correct'); state.scoreR3 += pts; state.stats.round3.correct++; showFloatingPoints(pts); } else { playSound('wrong'); }
+                if(isC) { 
+                    state.streak++;
+                    playSound('correct'); 
+                    state.scoreR3 += pts; 
+                    state.stats.round3.correct++; 
+                    showFloatingPoints(pts); 
+                    triggerComboNotification(state.streak);
+                } else { 
+                    state.streak = 0;
+                    playSound('wrong'); 
+                }
+                updateStreakDisplay();
                 state.score = state.scoreR1 + state.scoreR2 + state.scoreR3; updateScoreUI();
             }
             openQuestion(q.id);
@@ -597,8 +747,8 @@
         });
         
         document.addEventListener('click', (e) => {
-            let m = document.getElementById('student-dropdown-menu');
-            if(m && !m.classList.contains('hidden') && !e.target.closest('#student-dropdown-menu') && !e.target.closest('#student-menu-btn')) {
+            let m = document.getElementById('persistent-dropdown-menu');
+            if(m && !m.classList.contains('hidden') && !e.target.closest('#persistent-dropdown-menu') && !e.target.closest('#persistent-menu-btn')) {
                 m.classList.add('hidden');
             }
         });
