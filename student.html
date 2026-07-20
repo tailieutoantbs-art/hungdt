@@ -40,45 +40,48 @@
     <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
     <audio id="audio-powerup" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
-    <!-- Persistent Floating Menu Bar (Always Visible) -->
-    <div id="persistent-hamburger-container" class="hidden fixed top-3 right-4 z-[99999] flex items-center gap-2">
-        <button onclick="toggleHeaderVisibility()" id="btn-toggle-header" title="Ẩn/Hiện thanh tiêu đề" class="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border-2 border-slate-200 text-slate-600 hover:text-main hover:border-main shadow-lg flex items-center justify-center transition">
-            <i class="fa-solid fa-eye-slash" id="icon-toggle-header"></i>
+    <!-- Floating Action Buttons (Shown ONLY when header is hidden) -->
+    <div id="floating-hamburger-container" class="hidden fixed top-3 right-4 z-[99999] flex items-center gap-2">
+        <button onclick="toggleHeaderVisibility()" title="Hiện lại thanh tiêu đề" class="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md border-2 border-sky-400 text-main hover:bg-main hover:text-white shadow-xl flex items-center justify-center transition">
+            <i class="fa-solid fa-eye text-lg"></i>
         </button>
-        <button onclick="toggleStudentMenu(event)" id="persistent-menu-btn" title="Danh mục bài thi" class="w-10 h-10 rounded-full bg-main text-white shadow-lg flex items-center justify-center hover:bg-mainDark transition text-lg border-2 border-white">
+        <button onclick="toggleStudentMenu(event)" id="floating-menu-btn" title="Danh mục bài thi" class="w-10 h-10 rounded-full bg-main text-white shadow-xl flex items-center justify-center hover:bg-mainDark transition text-lg border-2 border-white">
             <i class="fa-solid fa-bars"></i>
         </button>
-        
-        <!-- Persistent Dropdown Menu -->
-        <div id="persistent-dropdown-menu" class="absolute top-12 right-0 w-64 bg-white rounded-2xl shadow-2xl border-2 border-mainLight z-[99999] hidden flex flex-col p-2 zoom-in">
-            <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">DANH MỤC BÀI THI</div>
-            <button onclick="toggleHeaderVisibility()" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 flex items-center justify-between text-xs">
-                <span><i class="fa-solid fa-eye-slash w-5 text-sky-500"></i> Ẩn/Hiện Thanh Tiêu Đề</span>
-                <span id="menu-header-status" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">Hiện</span>
+    </div>
+
+    <!-- Dropdown Menu -->
+    <div id="persistent-dropdown-menu" class="fixed top-16 right-4 w-64 bg-white rounded-2xl shadow-2xl border-2 border-mainLight z-[100000] hidden flex flex-col p-2 zoom-in">
+        <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 flex justify-between items-center">
+            <span>DANH MỤC BÀI THI</span>
+            <button onclick="toggleStudentMenu(event)" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <button onclick="toggleHeaderVisibility(); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 flex items-center justify-between text-xs">
+            <span><i class="fa-solid fa-eye-slash w-5 text-sky-500"></i> Ẩn/Hiện Thanh Tiêu Đề</span>
+            <span id="menu-header-status" class="text-[10px] bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full font-bold">Hiện</span>
+        </button>
+        <button onclick="renderDashboard(); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs">
+            <i class="fa-solid fa-house w-5 text-indigo-500"></i> Bảng Tổng Quan
+        </button>
+        <button onclick="selectRound('round1'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-list-check w-5 text-sky-500"></i> Phần I: Trắc nghiệm</span>
+            <span class="text-[10px] bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full font-black" id="menu-r1-count">0</span>
+        </button>
+        <button onclick="selectRound('round2'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-check-double w-5 text-amber-500"></i> Phần II: Đúng / Sai</span>
+            <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-black" id="menu-r2-count">0</span>
+        </button>
+        <button onclick="selectRound('round3'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-keyboard w-5 text-rose-500"></i> Phần III: Trả lời ngắn</span>
+            <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-black" id="menu-r3-count">0</span>
+        </button>
+        <div class="border-t border-slate-100 mt-1 pt-1 flex gap-2">
+            <button onclick="document.getElementById('submit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-black text-xs text-center shadow-sm hover:brightness-105">
+                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Nộp Bài
             </button>
-            <button onclick="renderDashboard(); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs">
-                <i class="fa-solid fa-house w-5 text-indigo-500"></i> Bảng Tổng Quan
+            <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-bold text-xs text-center transition">
+                <i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Thoát
             </button>
-            <button onclick="selectRound('round1'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
-                <span><i class="fa-solid fa-list-check w-5 text-sky-500"></i> Phần I: Trắc nghiệm</span>
-                <span class="text-[10px] bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full font-black" id="menu-r1-count">0</span>
-            </button>
-            <button onclick="selectRound('round2'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
-                <span><i class="fa-solid fa-check-double w-5 text-amber-500"></i> Phần II: Đúng / Sai</span>
-                <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-black" id="menu-r2-count">0</span>
-            </button>
-            <button onclick="selectRound('round3'); toggleStudentMenu(event);" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100 text-xs flex items-center justify-between">
-                <span><i class="fa-solid fa-keyboard w-5 text-rose-500"></i> Phần III: Trả lời ngắn</span>
-                <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-black" id="menu-r3-count">0</span>
-            </button>
-            <div class="border-t border-slate-100 mt-1 pt-1 flex gap-2">
-                <button onclick="document.getElementById('submit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-black text-xs text-center shadow-sm hover:brightness-105">
-                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Nộp Bài
-                </button>
-                <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden'); toggleStudentMenu(event);" class="flex-1 py-2 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-bold text-xs text-center transition">
-                    <i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Thoát
-                </button>
-            </div>
         </div>
     </div>
 
@@ -98,7 +101,19 @@
             <div id="streak-indicator" class="absolute -bottom-3 hidden bg-white border border-amber-300 text-amber-500 font-bold text-[10px] px-2 py-0.5 rounded-full shadow-sm"><i class="fa-solid fa-fire text-red-500"></i> Combo: <span id="streak-count">0</span></div>
         </div>
 
-        <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden')" class="px-4 py-2 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition text-xs shadow-sm"><i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Thoát</button>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleHeaderVisibility()" title="Ẩn thanh tiêu đề" class="px-3 py-2 bg-slate-100 hover:bg-sky-50 text-slate-600 hover:text-main font-bold rounded-xl transition text-xs flex items-center gap-1 border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-eye-slash text-sky-500"></i>
+                <span class="hidden sm:inline">Ẩn tiêu đề</span>
+            </button>
+            <button onclick="toggleStudentMenu(event)" id="header-menu-btn" title="Danh mục bài thi" class="w-9 h-9 rounded-xl bg-main text-white hover:bg-mainDark transition flex items-center justify-center text-sm shadow-sm">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <button onclick="document.getElementById('exit-confirm-modal').classList.remove('hidden')" class="px-3 py-2 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition text-xs shadow-sm flex items-center gap-1 border border-rose-100">
+                <i class="fa-solid fa-person-walking-arrow-right"></i>
+                <span class="hidden sm:inline">Thoát</span>
+            </button>
+        </div>
     </header>
 
     <main id="app-content" class="flex-grow p-6 flex flex-col items-center justify-center w-full max-w-5xl mx-auto relative z-10">
@@ -336,8 +351,6 @@
             }
             document.getElementById('scoreboard').classList.remove('hidden');
             document.getElementById('timer-container').classList.remove('hidden');
-            let pMenu = document.getElementById('persistent-hamburger-container');
-            if (pMenu) pMenu.classList.remove('hidden');
 
             if(state.currentSettings.examMode !== 'exam') document.getElementById('streak-indicator').classList.remove('hidden');
             
@@ -347,17 +360,17 @@
 
         function toggleHeaderVisibility() {
             let header = document.querySelector('header');
+            let floatingContainer = document.getElementById('floating-hamburger-container');
             if (!header) return;
             let isHidden = header.classList.toggle('hidden');
-            let icon = document.getElementById('icon-toggle-header');
             let status = document.getElementById('menu-header-status');
             if (isHidden) {
-                if(icon) icon.className = "fa-solid fa-eye text-main";
-                if(status) status.innerText = "Đã ẩn";
-                showToast("Đã ẩn thanh tiêu đề để tối ưu màn hình!");
+                if (floatingContainer) floatingContainer.classList.remove('hidden');
+                if (status) status.innerText = "Đã ẩn";
+                showToast("Đã ẩn thanh tiêu đề!");
             } else {
-                if(icon) icon.className = "fa-solid fa-eye-slash";
-                if(status) status.innerText = "Hiện";
+                if (floatingContainer) floatingContainer.classList.add('hidden');
+                if (status) status.innerText = "Hiện";
                 showToast("Đã hiện thanh tiêu đề!");
             }
         }
@@ -748,7 +761,7 @@
         
         document.addEventListener('click', (e) => {
             let m = document.getElementById('persistent-dropdown-menu');
-            if(m && !m.classList.contains('hidden') && !e.target.closest('#persistent-dropdown-menu') && !e.target.closest('#persistent-menu-btn')) {
+            if(m && !m.classList.contains('hidden') && !e.target.closest('#persistent-dropdown-menu') && !e.target.closest('#floating-menu-btn') && !e.target.closest('#header-menu-btn')) {
                 m.classList.add('hidden');
             }
         });
