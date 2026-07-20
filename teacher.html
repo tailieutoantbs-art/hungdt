@@ -25,13 +25,17 @@
             startup: { typeset: false } 
         };
         if (typeof tailwind !== 'undefined') {
-            tailwind.config = { theme: { extend: { colors: { main: '#0ea5e9', mainDark: '#0284c7', mainLight: '#e0f2fe' }, fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'], script: ['"Dancing Script"', 'cursive'] } } } };
+            let tMain = localStorage.getItem('themeMain') || '#0ea5e9';
+            let tDark = localStorage.getItem('themeDark') || '#0284c7';
+            let tLight = localStorage.getItem('themeLight') || '#e0f2fe';
+            tailwind.config = { theme: { extend: { colors: { main: tMain, mainDark: tDark, mainLight: tLight }, fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'], script: ['"Dancing Script"', 'cursive'] } } } };
         }
         if (typeof marked !== 'undefined') { marked.setOptions({ breaks: true, mangle: false, headerIds: false }); }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://unpkg.com/mathlive"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -47,7 +51,7 @@
     <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
     <audio id="audio-powerup" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
-    <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-lg pointer-events-none">
+    <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-main text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-lg pointer-events-none">
         <i class="fa-solid fa-circle-check text-3xl"></i><span id="toast-msg">Thành công!</span>
     </div>
 
@@ -81,15 +85,14 @@
         </div>
     </footer>
 
-    <div id="admin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-7xl h-[95vh] flex flex-col zoom-in shadow-2xl relative overflow-hidden border-4 border-slate-200">
+    <div id="admin-modal" class="hidden w-full max-w-7xl mx-auto flex-grow flex flex-col p-2 md:p-4 z-10 relative">
+        <div class="bg-white p-6 rounded-3xl w-full flex-grow flex flex-col shadow-2xl relative overflow-hidden border-4 border-slate-200">
             <div class="absolute top-4 right-4 flex items-center gap-3 z-10 flex-wrap justify-end bg-white p-2 rounded-xl shadow-sm border border-slate-100">
                 <button id="btn-update-loaded-exam" onclick="updateExistingExam()" class="hidden px-4 py-2 bg-amber-100 text-amber-700 font-bold rounded-xl hover:bg-amber-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Cập nhật [<span id="loaded-code-display"></span>]</button>
                 <button onclick="openChangePasswordModal()" class="w-10 h-10 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-800 hover:text-white transition shadow-sm btn-3d" title="Đổi mật khẩu"><i class="fa-solid fa-key"></i></button>
-                <button onclick="openImportModal()" class="px-4 py-2 bg-emerald-100 text-emerald-700 font-bold rounded-xl hover:bg-emerald-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Nhập / AI</button>
+                <button onclick="openImportModal()" class="px-4 py-2 bg-mainLight text-mainDark font-bold rounded-xl hover:bg-main hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Nhập / AI</button>
                 <button onclick="openExportModal()" class="px-4 py-2 bg-sky-100 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-share-nodes mr-1"></i> Xuất Đề</button>
                 <button onclick="resetToDefaultData()" class="px-4 py-2 bg-rose-100 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục</button>
-                <button onclick="closeAdmin()" class="text-slate-400 hover:text-rose-500 text-xl w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 transition btn-3d" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
             <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4 mt-2 md:mt-0">
@@ -109,11 +112,12 @@
                 <button onclick="adminSetTab('round2')" id="tab-round2" class="px-4 py-2 rounded-lg font-bold text-sm">P2: Đúng/Sai</button>
                 <button onclick="adminSetTab('round3')" id="tab-round3" class="px-4 py-2 rounded-lg font-bold text-sm">P3: Trả lời ngắn</button>
                 <button onclick="adminSetTab('json')" id="tab-json" class="px-4 py-2 rounded-lg font-bold text-sm text-slate-500">JSON</button>
+                <button onclick="adminSetTab('presentation')" id="tab-presentation" class="px-4 py-2 rounded-lg font-bold text-sm text-main bg-mainLight border border-mainLight ml-2 transition hover:bg-main hover:text-white"><i class="fa-solid fa-play mr-1"></i> Trình Chiếu</button>
                 
-                <button onclick="adminSetTab('qbank')" id="tab-qbank" class="px-4 py-2 rounded-lg font-bold text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 ml-auto transition hover:bg-emerald-500 hover:text-white"><i class="fa-solid fa-database mr-1"></i> Ngân Hàng/Ma Trận</button>
+                <button onclick="adminSetTab('qbank')" id="tab-qbank" class="px-4 py-2 rounded-lg font-bold text-sm text-emerald-600 bg-emerald-50 border border-mainLight ml-auto transition hover:bg-main hover:text-white"><i class="fa-solid fa-database mr-1"></i> Ngân Hàng/Ma Trận</button>
                 <button onclick="adminSetTab('bank')" id="tab-bank" class="px-4 py-2 rounded-lg font-bold text-sm text-sky-600 bg-sky-50 border border-sky-200 transition hover:bg-sky-600 hover:text-white"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Kho Đề Lưu</button>
                 <button onclick="adminSetTab('results')" id="tab-results" class="px-4 py-2 rounded-lg font-bold text-sm text-amber-600 bg-amber-50 border border-amber-200 transition hover:bg-amber-500 hover:text-white"><i class="fa-solid fa-chart-simple mr-1"></i> Quản Lý Điểm</button>
-                <button onclick="adminSetTab('students')" id="tab-students" class="px-4 py-2 rounded-lg font-bold text-sm text-indigo-600 bg-indigo-50 border border-indigo-200 transition hover:bg-indigo-500 hover:text-white"><i class="fa-solid fa-user-graduate mr-1"></i> Học Sinh</button>
+                <button onclick="adminSetTab('students')" id="tab-students" class="px-4 py-2 rounded-lg font-bold text-sm text-main bg-mainLight border border-mainLight transition hover:bg-main hover:text-white"><i class="fa-solid fa-user-graduate mr-1"></i> Học Sinh</button>
                 <button onclick="adminSetTab('teachers')" id="tab-teachers" class="px-4 py-2 rounded-lg font-bold text-sm text-rose-600 bg-rose-50 border border-rose-200 transition hover:bg-rose-500 hover:text-white"><i class="fa-solid fa-user-shield mr-1"></i> Phân Quyền</button>
             </div>
             
@@ -141,12 +145,12 @@
             <button onclick="closeImportModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center transition z-50"><i class="fa-solid fa-xmark"></i></button>
             
             <div class="flex flex-col items-center mb-2 shrink-0">
-                <div class="w-14 h-14 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center text-3xl shadow-sm mb-2"><i class="fa-solid fa-robot"></i></div>
+                <div class="w-14 h-14 bg-mainLight text-emerald-500 rounded-full flex items-center justify-center text-3xl shadow-sm mb-2"><i class="fa-solid fa-robot"></i></div>
                 <h3 class="text-2xl font-black text-slate-800 tracking-wide">Nhập Đề & AI Sinh Đề</h3>
             </div>
 
             <div class="flex gap-3 justify-center mb-6 shrink-0 font-bold text-sm">
-                <button onclick="switchImportTab('ai')" id="tab-import-ai" class="px-6 py-2.5 bg-emerald-500 text-white rounded-xl shadow-md btn-3d transition">Tạo bằng AI Gemini</button>
+                <button onclick="switchImportTab('ai')" id="tab-import-ai" class="px-6 py-2.5 bg-main text-white rounded-xl shadow-md btn-3d transition">Tạo bằng AI Gemini</button>
                 <button onclick="switchImportTab('paste')" id="tab-import-paste" class="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-200 transition btn-3d">Dán JSON thủ công</button>
             </div>
             
@@ -157,7 +161,7 @@
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                             <div class="flex justify-between items-center mb-4">
                                 <label class="font-black text-slate-700 text-sm">Cấu trúc Yêu cầu AI:</label>
-                                <button onclick="addAiRound()" class="text-xs bg-emerald-100 hover:bg-emerald-500 hover:text-white text-emerald-700 font-bold py-1.5 px-3 rounded-lg border border-emerald-200 transition shadow-sm">Thêm Lệnh</button>
+                                <button onclick="addAiRound()" class="text-xs bg-mainLight hover:bg-main hover:text-white text-mainDark font-bold py-1.5 px-3 rounded-lg border border-mainLight transition shadow-sm">Thêm Lệnh</button>
                             </div>
                             <div id="ai-rounds-container" class="space-y-3 overflow-y-auto admin-scroll max-h-[160px] pr-1 mb-4"></div>
                             <button onclick="generateAiPrompt()" class="w-full py-3 bg-slate-800 text-white font-black text-sm rounded-xl btn-3d tracking-wider uppercase mb-1">Cập Nhật Lệnh AI</button>
@@ -198,7 +202,7 @@
 
                 <div id="view-import-paste" class="hidden h-full flex flex-col">
                     <textarea id="import-json-textarea" class="flex-grow w-full p-4 font-mono text-sm border border-slate-200 rounded-2xl mb-4 outline-none focus:border-emerald-500 bg-slate-50 shadow-inner" style="min-height:280px;" placeholder="Dán cấu trúc chuỗi JSON hợp lệ tại đây..."></textarea>
-                    <button onclick="handleImportPaste()" class="w-full py-4 bg-emerald-500 text-white font-black rounded-xl text-sm shadow-md btn-3d uppercase">Xác Nhận Dữ Liệu JSON</button>
+                    <button onclick="handleImportPaste()" class="w-full py-4 bg-main text-white font-black rounded-xl text-sm shadow-md btn-3d uppercase">Xác Nhận Dữ Liệu JSON</button>
                 </div>
             </div>
         </div>
@@ -258,8 +262,8 @@
             <div id="export-link-container" class="mt-4 hidden p-5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl text-center shadow-sm">
                 <p class="text-xs font-black text-emerald-800 uppercase mb-2 tracking-wide">Mã Truy Cập Trực Tuyến:</p>
                 <div class="flex gap-2 justify-center">
-                    <input type="text" id="export-link-input" readonly class="text-4xl font-black text-center text-emerald-600 bg-white border border-emerald-200 rounded-xl w-44 outline-none py-1 shadow-inner tracking-widest">
-                    <button onclick="copyExportLink(this)" class="px-5 bg-emerald-600 text-white font-bold rounded-xl btn-3d shadow-sm hover:bg-emerald-700 transition"><i class="fa-solid fa-copy text-lg"></i></button>
+                    <input type="text" id="export-link-input" readonly class="text-4xl font-black text-center text-emerald-600 bg-white border border-mainLight rounded-xl w-44 outline-none py-1 shadow-inner tracking-widest">
+                    <button onclick="copyExportLink(this)" class="px-5 bg-mainDark text-white font-bold rounded-xl btn-3d shadow-sm hover:bg-emerald-700 transition"><i class="fa-solid fa-copy text-lg"></i></button>
                 </div>
             </div>
         </div>
@@ -267,35 +271,38 @@
 
     <!-- Add/Edit Student Modal -->
     <div id="edit-stu-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-sm shadow-2xl border-4 border-indigo-100 zoom-in relative">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-sm shadow-2xl border-4 border-mainLight zoom-in relative">
             <button onclick="closeAddStudentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 w-8 h-8 rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-black text-indigo-700 mb-4"><i class="fa-solid fa-user-pen mr-2"></i>Thông tin Học sinh</h3>
+            <h3 class="text-xl font-black text-mainDark mb-4"><i class="fa-solid fa-user-pen mr-2"></i>Thông tin Học sinh</h3>
             <div class="space-y-3">
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase">Mã ID (VD: 12A1_01)</label>
-                    <input type="text" id="edit-stu-id" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-400 font-bold uppercase shadow-inner">
+                    <input type="text" id="edit-stu-id" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold uppercase shadow-inner">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase">Họ và Tên</label>
-                    <input type="text" id="edit-stu-name" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-400 font-bold shadow-inner">
+                    <input type="text" id="edit-stu-name" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold shadow-inner">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase">Lớp (VD: 12A1)</label>
-                    <input type="text" id="edit-stu-cls" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-400 font-bold shadow-inner">
+                    <input type="text" id="edit-stu-cls" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold shadow-inner">
                 </div>
             </div>
-            <button id="btn-save-stu" onclick="confirmAddStudent()" class="w-full mt-6 py-3 bg-indigo-600 text-white font-black rounded-xl shadow-md hover:bg-indigo-700 transition btn-3d">Lưu Lại</button>
+            <button id="btn-save-stu" onclick="confirmAddStudent()" class="w-full mt-6 py-3 bg-mainDark text-white font-black rounded-xl shadow-md hover:bg-indigo-700 transition btn-3d">Lưu Lại</button>
         </div>
     </div>
 
     <!-- Import Students Modal -->
     <div id="import-students-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-2xl shadow-2xl border-4 border-emerald-100 zoom-in relative flex flex-col h-[80vh]">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-2xl shadow-2xl border-4 border-mainLight zoom-in relative flex flex-col h-[80vh]">
             <button onclick="closeImportStudentsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 w-8 h-8 rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-2xl font-black text-emerald-700 mb-2"><i class="fa-solid fa-file-excel mr-2"></i>Import Danh Sách Từ Excel</h3>
-            <p class="text-sm font-bold text-slate-500 mb-4">Copy dữ liệu 3 cột (Mã ID, Họ Tên, Lớp) từ Excel và dán trực tiếp vào ô bên dưới.</p>
-            <textarea id="import-stu-data" class="flex-grow w-full p-4 border-2 border-emerald-200 rounded-xl font-mono text-sm outline-none focus:border-emerald-500 shadow-inner resize-none whitespace-pre" placeholder="12A1_01\tNguyễn Văn A\t12A1\n12A1_02\tTrần Thị B\t12A1\n..."></textarea>
-            <button id="btn-import-stu" onclick="processImportStudents()" class="w-full mt-4 py-4 bg-emerald-500 text-white font-black rounded-xl shadow-md hover:bg-emerald-600 transition btn-3d uppercase tracking-widest"><i class="fa-solid fa-bolt mr-2"></i>Tiến Hành Nạp Dữ Liệu</button>
+            <h3 class="text-2xl font-black text-mainDark mb-2"><i class="fa-solid fa-file-excel mr-2"></i>Import Danh Sách Từ Excel</h3>
+            <p class="text-sm font-bold text-slate-500 mb-4">Cách 1: Copy dữ liệu 3 cột (Mã ID, Họ Tên, Lớp) từ Excel và dán trực tiếp vào ô bên dưới.<br>Cách 2: <strong>Chọn trực tiếp file Excel</strong> (.xlsx, .xls, .csv)</p>
+            <div class="mb-4">
+                <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-mainDark hover:file:bg-mainLight transition cursor-pointer" onchange="handleExcelUpload(event)">
+            </div>
+            <textarea id="import-stu-data" class="flex-grow w-full p-4 border-2 border-mainLight rounded-xl font-mono text-sm outline-none focus:border-emerald-500 shadow-inner resize-none whitespace-pre" placeholder="12A1_01\tNguyễn Văn A\t12A1\n12A1_02\tTrần Thị B\t12A1\n..."></textarea>
+            <button id="btn-import-stu" onclick="processImportStudents()" class="w-full mt-4 py-4 bg-main text-white font-black rounded-xl shadow-md hover:bg-mainDark transition btn-3d uppercase tracking-widest"><i class="fa-solid fa-bolt mr-2"></i>Tiến Hành Nạp Dữ Liệu</button>
         </div>
     </div>
 
@@ -340,6 +347,20 @@
         });
 
         window.onload = function() {
+            const isLocal = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            if (isLocal && localStorage.getItem('devModeBypass') === 'true') {
+                state.currentUser = { email: 'dev@localhost', photoURL: '' };
+                state.authorizedEmails = ['dev@localhost'];
+                state.isTeacher = true;
+                
+                let avatar = document.getElementById('user-avatar');
+                if (avatar) avatar.classList.remove('hidden');
+                document.getElementById('user-email').innerText = 'Dev Admin (Local)';
+                
+                renderTeacherSetupScreen();
+                return; // Bypass Firebase Auth checks
+            }
+
             firebase.auth().onAuthStateChanged(async user => {
                 if (user) {
                     state.currentUser = user;
@@ -376,32 +397,47 @@
 
         function renderTeacherSetupScreen() {
             document.getElementById('scoreboard').classList.add('hidden');
-            let tHtml = Array.from({length:state.numTeams},(_,i)=>`<div class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm transition hover:border-sky-300"><div class="w-10 h-10 rounded-lg bg-sky-500 text-white flex justify-center items-center font-black text-lg shadow-sm">${i+1}</div><input type="text" id="team-name-${i+1}" placeholder="Đội ${i+1}" value="Đội ${i+1}" class="bg-transparent font-bold outline-none text-sm text-slate-700 flex-grow"></div>`).join('');
+            document.getElementById('app-content').classList.add('hidden');
+            let adminModal = document.getElementById('admin-modal');
+            adminModal.classList.remove('hidden');
+            adminModal.classList.add('flex');
+            
+            if (!adminState.data) {
+                adminState.data = JSON.parse(JSON.stringify(GAME_DATA));
+            }
+            if (!adminState.round) {
+                adminSetTab('round1');
+            } else {
+                renderAdminUI();
+            }
+            updateGlobalModeDisplay();
+        }
+
+        function renderPresentationSetup(container) {
+            let tHtml = Array.from({length:state.numTeams},(_,i)=>`<div class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm transition hover:border-sky-300"><div class="w-10 h-10 rounded-lg bg-main text-white flex justify-center items-center font-black text-lg shadow-sm">${i+1}</div><input type="text" id="team-name-${i+1}" placeholder="Đội ${i+1}" value="Đội ${i+1}" class="bg-transparent font-bold outline-none text-sm text-slate-700 flex-grow"></div>`).join('');
             let h = JSON.parse(localStorage.getItem('math12ExportHistory')||'[]');
-            let hHtml = h.length ? `<div class="mt-6 border-t border-slate-200 pt-4 text-left"><h3 class="font-bold text-sky-700 mb-2 text-sm uppercase tracking-wide">Mã đề gần đây:</h3><div class="flex flex-wrap gap-2">${h.slice(0,5).map(x=>`<button onclick="loadTeacherCode('${x.code}')" class="px-3 py-1.5 border border-sky-200 bg-sky-50 text-sky-700 rounded-lg text-xs font-bold shadow-sm btn-3d hover:bg-sky-600 hover:text-white transition">${x.code}</button>`).join('')}</div></div>` : '';
-            document.getElementById('app-content').innerHTML = `
-                <div class="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-2xl text-center border-t-4 border-sky-500 bg-white/90 relative shadow-xl">
-                    <div class="absolute top-4 right-4 flex gap-2">
-                        <button onclick="openExportModal()" class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-600 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-share-nodes"></i></button>
-                        <button onclick="openAdmin()" class="w-10 h-10 rounded-full bg-slate-800 text-white hover:bg-slate-700 transition shadow-sm btn-3d"><i class="fa-solid fa-gear"></i></button>
-                    </div>
-                    <h2 class="text-2xl font-black text-sky-800 mb-6 mt-4 uppercase tracking-wider"><i class="fa-solid fa-chalkboard-user mr-2 text-sky-500"></i>Điều khiển Trình chiếu Lớp</h2>
-                    <div class="flex gap-2 mb-2">
-                        <input type="text" id="t-manual-code" placeholder="Nhập mã đề từ đám mây..." class="flex-grow p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 text-center font-bold tracking-widest uppercase text-lg shadow-inner bg-slate-50">
-                        <button onclick="loadTeacherCode(document.getElementById('t-manual-code').value)" class="px-6 py-3.5 bg-sky-600 text-white font-black rounded-xl hover:bg-sky-700 transition shadow-md btn-3d uppercase">Tải đề</button>
-                    </div>
-                    ${hHtml}
-                    <div class="mt-8 pt-6 border-t border-slate-200 flex flex-col items-center">
-                        <label class="block font-bold text-sm text-slate-500 uppercase tracking-wide mb-3">Số lượng Đội thi:</label>
-                        <div class="flex gap-3 mb-5">${[2,3,4].map(n=>`<button onclick="state.numTeams=${n}; renderTeacherSetupScreen();" class="px-5 py-2 border-2 rounded-xl font-bold text-sm transition btn-3d ${state.numTeams===n?'bg-sky-600 border-sky-600 text-white shadow-md':'bg-white text-slate-600 border-slate-200 hover:border-sky-300'}">${n} Đội</button>`).join('')}</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-8">${tHtml}</div>
-                        <button onclick="startTeamGame()" class="w-full py-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black rounded-2xl shadow-lg btn-3d uppercase tracking-wider text-lg"><i class="fa-solid fa-play mr-2"></i>Kích hoạt màn hình chiếu lớp</button>
+            let hHtml = h.length ? `<div class="mt-6 border-t border-slate-200 pt-4 text-left"><h3 class="font-bold text-mainDark mb-2 text-sm uppercase tracking-wide">Mã đề gần đây:</h3><div class="flex flex-wrap gap-2">${h.slice(0,5).map(x=>`<button onclick="loadTeacherCode('${x.code}')" class="px-3 py-1.5 border border-mainLight bg-mainLight text-mainDark rounded-lg text-xs font-bold shadow-sm btn-3d hover:bg-mainDark hover:text-white transition">${x.code}</button>`).join('')}</div></div>` : '';
+            container.innerHTML = `
+                <div class="w-full h-full flex flex-col items-center justify-center p-4 md:p-8 bg-slate-50 admin-scroll overflow-y-auto rounded-[1.5rem]">
+                    <div class="bg-white p-8 md:p-10 rounded-3xl w-full max-w-2xl text-center border-t-4 border-main relative shadow-md">
+                        <h2 class="text-2xl font-black text-mainDark mb-6 mt-2 uppercase tracking-wider"><i class="fa-solid fa-chalkboard-user mr-2 text-main"></i>Điều khiển Trình chiếu Lớp</h2>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="t-manual-code" placeholder="Nhập mã đề từ đám mây..." class="flex-grow p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-main text-center font-bold tracking-widest uppercase text-lg shadow-inner bg-slate-50">
+                            <button onclick="loadTeacherCode(document.getElementById('t-manual-code').value)" class="px-6 py-3.5 bg-mainDark text-white font-black rounded-xl hover:bg-indigo-700 transition shadow-md btn-3d uppercase">Tải đề</button>
+                        </div>
+                        ${hHtml}
+                        <div class="mt-8 pt-6 border-t border-slate-200 flex flex-col items-center">
+                            <label class="block font-bold text-sm text-slate-500 uppercase tracking-wide mb-3">Số lượng Đội thi:</label>
+                            <div class="flex gap-3 mb-5">${[2,3,4].map(n=>`<button onclick="state.numTeams=${n}; renderAdminUI();" class="px-5 py-2 border-2 rounded-xl font-bold text-sm transition btn-3d ${state.numTeams===n?'bg-mainDark border-mainDark text-white shadow-md':'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'}">${n} Đội</button>`).join('')}</div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-8">${tHtml}</div>
+                            <button onclick="startTeamGame()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-black rounded-2xl shadow-lg btn-3d uppercase tracking-wider text-lg"><i class="fa-solid fa-play mr-2"></i>Kích hoạt màn hình chiếu lớp</button>
+                        </div>
                     </div>
                 </div>`;
         }
 
         async function loadTeacherCode(code) { if(!code) return; code = code.trim().toUpperCase(); document.getElementById('app-content').innerHTML=`<div class="mt-32 text-center text-sky-500 font-bold"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br>Đang tải...</div>`; try { let s = await db.collection("SharedGames").doc(code).get(); if(!s.exists) throw new Error("Mã đề không tồn tại!"); GAME_DATA = sanitizeGameData(s.data().data); adminState.loadedSettings = s.data().settings || { examMode: 'practice' }; showToast("Đã tải xong mã: " + code); renderTeacherSetupScreen(); } catch(e) { showToast(e.message, true); renderTeacherSetupScreen(); } }
-        function startTeamGame() { state.teams = []; state.answeredQuestions = []; state.userChoices = {}; for(let i=1; i<=state.numTeams; i++) { let el = document.getElementById(`team-name-${i}`); state.teams.push({ id: i, name: (el?el.value:'') || `Đội ${i}`, score: 0 }); } state.currentTeamIndex = 0; document.getElementById('scoreboard').classList.remove('hidden'); renderScoreboard(); renderDashboard(); }
+        function startTeamGame() { state.teams = []; state.answeredQuestions = []; state.userChoices = {}; for(let i=1; i<=state.numTeams; i++) { let el = document.getElementById(`team-name-${i}`); state.teams.push({ id: i, name: (el?el.value:'') || `Đội ${i}`, score: 0 }); } state.currentTeamIndex = 0; document.getElementById('admin-modal').classList.add('hidden'); document.getElementById('admin-modal').classList.remove('flex'); document.getElementById('app-content').classList.remove('hidden'); document.getElementById('scoreboard').classList.remove('hidden'); renderScoreboard(); renderDashboard(); }
         
         function renderDashboard() {
             state.currentRound=null; state.currentQuestion=null;
@@ -477,7 +513,7 @@
             } else if (state.currentRound === 'round2') {
                 html += `<div class="flex flex-col gap-6">` + (q.statements||[]).map((s, i) => {
                     let qK = `round2_${q.id}_${i}`; let isA = state.answeredQuestions.includes(qK); let isTrueVal = s.isTrue === true || s.isTrue === 'true';
-                    let displayBox = isA ? `<div class="px-8 py-4 rounded-2xl text-2xl font-black text-white shadow-lg tracking-widest uppercase ${s.isTrue?'bg-gradient-to-r from-emerald-400 to-emerald-600 ring-4 ring-emerald-100':'bg-gradient-to-r from-rose-400 to-rose-600 ring-4 ring-rose-100'}">${s.isTrue?'ĐÚNG':'SAI'}</div>` : `<div class="flex gap-4"><button onclick="checkTF(${isTrueVal}, '${q.id}', ${i})" class="px-8 py-4 bg-slate-50 border-2 border-slate-200 shadow-sm hover:bg-emerald-500 hover:text-white hover:border-emerald-500 hover:shadow-xl hover:-translate-y-1 rounded-2xl font-black text-xl transition-all btn-3d tracking-widest text-slate-600">ĐÚNG</button><button onclick="checkTF(${!isTrueVal}, '${q.id}', ${i})" class="px-8 py-4 bg-slate-50 border-2 border-slate-200 shadow-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-xl hover:-translate-y-1 rounded-2xl font-black text-xl transition-all btn-3d tracking-widest text-slate-600">SAI</button></div>`;
+                    let displayBox = isA ? `<div class="px-8 py-4 rounded-2xl text-2xl font-black text-white shadow-lg tracking-widest uppercase ${s.isTrue?'bg-gradient-to-r from-emerald-400 to-emerald-600 ring-4 ring-emerald-100':'bg-gradient-to-r from-rose-400 to-rose-600 ring-4 ring-rose-100'}">${s.isTrue?'ĐÚNG':'SAI'}</div>` : `<div class="flex gap-4"><button onclick="checkTF(${isTrueVal}, '${q.id}', ${i})" class="px-8 py-4 bg-slate-50 border-2 border-slate-200 shadow-sm hover:bg-main hover:text-white hover:border-emerald-500 hover:shadow-xl hover:-translate-y-1 rounded-2xl font-black text-xl transition-all btn-3d tracking-widest text-slate-600">ĐÚNG</button><button onclick="checkTF(${!isTrueVal}, '${q.id}', ${i})" class="px-8 py-4 bg-slate-50 border-2 border-slate-200 shadow-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-xl hover:-translate-y-1 rounded-2xl font-black text-xl transition-all btn-3d tracking-widest text-slate-600">SAI</button></div>`;
                     
                     return `<div class="bg-white p-8 rounded-[2rem] border-[3px] border-sky-50 flex items-center justify-between gap-8 shadow-md hover:shadow-lg transition-all duration-300">
                                 <div class="font-bold text-3xl math-scroll text-blue-950 leading-relaxed">
@@ -569,8 +605,8 @@
 
         function pickRandomTeam() { let btn = document.getElementById('btn-random-picker'); let icon = btn.querySelector('i'); if(btn.disabled) return; btn.disabled = true; icon.classList.add('fa-spin'); playSound('powerup'); let rolls=0; let int=setInterval(()=>{ let rIdx = Math.floor(Math.random() * state.teams.length); let teamDivs = document.getElementById('teams-container').children; for(let i=0; i<teamDivs.length; i++) teamDivs[i].classList.remove('ring-8','scale-110','bg-sky-50','shadow-2xl','z-20'); if(teamDivs[rIdx]) teamDivs[rIdx].classList.add('ring-8','scale-110','bg-sky-50','shadow-2xl','z-20'); rolls++; if(rolls>=20) { clearInterval(int); icon.classList.remove('fa-spin'); btn.disabled=false; triggerConfetti(); state.currentTeamIndex = rIdx; renderScoreboard(); } }, 100); }
 
-        function openAdmin() { adminState.data = JSON.parse(JSON.stringify(GAME_DATA)); document.getElementById('admin-modal').classList.remove('hidden'); adminSetTab('round1'); updateGlobalModeDisplay(); }
-        function closeAdmin() { document.getElementById('admin-modal').classList.add('hidden'); renderTeacherSetupScreen(); }
+        function openAdmin() { adminState.data = JSON.parse(JSON.stringify(GAME_DATA)); document.getElementById('admin-modal').classList.remove('hidden'); document.getElementById('admin-modal').classList.add('flex'); document.getElementById('app-content').classList.add('hidden'); adminSetTab('round1'); updateGlobalModeDisplay(); }
+        function closeAdmin() { adminState.editingQ = null; renderAdminUI(); }
         
         function changeGlobalMode(mode) {
             if(!adminState.loadedSettings) adminState.loadedSettings = {};
@@ -589,23 +625,25 @@
         function renderAdminUI() {
             let updateBtn = document.getElementById('btn-update-loaded-exam');
             if (adminState.loadedCode) { updateBtn.classList.remove('hidden'); document.getElementById('loaded-code-display').innerText = adminState.loadedCode; } else { updateBtn.classList.add('hidden'); }
-            ['round1', 'round2', 'round3', 'json', 'bank', 'qbank', 'results', 'students', 'teachers'].forEach(r => { 
+            ['round1', 'round2', 'round3', 'json', 'bank', 'qbank', 'results', 'students', 'teachers', 'presentation'].forEach(r => { 
                 let b = document.getElementById(`tab-${r}`); if(!b) return;
                 if(r === adminState.round) {
-                    if(r==='qbank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-emerald-600 text-white ml-auto shadow-md";
+                    if(r==='qbank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-mainDark text-white ml-auto shadow-md";
                     else if(r==='bank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-sky-600 text-white shadow-md";
                     else if(r==='results') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-amber-600 text-white shadow-md";
-                    else if(r==='students') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-indigo-600 text-white shadow-md";
+                    else if(r==='students') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-mainDark text-white shadow-md";
                     else if(r==='teachers') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-rose-600 text-white shadow-md";
                     else if(r==='json') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-slate-600 text-white shadow-md";
+                    else if(r==='presentation') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-mainDark text-white shadow-md ml-2";
                     else b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-sky-600 text-white shadow-md";
                 } else {
-                    if(r==='qbank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 ml-auto hover:bg-emerald-500 hover:text-white transition";
+                    if(r==='qbank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-emerald-50 text-mainDark border border-mainLight ml-auto hover:bg-main hover:text-white transition";
                     else if(r==='bank') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-600 hover:text-white transition";
                     else if(r==='results') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-500 hover:text-white transition";
-                    else if(r==='students') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-500 hover:text-white transition";
+                    else if(r==='students') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-mainLight text-mainDark border border-mainLight hover:bg-main hover:text-white transition";
                     else if(r==='teachers') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-500 hover:text-white transition";
                     else if(r==='json') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200 transition";
+                    else if(r==='presentation') b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-mainLight text-main border border-mainLight ml-2 hover:bg-main hover:text-white transition";
                     else b.className = "px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
                 }
             });
@@ -614,6 +652,7 @@
             if(adminState.round === 'bank') { renderAdminBank(area); return; }
             if(adminState.round === 'results') { renderStudentResults(area); return; }
             if(adminState.round === 'qbank') { renderQuestionBankSheet(area); return; }
+            if(adminState.round === 'presentation') { renderPresentationSetup(area); return; }
             if(adminState.round === 'students') { renderStudentManagement(area); return; }
             if(adminState.round === 'teachers') { renderTeacherManagement(area); return; }
 
@@ -650,7 +689,7 @@
             
             let isExam = adminState.loadedSettings?.examMode === 'exam';
 
-            let html = `<div class="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4"><h3 class="font-black text-2xl text-sky-900 uppercase tracking-wide"><i class="fa-solid fa-pen-to-square mr-3 text-sky-500"></i>Biên tập Câu ${q.id}</h3><div class="flex gap-3"><button onclick="adminSaveCurrentQ(false)" class="px-6 py-3 bg-emerald-500 text-white rounded-xl text-sm font-black shadow-md hover:bg-emerald-600 transition btn-3d uppercase tracking-wider"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Cập Nhật</button><button onclick="deleteExamCodeFromAdmin('${q.id}')" class="px-6 py-3 bg-rose-50 text-rose-600 rounded-xl text-sm font-black hover:bg-rose-500 hover:text-white transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-trash-can mr-2"></i> Xóa Câu Này</button></div></div>`;
+            let html = `<div class="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4"><h3 class="font-black text-2xl text-sky-900 uppercase tracking-wide"><i class="fa-solid fa-pen-to-square mr-3 text-sky-500"></i>Biên tập Câu ${q.id}</h3><div class="flex gap-3"><button onclick="adminSaveCurrentQ(false)" class="px-6 py-3 bg-main text-white rounded-xl text-sm font-black shadow-md hover:bg-mainDark transition btn-3d uppercase tracking-wider"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Cập Nhật</button><button onclick="deleteExamCodeFromAdmin('${q.id}')" class="px-6 py-3 bg-rose-50 text-rose-600 rounded-xl text-sm font-black hover:bg-rose-500 hover:text-white transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-trash-can mr-2"></i> Xóa Câu Này</button></div></div>`;
             
             html += `<div class="mb-8 bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm"><div class="flex justify-between items-center mb-4"><label class="font-black text-sm text-slate-700 uppercase tracking-widest">Nội dung câu hỏi (Bọc biểu thức Toán bằng $...$):</label><button onclick="openMathModal('edit-q-text')" class="px-4 py-2 bg-sky-50 text-sky-600 rounded-xl text-xs font-black hover:bg-sky-600 hover:text-white transition border border-sky-100 shadow-sm btn-3d"><i class="fa-solid fa-calculator mr-2"></i> Gõ Toán Học</button></div><textarea id="edit-q-text" class="w-full p-5 border-2 border-slate-200 rounded-2xl outline-none focus:border-sky-500 shadow-inner text-lg font-medium text-slate-800 transition" rows="4">${String(q.text||'')}</textarea></div>`;
             
@@ -662,7 +701,7 @@
                 
                 let ptsHtml = `<label class="font-black text-sm text-amber-800 uppercase tracking-widest block mb-3 text-center">Điểm câu này:</label><input type="number" id="edit-q-points" value="${q.points !== undefined ? q.points : 10}" step="0.1" class="w-full p-4 border-2 border-amber-300 rounded-xl bg-white outline-none focus:border-amber-500 font-black text-3xl text-center text-amber-600 shadow-inner">`;
 
-                html += `</div></div><div class="mb-8 flex flex-col md:flex-row gap-5"><div class="flex-grow bg-emerald-50 p-6 rounded-[2rem] border-2 border-emerald-100 shadow-sm"><div class="flex justify-between items-center mb-3"><label class="font-black text-sm text-emerald-800 uppercase tracking-widest">Đáp án đúng chính xác:</label><button onclick="openMathModal('edit-q-ans')" class="text-[10px] bg-white border border-emerald-200 px-3 py-1.5 rounded-lg text-emerald-600 hover:bg-emerald-600 hover:text-white font-bold shadow-sm transition btn-3d"><i class="fa-solid fa-calculator"></i> Toán</button></div><p class="text-xs text-emerald-600 mb-3 font-semibold">Copy nguyên nội dung text của phương án đúng vào đây.</p><input type="text" id="edit-q-ans" value="${String(q.answer||'').replace(/"/g, '&quot;')}" class="w-full p-4 border-2 border-emerald-300 rounded-xl bg-white outline-none focus:border-emerald-500 font-black text-lg text-emerald-800 shadow-inner"></div><div class="w-full md:w-1/3 bg-amber-50 p-6 rounded-[2rem] border-2 border-amber-100 shadow-sm flex flex-col justify-center">${ptsHtml}</div></div>`;
+                html += `</div></div><div class="mb-8 flex flex-col md:flex-row gap-5"><div class="flex-grow bg-emerald-50 p-6 rounded-[2rem] border-2 border-mainLight shadow-sm"><div class="flex justify-between items-center mb-3"><label class="font-black text-sm text-emerald-800 uppercase tracking-widest">Đáp án đúng chính xác:</label><button onclick="openMathModal('edit-q-ans')" class="text-[10px] bg-white border border-mainLight px-3 py-1.5 rounded-lg text-emerald-600 hover:bg-mainDark hover:text-white font-bold shadow-sm transition btn-3d"><i class="fa-solid fa-calculator"></i> Toán</button></div><p class="text-xs text-emerald-600 mb-3 font-semibold">Copy nguyên nội dung text của phương án đúng vào đây.</p><input type="text" id="edit-q-ans" value="${String(q.answer||'').replace(/"/g, '&quot;')}" class="w-full p-4 border-2 border-emerald-300 rounded-xl bg-white outline-none focus:border-emerald-500 font-black text-lg text-emerald-800 shadow-inner"></div><div class="w-full md:w-1/3 bg-amber-50 p-6 rounded-[2rem] border-2 border-amber-100 shadow-sm flex flex-col justify-center">${ptsHtml}</div></div>`;
             } else if (adminState.round === 'round2') {
                 html += `<div class="mb-8 space-y-5">`;
                 (q.statements || []).forEach((stmt, idx) => { 
@@ -692,12 +731,12 @@
 
                 html += `
                 <div class="mb-8 flex flex-col md:flex-row gap-5">
-                    <div class="flex-grow bg-emerald-50 p-6 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
+                    <div class="flex-grow bg-emerald-50 p-6 rounded-[2rem] border-2 border-mainLight shadow-sm">
                         <div class="flex justify-between items-center mb-4">
                             <label class="font-black text-sm text-emerald-800 uppercase tracking-widest">Đáp án số (Ví dụ: 3/4 hoặc 5):</label>
-                            <button onclick="openMathModal('edit-q-ans')" class="text-[10px] bg-white border border-emerald-200 px-3 py-1.5 rounded-lg text-emerald-600 hover:bg-emerald-600 hover:text-white font-bold shadow-sm transition btn-3d"><i class="fa-solid fa-calculator mr-1"></i> Phím Toán</button>
+                            <button onclick="openMathModal('edit-q-ans')" class="text-[10px] bg-white border border-mainLight px-3 py-1.5 rounded-lg text-emerald-600 hover:bg-mainDark hover:text-white font-bold shadow-sm transition btn-3d"><i class="fa-solid fa-calculator mr-1"></i> Phím Toán</button>
                         </div>
-                        <input type="text" id="edit-q-ans" value="${String(q.answer||'').replace(/"/g, '&quot;')}" class="w-full p-5 border-2 border-emerald-300 rounded-2xl bg-white font-black text-3xl text-center text-emerald-700 outline-none focus:border-emerald-500 shadow-inner tracking-widest">
+                        <input type="text" id="edit-q-ans" value="${String(q.answer||'').replace(/"/g, '&quot;')}" class="w-full p-5 border-2 border-emerald-300 rounded-2xl bg-white font-black text-3xl text-center text-mainDark outline-none focus:border-emerald-500 shadow-inner tracking-widest">
                     </div>
                     <div class="w-full md:w-1/3 bg-amber-50 p-6 rounded-[2rem] border-2 border-amber-100 shadow-sm flex flex-col justify-center">${ptsHtml}</div>
                 </div>`; 
@@ -781,8 +820,8 @@
         function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
         function switchImportTab(tab) {
             document.getElementById('view-import-ai').classList.toggle('hidden', tab !== 'ai'); document.getElementById('view-import-paste').classList.toggle('hidden', tab !== 'paste');
-            document.getElementById('tab-import-ai').className = tab === 'ai' ? "px-6 py-2.5 bg-emerald-500 text-white rounded-xl shadow-md btn-3d transition" : "px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-200 transition";
-            document.getElementById('tab-import-paste').className = tab === 'paste' ? "px-6 py-2.5 bg-emerald-500 text-white rounded-xl shadow-md btn-3d transition" : "px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-200 transition";
+            document.getElementById('tab-import-ai').className = tab === 'ai' ? "px-6 py-2.5 bg-main text-white rounded-xl shadow-md btn-3d transition" : "px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-200 transition";
+            document.getElementById('tab-import-paste').className = tab === 'paste' ? "px-6 py-2.5 bg-main text-white rounded-xl shadow-md btn-3d transition" : "px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-200 transition";
             if(tab === 'ai') { renderAiRounds(); generateAiPrompt(); }
         }
 
@@ -910,13 +949,13 @@
             contentArea.innerHTML = `<div class="h-full flex flex-col p-6 lg:p-8 bg-slate-50 relative">
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b-2 border-slate-200 pb-5 mb-5 gap-4">
                     <div>
-                        <h3 class="text-2xl font-black text-indigo-700 uppercase tracking-widest"><i class="fa-solid fa-user-graduate mr-2"></i>Quản Lý Học Sinh</h3>
+                        <h3 class="text-2xl font-black text-mainDark uppercase tracking-widest"><i class="fa-solid fa-user-graduate mr-2"></i>Quản Lý Học Sinh</h3>
                         <p class="text-base font-bold text-slate-500 mt-1">Cấp tài khoản & mật khẩu tham gia thi</p>
                     </div>
                     <div class="flex gap-3 flex-wrap">
-                        <input type="text" id="search-student" oninput="renderAdminStudentsTable()" placeholder="Tìm ID, Tên..." class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-400 font-bold text-sm shadow-inner min-w-[200px]">
-                        <button onclick="document.getElementById('import-students-modal').classList.remove('hidden')" class="px-5 py-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-500 hover:text-white rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Import Nhanh</button>
-                        <button onclick="openAddStudentModal()" class="px-5 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-plus mr-1"></i> Thêm HS</button>
+                        <input type="text" id="search-student" oninput="renderAdminStudentsTable()" placeholder="Tìm ID, Tên..." class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold text-sm shadow-inner min-w-[200px]">
+                        <button onclick="document.getElementById('import-students-modal').classList.remove('hidden')" class="px-5 py-3 bg-mainLight text-mainDark hover:bg-main hover:text-white rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Import Nhanh</button>
+                        <button onclick="openAddStudentModal()" class="px-5 py-3 bg-mainDark text-white hover:bg-indigo-700 rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-plus mr-1"></i> Thêm HS</button>
                     </div>
                 </div>
                 <div class="flex-grow overflow-auto bg-white rounded-3xl shadow-inner border-2 border-slate-100 p-2">
@@ -950,7 +989,7 @@
             }
             tbody.innerHTML = filtered.map((s, i) => `<tr class="border-b border-slate-100 hover:bg-slate-50 transition">
                 <td class="p-3 text-center font-bold text-slate-500">${i+1}</td>
-                <td class="p-3 font-black text-indigo-700 tracking-wider">${s.id}</td>
+                <td class="p-3 font-black text-mainDark tracking-wider">${s.id}</td>
                 <td class="p-3 font-bold text-slate-700">${s.name}</td>
                 <td class="p-3 text-center"><span class="bg-slate-200 text-slate-600 px-2 py-1 rounded-lg font-bold text-xs">${s.cls}</span></td>
                 <td class="p-3 text-center">
@@ -1019,6 +1058,45 @@
             });
         }
         function closeImportStudentsModal() { document.getElementById('import-students-modal').classList.add('hidden'); }
+        
+        function handleExcelUpload(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let firstSheetName = workbook.SheetNames[0];
+                    let worksheet = workbook.Sheets[firstSheetName];
+                    let json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    let resultText = "";
+                    for(let i = 0; i < json.length; i++) {
+                        let row = json[i];
+                        if(!row || row.length === 0 || row.join('').trim() === '') continue;
+                        // Bỏ qua dòng tiêu đề nếu có chữ ID hoặc Mã
+                        if(String(row[0]).toLowerCase().includes('id') || String(row[0]).toLowerCase().includes('mã')) continue;
+                        
+                        let id = row[0] ? String(row[0]).trim() : '';
+                        let name = row[1] ? String(row[1]).trim() : '';
+                        let cls = row[2] ? String(row[2]).trim() : '';
+                        
+                        if(id) {
+                            resultText += `${id}\\t${name}\\t${cls}\\n`;
+                        }
+                    }
+                    
+                    document.getElementById('import-stu-data').value = resultText;
+                    showToast("Đã đọc file Excel thành công! Vui lòng kiểm tra lại bảng bên dưới trước khi nạp.", false);
+                } catch(err) {
+                    showToast("Lỗi đọc file Excel: " + err.message, true);
+                }
+                event.target.value = ""; // Reset input
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         async function processImportStudents() {
             let raw = document.getElementById('import-stu-data').value.trim();
             if(!raw) return showToast("Chưa dán dữ liệu!", true);
@@ -1131,7 +1209,7 @@
                             <select onchange="currentClassFilter=this.value; updateStudentResultsUI()" class="p-2 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-amber-400">
                                 ${classOptions}
                             </select>
-                            <button onclick="exportAdminResultsCSV()" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl shadow-sm text-sm font-black hover:bg-emerald-600 transition btn-3d"><i class="fa-solid fa-file-csv mr-1"></i> Xuất CSV</button>
+                            <button onclick="exportAdminResultsCSV()" class="px-5 py-2.5 bg-main text-white rounded-xl shadow-sm text-sm font-black hover:bg-mainDark transition btn-3d"><i class="fa-solid fa-file-csv mr-1"></i> Xuất CSV</button>
                             <button onclick="currentClassFilter='ALL'; currentGradeFilter='ALL'; renderStudentResults(document.getElementById('admin-content-area'))" class="px-5 py-2.5 bg-white border-2 border-slate-200 rounded-xl shadow-sm text-sm font-black hover:bg-slate-50 transition btn-3d"><i class="fa-solid fa-rotate-right mr-1"></i> Tải Lại</button>
                         </div>
                     </div>
@@ -1182,7 +1260,7 @@
             }
         }
 
-        async function renderAdminBank(contentArea, filterFolder = 'ALL') { if (!contentArea) contentArea = document.getElementById('admin-content-area'); if (filterFolder === 'ALL' || currentAdminBankData.length === 0) { contentArea.innerHTML = '<div class="flex items-center justify-center h-full text-sky-500 font-bold text-xl"><i class="fa-solid fa-spinner fa-spin mr-3 text-4xl"></i> Đang tải kho đề Cloud...</div>'; try { let snap = await db.collection("AdminHistory").orderBy('createdAt', 'desc').get(); let newHist = []; snap.forEach(doc => newHist.push(doc.data())); let d = await db.collection("GameData").doc("AdminHistory").get(); let oldHist = d.exists ? d.data().list : []; let allHist = [...newHist, ...oldHist]; let uniqueHist = []; let seen = new Set(); for (let h of allHist) { if(!seen.has(h.code)) { seen.add(h.code); uniqueHist.push(h); } } currentAdminBankData = uniqueHist; } catch(e) { currentAdminBankData = JSON.parse(localStorage.getItem('math12ExportHistory')||'[]'); } } if(currentAdminBankData.length === 0) { contentArea.innerHTML = `<div class="text-center text-slate-400 mt-20 font-bold text-lg"><i class="fa-solid fa-cloud-arrow-down text-5xl mb-4"></i><br>Hệ thống Cloud chưa có đề lưu trữ.</div>`; return; } let folders = [...new Set(currentAdminBankData.map(h => h.folder || 'Chung'))]; let filterHtml = `<select onchange="renderAdminBank(null, this.value)" class="ml-4 p-2 border-2 border-sky-200 rounded-xl text-sm bg-white font-black text-sky-700 outline-none shadow-sm"><option value="ALL">Tất Cả Danh Mục</option>` + folders.map(f => `<option value="${f}" ${f === filterFolder ? 'selected' : ''}>${f}</option>`).join('') + `</select>`; let filteredData = filterFolder === 'ALL' ? currentAdminBankData : currentAdminBankData.filter(h => (h.folder || 'Chung') === filterFolder); let isSuperGlobal = state.currentUser && state.currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase(); let html = filteredData.map(h => { let canEdit = isSuperGlobal || (h.author && state.currentUser && state.currentUser.email.toLowerCase() === h.author.toLowerCase()); return `<div class="bg-white p-5 border-2 border-slate-100 rounded-2xl mb-3 flex items-center justify-between group shadow-sm hover:shadow-md transition hover:border-sky-300"><div><b class="text-sky-800 text-lg uppercase tracking-wide">${h.name}</b> <span class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg font-black text-slate-500 uppercase ml-2 shadow-sm">${h.folder || 'Chung'}</span><div class="text-xs text-slate-500 mt-2 font-medium"><i class="fa-solid fa-calendar-day mr-1"></i> ${h.date} <span class="mx-2">|</span> <i class="fa-solid fa-user-pen mr-1"></i> Tác giả: <span class="font-bold text-slate-700">${h.author?h.author.split('@')[0]:'Admin'}</span></div></div><div class="flex items-center gap-4"><span class="font-black text-2xl text-slate-700 bg-slate-50 px-4 py-1.5 rounded-xl border border-slate-200 shadow-inner tracking-widest">${h.code}</span><div class="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition duration-300">${canEdit ? `<button onclick="loadExamIntoAdmin('${h.code}')" class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white shadow-sm transition btn-3d" title="Chỉnh Sửa Đề Cũ"><i class="fa-solid fa-download"></i></button><button onclick="editExamInfo('${h.code}')" class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white shadow-sm transition btn-3d" title="Đổi Tên/Thư Mục"><i class="fa-solid fa-pen"></i></button>` : ''}<button onclick="copyFromHistory('${h.code}')" class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white shadow-sm transition btn-3d" title="Copy Mã Code"><i class="fa-solid fa-copy"></i></button>${isSuperGlobal ? `<button onclick="deleteExamCode('${h.code}')" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white shadow-sm transition btn-3d" title="Xóa Vĩnh Viễn"><i class="fa-solid fa-trash-can"></i></button>` : ''}</div></div></div>`; }).join(''); contentArea.innerHTML = `<div class="p-6 h-full flex flex-col"><div class="flex justify-between items-center mb-5"><h3 class="font-black text-2xl text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-down text-sky-500 mr-2"></i> Kho Lưu Trữ Đám Mây ${filterHtml}</h3>${isSuperGlobal ? `<button onclick="clearExportHistoryAdmin()" class="px-4 py-2 bg-rose-50 text-rose-600 font-bold rounded-lg hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d text-sm"><i class="fa-solid fa-dumpster-fire mr-1"></i> Xóa Toàn Bộ</button>` : ''}</div><div class="flex-grow overflow-y-auto admin-scroll pr-2">${html}</div></div>`; }
+        async function renderAdminBank(contentArea, filterFolder = 'ALL') { if (!contentArea) contentArea = document.getElementById('admin-content-area'); if (filterFolder === 'ALL' || currentAdminBankData.length === 0) { contentArea.innerHTML = '<div class="flex items-center justify-center h-full text-sky-500 font-bold text-xl"><i class="fa-solid fa-spinner fa-spin mr-3 text-4xl"></i> Đang tải kho đề Cloud...</div>'; try { let snap = await db.collection("AdminHistory").orderBy('createdAt', 'desc').get(); let newHist = []; snap.forEach(doc => newHist.push(doc.data())); let d = await db.collection("GameData").doc("AdminHistory").get(); let oldHist = d.exists ? d.data().list : []; let allHist = [...newHist, ...oldHist]; let uniqueHist = []; let seen = new Set(); for (let h of allHist) { if(!seen.has(h.code)) { seen.add(h.code); uniqueHist.push(h); } } currentAdminBankData = uniqueHist; } catch(e) { currentAdminBankData = JSON.parse(localStorage.getItem('math12ExportHistory')||'[]'); } } if(currentAdminBankData.length === 0) { contentArea.innerHTML = `<div class="text-center text-slate-400 mt-20 font-bold text-lg"><i class="fa-solid fa-cloud-arrow-down text-5xl mb-4"></i><br>Hệ thống Cloud chưa có đề lưu trữ.</div>`; return; } let folders = [...new Set(currentAdminBankData.map(h => h.folder || 'Chung'))]; let filterHtml = `<select onchange="renderAdminBank(null, this.value)" class="ml-4 p-2 border-2 border-sky-200 rounded-xl text-sm bg-white font-black text-sky-700 outline-none shadow-sm"><option value="ALL">Tất Cả Danh Mục</option>` + folders.map(f => `<option value="${f}" ${f === filterFolder ? 'selected' : ''}>${f}</option>`).join('') + `</select>`; let filteredData = filterFolder === 'ALL' ? currentAdminBankData : currentAdminBankData.filter(h => (h.folder || 'Chung') === filterFolder); let isSuperGlobal = state.currentUser && state.currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase(); let html = filteredData.map(h => { let canEdit = isSuperGlobal || (h.author && state.currentUser && state.currentUser.email.toLowerCase() === h.author.toLowerCase()); return `<div class="bg-white p-5 border-2 border-slate-100 rounded-2xl mb-3 flex items-center justify-between group shadow-sm hover:shadow-md transition hover:border-sky-300"><div><b class="text-sky-800 text-lg uppercase tracking-wide">${h.name}</b> <span class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg font-black text-slate-500 uppercase ml-2 shadow-sm">${h.folder || 'Chung'}</span><div class="text-xs text-slate-500 mt-2 font-medium"><i class="fa-solid fa-calendar-day mr-1"></i> ${h.date} <span class="mx-2">|</span> <i class="fa-solid fa-user-pen mr-1"></i> Tác giả: <span class="font-bold text-slate-700">${h.author?h.author.split('@')[0]:'Admin'}</span></div></div><div class="flex items-center gap-4"><span class="font-black text-2xl text-slate-700 bg-slate-50 px-4 py-1.5 rounded-xl border border-slate-200 shadow-inner tracking-widest">${h.code}</span><div class="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition duration-300">${canEdit ? `<button onclick="loadExamIntoAdmin('${h.code}')" class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white shadow-sm transition btn-3d" title="Chỉnh Sửa Đề Cũ"><i class="fa-solid fa-download"></i></button><button onclick="editExamInfo('${h.code}')" class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white shadow-sm transition btn-3d" title="Đổi Tên/Thư Mục"><i class="fa-solid fa-pen"></i></button>` : ''}<button onclick="copyFromHistory('${h.code}')" class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-main hover:text-white shadow-sm transition btn-3d" title="Copy Mã Code"><i class="fa-solid fa-copy"></i></button>${isSuperGlobal ? `<button onclick="deleteExamCode('${h.code}')" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white shadow-sm transition btn-3d" title="Xóa Vĩnh Viễn"><i class="fa-solid fa-trash-can"></i></button>` : ''}</div></div></div>`; }).join(''); contentArea.innerHTML = `<div class="p-6 h-full flex flex-col"><div class="flex justify-between items-center mb-5"><h3 class="font-black text-2xl text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-down text-sky-500 mr-2"></i> Kho Lưu Trữ Đám Mây ${filterHtml}</h3>${isSuperGlobal ? `<button onclick="clearExportHistoryAdmin()" class="px-4 py-2 bg-rose-50 text-rose-600 font-bold rounded-lg hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d text-sm"><i class="fa-solid fa-dumpster-fire mr-1"></i> Xóa Toàn Bộ</button>` : ''}</div><div class="flex-grow overflow-y-auto admin-scroll pr-2">${html}</div></div>`; }
         async function loadExamIntoAdmin(code) { showConfirmModal("Tải Dữ Liệu Đám Mây", "Thầy/Cô muốn ghi đè bộ đề tải về lên giao diện đang soạn?", async () => { try { let snap = await db.collection("SharedGames").doc(code).get(); if(!snap.exists) throw new Error("Đề này đã bị xóa hoặc không tồn tại!"); let d = snap.data(); GAME_DATA = sanitizeGameData(d.data); adminState.data = JSON.parse(JSON.stringify(GAME_DATA)); adminState.loadedCode = code; adminState.loadedSettings = d.settings; showToast("Đã nhập thành công!"); adminSetTab('round1'); } catch (e) { showToast(e.message, true); } }); }
         async function updateExistingExam() { if (!adminState.loadedCode) return; adminSaveCurrentQ(false, true); showConfirmModal("Ghi Đè Cập Nhật", `Ghi đè nội dung mới lên mã đề ${adminState.loadedCode}? Các học sinh đang thi có thể bị lỗi tiến trình.`, async () => { let btn = document.getElementById('btn-update-loaded-exam'); let old = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải lên...'; btn.disabled = true; try { await db.collection("SharedGames").doc(adminState.loadedCode).update({ data: GAME_DATA, "settings.lastUpdated": new Date().toISOString() }); showToast("Đã lưu đè lên Cloud!"); let docRef = db.collection("AdminHistory").doc(adminState.loadedCode); let snap = await docRef.get(); if (snap.exists) { await docRef.update({ date: new Date().toLocaleDateString('vi-VN') + " (Vừa sửa)" }); } else { let hDoc = await db.collection("GameData").doc("AdminHistory").get(); if(hDoc.exists) { let history = hDoc.data().list || []; let i = history.findIndex(h => h.code === adminState.loadedCode); if(i !== -1) { history[i].date = new Date().toLocaleDateString('vi-VN') + " (Vừa sửa)"; await db.collection("GameData").doc("AdminHistory").set({ list: history }); } } } currentAdminBankData = []; } catch (e) { showToast("Gặp sự cố kết nối!", true); } finally { btn.innerHTML = old; btn.disabled = false; } }); }
         function copyFromHistory(code) { let t = document.createElement("input"); t.value = code; document.body.appendChild(t); t.select(); document.execCommand("copy"); showToast("Đã Copy Code!"); document.body.removeChild(t); }
@@ -1191,10 +1269,10 @@
         function clearExportHistoryAdmin() { document.getElementById('clear-history-modal').classList.remove('hidden'); } function closeClearHistoryModal() { document.getElementById('clear-history-modal').classList.add('hidden'); } async function confirmClearHistory() { closeClearHistoryModal(); await db.collection("GameData").doc("AdminHistory").set({ list: [] }); currentAdminBankData.forEach(async (h) => { try { await db.collection("AdminHistory").doc(h.code).delete(); } catch(e){} }); currentAdminBankData = []; renderAdminBank(); showToast("Đã dọn dẹp kho Cloud!"); }
 
         async function renderQuestionBankSheet(contentArea) { contentArea.innerHTML = `<div class="flex justify-center items-center h-full flex-col"><i class="fa-solid fa-spinner fa-spin text-5xl text-emerald-500 mb-6"></i><p class="font-bold text-xl text-slate-600">Đang quét Ngân hàng Google Sheet...</p></div>`; try { let r = await fetch(GOOGLE_WEB_APP_URL + "?action=getBank&t=" + Date.now()); globalQuestionBank = JSON.parse(await r.text()); if(globalQuestionBank.length === 0) { contentArea.innerHTML = `<div class="text-center mt-20 text-slate-500 font-bold text-lg"><i class="fa-solid fa-table text-5xl mb-4 text-emerald-200"></i><br>Chưa có dữ liệu từ Sheet (Google Apps Script).</div>`; return; } matrixRows = []; renderMatrixBuilderUI(contentArea); } catch(e) { contentArea.innerHTML = `<div class="text-rose-500 text-center mt-20 font-bold text-xl"><i class="fa-solid fa-triangle-exclamation text-4xl mb-4"></i><br>Lỗi đọc API Google Apps Script.</div>`; } }
-        function renderMatrixBuilderUI(contentArea) { if (!contentArea) contentArea = document.getElementById('admin-content-area'); let topics = [...new Set(globalQuestionBank.map(q => q.topic))].filter(Boolean); window.matrixTopicOptions = topics.map(t => `<option value="${t}">${t}</option>`).join(''); contentArea.innerHTML = `<div class="h-full flex flex-col p-8 bg-slate-50"><div class="flex justify-between items-center mb-6"><h3 class="text-2xl font-black text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-layer-group text-emerald-500 mr-2"></i> Trộn Đề Theo Ma Trận</h3><div class="flex gap-3"><button onclick="setMatrixBGD2025()" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition btn-3d"><i class="fa-solid fa-star mr-2"></i>Cấu trúc BGD 2025</button><button onclick="addMatrixRow()" class="px-5 py-2.5 bg-emerald-100 text-emerald-700 font-bold rounded-xl hover:bg-emerald-200 transition shadow-sm"><i class="fa-solid fa-plus mr-2"></i> Thêm Dòng</button></div></div><div class="flex-grow overflow-y-auto admin-scroll bg-white rounded-2xl border-2 border-slate-200 shadow-sm"><table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-100 shadow-sm z-10 border-b-2 border-slate-200"><tr><th class="p-4 text-slate-600 font-black uppercase">Danh Mục Kiến Thức</th><th class="p-4 text-slate-600 font-black uppercase">Hình Thức</th><th class="p-4 text-slate-600 font-black uppercase">Mức Độ</th><th class="p-4 text-center text-slate-600 font-black uppercase">Số Câu</th><th class="p-4 text-center text-rose-500 font-black uppercase">Xóa</th></tr></thead><tbody id="matrix-body"></tbody></table></div><div class="mt-6 pt-5 border-t-2 border-slate-200 flex justify-between items-center"><div class="font-black text-xl text-slate-700 uppercase tracking-wider">Tổng Sinh: <span id="matrix-total-q" class="text-emerald-600 text-3xl ml-2 drop-shadow-sm">0</span></div><button id="btn-generate-matrix" onclick="generateTestFromMatrix()" class="px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-lg rounded-2xl shadow-lg hover:shadow-xl btn-3d disabled:opacity-50 uppercase tracking-widest transition"><i class="fa-solid fa-bolt mr-2 text-xl"></i> Bốc Đề Theo Ma Trận</button></div></div>`; updateMatrixUI(); }
+        function renderMatrixBuilderUI(contentArea) { if (!contentArea) contentArea = document.getElementById('admin-content-area'); let topics = [...new Set(globalQuestionBank.map(q => q.topic))].filter(Boolean); window.matrixTopicOptions = topics.map(t => `<option value="${t}">${t}</option>`).join(''); contentArea.innerHTML = `<div class="h-full flex flex-col p-8 bg-slate-50"><div class="flex justify-between items-center mb-6"><h3 class="text-2xl font-black text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-layer-group text-emerald-500 mr-2"></i> Trộn Đề Theo Ma Trận</h3><div class="flex gap-3"><button onclick="setMatrixBGD2025()" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition btn-3d"><i class="fa-solid fa-star mr-2"></i>Cấu trúc BGD 2025</button><button onclick="addMatrixRow()" class="px-5 py-2.5 bg-mainLight text-mainDark font-bold rounded-xl hover:bg-emerald-200 transition shadow-sm"><i class="fa-solid fa-plus mr-2"></i> Thêm Dòng</button></div></div><div class="flex-grow overflow-y-auto admin-scroll bg-white rounded-2xl border-2 border-slate-200 shadow-sm"><table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-100 shadow-sm z-10 border-b-2 border-slate-200"><tr><th class="p-4 text-slate-600 font-black uppercase">Danh Mục Kiến Thức</th><th class="p-4 text-slate-600 font-black uppercase">Hình Thức</th><th class="p-4 text-slate-600 font-black uppercase">Mức Độ</th><th class="p-4 text-center text-slate-600 font-black uppercase">Số Câu</th><th class="p-4 text-center text-rose-500 font-black uppercase">Xóa</th></tr></thead><tbody id="matrix-body"></tbody></table></div><div class="mt-6 pt-5 border-t-2 border-slate-200 flex justify-between items-center"><div class="font-black text-xl text-slate-700 uppercase tracking-wider">Tổng Sinh: <span id="matrix-total-q" class="text-emerald-600 text-3xl ml-2 drop-shadow-sm">0</span></div><button id="btn-generate-matrix" onclick="generateTestFromMatrix()" class="px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-lg rounded-2xl shadow-lg hover:shadow-xl btn-3d disabled:opacity-50 uppercase tracking-widest transition"><i class="fa-solid fa-bolt mr-2 text-xl"></i> Bốc Đề Theo Ma Trận</button></div></div>`; updateMatrixUI(); }
         function setMatrixBGD2025() { matrixRows = [ { topic: '', type: 'MC', level: 'Nhận biết', count: 3 }, { topic: '', type: 'MC', level: 'Thông hiểu', count: 4 }, { topic: '', type: 'MC', level: 'Vận dụng', count: 5 }, { topic: '', type: 'TF', level: 'Thông hiểu', count: 2 }, { topic: '', type: 'TF', level: 'Vận dụng', count: 2 }, { topic: '', type: 'SA', level: 'Vận dụng', count: 4 }, { topic: '', type: 'SA', level: 'Vận dụng cao', count: 2 } ]; updateMatrixUI(); showToast("Đã nạp cấu trúc 12-4-6. Vui lòng chọn Chủ đề!"); }
         function addMatrixRow() { matrixRows.push({ topic: '', type: 'MC', level: 'Nhận biết', count: 1 }); updateMatrixUI(); } function removeMatrixRow(index) { matrixRows.splice(index, 1); updateMatrixUI(); }
-        function updateMatrixUI() { let tbody = document.getElementById('matrix-body'); let totalEl = document.getElementById('matrix-total-q'); if (matrixRows.length === 0) { tbody.innerHTML = ''; totalEl.innerText = '0'; document.getElementById('btn-generate-matrix').disabled = true; return; } document.getElementById('btn-generate-matrix').disabled = false; let totalCount = 0; tbody.innerHTML = matrixRows.map((row, i) => { totalCount += parseInt(row.count) || 0; return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition"><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].topic = this.value"><option value="">-- Chọn Chủ Đề --</option>${window.matrixTopicOptions}</select></td><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].type = this.value"><option value="MC" ${row.type==='MC'?'selected':''}>Trắc nghiệm 4LC</option><option value="TF" ${row.type==='TF'?'selected':''}>Đúng/Sai</option><option value="SA" ${row.type==='SA'?'selected':''}>Điền Khuyết</option></select></td><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].level = this.value"><option value="Nhận biết" ${row.level==='Nhận biết'?'selected':''}>Biết</option><option value="Thông hiểu" ${row.level==='Thông hiểu'?'selected':''}>Hiểu</option><option value="Vận dụng" ${row.level==='Vận dụng'?'selected':''}>Vận dụng</option><option value="Vận dụng cao" ${row.level==='Vận dụng cao'?'selected':''}>Vận dụng cao</option></select></td><td class="p-2 text-center"><input type="number" min="1" max="50" class="w-20 border-2 border-slate-200 rounded-xl text-center p-3 font-black text-lg text-emerald-700 outline-none focus:border-emerald-400 shadow-inner" value="${row.count}" onchange="matrixRows[${i}].count = parseInt(this.value); updateMatrixUI();"></td><td class="p-2 text-center"><button onclick="removeMatrixRow(${i})" class="text-rose-400 hover:text-white bg-rose-50 hover:bg-rose-500 w-10 h-10 rounded-xl transition shadow-sm btn-3d"><i class="fa-solid fa-trash"></i></button></td></tr>`; }).join(''); matrixRows.forEach((row, i) => { let s = tbody.querySelectorAll(`tr:nth-child(${i+1}) select`); if(s[0]) s[0].value = row.topic; }); totalEl.innerText = totalCount; }
+        function updateMatrixUI() { let tbody = document.getElementById('matrix-body'); let totalEl = document.getElementById('matrix-total-q'); if (matrixRows.length === 0) { tbody.innerHTML = ''; totalEl.innerText = '0'; document.getElementById('btn-generate-matrix').disabled = true; return; } document.getElementById('btn-generate-matrix').disabled = false; let totalCount = 0; tbody.innerHTML = matrixRows.map((row, i) => { totalCount += parseInt(row.count) || 0; return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition"><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].topic = this.value"><option value="">-- Chọn Chủ Đề --</option>${window.matrixTopicOptions}</select></td><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].type = this.value"><option value="MC" ${row.type==='MC'?'selected':''}>Trắc nghiệm 4LC</option><option value="TF" ${row.type==='TF'?'selected':''}>Đúng/Sai</option><option value="SA" ${row.type==='SA'?'selected':''}>Điền Khuyết</option></select></td><td class="p-2"><select class="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-emerald-400 font-bold text-slate-700 shadow-inner" onchange="matrixRows[${i}].level = this.value"><option value="Nhận biết" ${row.level==='Nhận biết'?'selected':''}>Biết</option><option value="Thông hiểu" ${row.level==='Thông hiểu'?'selected':''}>Hiểu</option><option value="Vận dụng" ${row.level==='Vận dụng'?'selected':''}>Vận dụng</option><option value="Vận dụng cao" ${row.level==='Vận dụng cao'?'selected':''}>Vận dụng cao</option></select></td><td class="p-2 text-center"><input type="number" min="1" max="50" class="w-20 border-2 border-slate-200 rounded-xl text-center p-3 font-black text-lg text-mainDark outline-none focus:border-emerald-400 shadow-inner" value="${row.count}" onchange="matrixRows[${i}].count = parseInt(this.value); updateMatrixUI();"></td><td class="p-2 text-center"><button onclick="removeMatrixRow(${i})" class="text-rose-400 hover:text-white bg-rose-50 hover:bg-rose-500 w-10 h-10 rounded-xl transition shadow-sm btn-3d"><i class="fa-solid fa-trash"></i></button></td></tr>`; }).join(''); matrixRows.forEach((row, i) => { let s = tbody.querySelectorAll(`tr:nth-child(${i+1}) select`); if(s[0]) s[0].value = row.topic; }); totalEl.innerText = totalCount; }
         async function generateTestFromMatrix() { let btn = document.getElementById('btn-generate-matrix'); let old = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-xl"></i> HỆ THỐNG ĐANG QUÉT KHO...'; btn.disabled = true; await new Promise(r => setTimeout(r, 600)); let newExam = { round1: [], round2: [], round3: [] }; let r1Id = 1, r2Id = 1, r3Id = 1; let errors = []; for (let i = 0; i < matrixRows.length; i++) { let rule = matrixRows[i]; if(!rule.topic) continue; let pool = globalQuestionBank.filter(q => String(q.topic).trim() === String(rule.topic).trim() && String(q.type).trim().toUpperCase() === String(rule.type).trim().toUpperCase() && String(q.level).trim().toLowerCase() === String(rule.level).trim().toLowerCase()); if (pool.length < rule.count) { errors.push(`[Dòng ${i+1}]: Chỉ quét được ${pool.length}/${rule.count} câu.`); rule.count = pool.length; } for (let j = pool.length - 1; j > 0; j--) { const k = Math.floor(Math.random() * (j + 1)); [pool[j], pool[k]] = [pool[k], pool[j]]; } pool.slice(0, rule.count).forEach(q => { let formatted = { text: q.question || "", explanation: q.explain || "" }; if (rule.type === 'MC') { formatted.id = r1Id++; formatted.options = [q.opt1, q.opt2, q.opt3, q.opt4].filter(Boolean); formatted.answer = q.answer || ""; formatted.points=25; newExam.round1.push(formatted); } else if (rule.type === 'TF') { formatted.id = r2Id++; let aStr = String(q.answer || "").toUpperCase().replace(/[^TFDĐS]/g, ''); let aArr = aStr.split(''); if(aArr.length<4) aArr=['F','F','F','F']; formatted.statements = [ {label:"a",text:q.opt1||"",isTrue:(aArr[0]==='T'||aArr[0]==='Đ'),points:25}, {label:"b",text:q.opt2||"",isTrue:(aArr[1]==='T'||aArr[1]==='Đ'),points:25}, {label:"c",text:q.opt3||"",isTrue:(aArr[2]==='T'||aArr[2]==='Đ'),points:25}, {label:"d",text:q.opt4||"",isTrue:(aArr[3]==='T'||aArr[3]==='Đ'),points:25} ]; newExam.round2.push(formatted); } else if (rule.type === 'SA') { formatted.id = r3Id++; formatted.answer = q.answer || ""; formatted.points=100; newExam.round3.push(formatted); } }); } if (errors.length > 0) showToast("Báo cáo quét kho: " + errors.join(" "), true); adminState.loadedCode = null; adminState.data = sanitizeGameData(newExam); GAME_DATA = JSON.parse(JSON.stringify(adminState.data)); showToast("Trộn sinh đề mới thành công!"); btn.innerHTML = old; btn.disabled = false; adminSetTab('round1'); }
 
         let confirmCb = null; function showConfirmModal(title, msg, cb) { confirmCb = cb; document.getElementById('generic-confirm-title').innerText = title; document.getElementById('generic-confirm-message').innerText = msg; document.getElementById('generic-confirm-modal').classList.remove('hidden'); } function closeGenericConfirm() { document.getElementById('generic-confirm-modal').classList.add('hidden'); } function executeGenericConfirm() { if(confirmCb) confirmCb(); closeGenericConfirm(); }

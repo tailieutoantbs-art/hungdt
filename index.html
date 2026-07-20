@@ -14,7 +14,10 @@
     <script>
         MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' }, startup: { typeset: false } };
         if (typeof tailwind !== 'undefined') {
-            tailwind.config = { theme: { extend: { colors: { main: '#0ea5e9', mainDark: '#0284c7', mainLight: '#e0f2fe' }, fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'], script: ['"Dancing Script"', 'cursive'] } } } };
+            let tMain = localStorage.getItem('themeMain') || '#0ea5e9';
+            let tDark = localStorage.getItem('themeDark') || '#0284c7';
+            let tLight = localStorage.getItem('themeLight') || '#e0f2fe';
+            tailwind.config = { theme: { extend: { colors: { main: tMain, mainDark: tDark, mainLight: tLight }, fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'], script: ['"Dancing Script"', 'cursive'] } } } };
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -28,6 +31,39 @@
 </head>
 <body class="text-slate-800" data-theme="gold">
     <div class="bg-particles"></div>
+    
+    <!-- Theme Picker -->
+    <div class="fixed bottom-6 right-6 z-[10001]">
+        <button onclick="toggleThemePicker(event)" class="w-14 h-14 bg-main text-white rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-transform btn-3d"><i class="fa-solid fa-palette"></i></button>
+        <div id="theme-picker-menu" class="absolute bottom-16 right-0 bg-white p-4 rounded-3xl shadow-2xl border-4 border-slate-100 hidden flex-col gap-2 w-52 origin-bottom-right transition-all zoom-in">
+            <h3 class="font-black text-slate-700 text-sm border-b-2 border-slate-100 pb-2 mb-2 text-center uppercase tracking-widest">Đổi Giao Diện</h3>
+            <button onclick="setTheme('#0ea5e9', '#0284c7', '#e0f2fe')" class="w-full flex items-center gap-3 p-2 hover:bg-sky-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-sky-200"><div class="w-6 h-6 rounded-full bg-[#0ea5e9] shadow-sm"></div> Xanh Dương</button>
+            <button onclick="setTheme('#10b981', '#059669', '#d1fae5')" class="w-full flex items-center gap-3 p-2 hover:bg-emerald-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-emerald-200"><div class="w-6 h-6 rounded-full bg-[#10b981] shadow-sm"></div> Xanh Lục</button>
+            <button onclick="setTheme('#8b5cf6', '#6d28d9', '#ede9fe')" class="w-full flex items-center gap-3 p-2 hover:bg-violet-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-violet-200"><div class="w-6 h-6 rounded-full bg-[#8b5cf6] shadow-sm"></div> Tím Mộng Mơ</button>
+            <button onclick="setTheme('#f43f5e', '#e11d48', '#ffe4e6')" class="w-full flex items-center gap-3 p-2 hover:bg-rose-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-rose-200"><div class="w-6 h-6 rounded-full bg-[#f43f5e] shadow-sm"></div> Đỏ Nhiệt Huyết</button>
+            <button onclick="setTheme('#f59e0b', '#d97706', '#fef3c7')" class="w-full flex items-center gap-3 p-2 hover:bg-amber-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-amber-200"><div class="w-6 h-6 rounded-full bg-[#f59e0b] shadow-sm"></div> Vàng Năng Động</button>
+            <button onclick="setTheme('#3b82f6', '#1d4ed8', '#eff6ff')" class="w-full flex items-center gap-3 p-2 hover:bg-blue-50 rounded-xl transition font-bold text-slate-600 text-sm border-2 border-transparent hover:border-blue-200"><div class="w-6 h-6 rounded-full bg-[#3b82f6] shadow-sm"></div> Xanh Chuẩn</button>
+        </div>
+    </div>
+    <script>
+        function toggleThemePicker(e) {
+            e.stopPropagation();
+            let m = document.getElementById('theme-picker-menu');
+            if(m) m.classList.toggle('hidden');
+        }
+        function setTheme(main, dark, light) {
+            localStorage.setItem('themeMain', main);
+            localStorage.setItem('themeDark', dark);
+            localStorage.setItem('themeLight', light);
+            location.reload();
+        }
+        document.addEventListener('click', (e) => {
+            let m = document.getElementById('theme-picker-menu');
+            if(m && !m.classList.contains('hidden') && !e.target.closest('#theme-picker-menu')) {
+                m.classList.add('hidden');
+            }
+        });
+    </script>
     
     <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-lg pointer-events-none">
         <i class="fa-solid fa-circle-check text-3xl"></i><span id="toast-msg">Thành công!</span>
@@ -172,11 +208,23 @@
         // showToast is moved to config.js
 
         async function loginWithGoogle() { 
+            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                showToast("Đăng nhập Local (Bypass) thành công!");
+                localStorage.setItem('devModeBypass', 'true');
+                window.location.href = 'teacher.html';
+                return;
+            }
             try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); showToast("Đăng nhập thành công!"); } 
             catch(e) { showToast("Lỗi đăng nhập: " + e.message, true); } 
         }
 
         async function logoutGoogle() { 
+            if (localStorage.getItem('devModeBypass') === 'true') {
+                localStorage.removeItem('devModeBypass');
+                showToast("Đã đăng xuất Local!");
+                setTimeout(() => window.location.reload(), 500);
+                return;
+            }
             try { await firebase.auth().signOut(); showToast("Đã đăng xuất!"); } 
             catch(e) { showToast("Lỗi đăng xuất", true); } 
         }
@@ -194,8 +242,9 @@
 
         // ======================= VIEW RENDERERS =======================
         function renderHomeScreen() {
-            let teacherBlock = state.currentUser 
-                ? `<button onclick="window.location.href='teacher.html'" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-black shadow-md hover:bg-indigo-600 transition">VÀO PHÂN HỆ GIÁO VIÊN</button>
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let teacherBlock = (state.currentUser || isDev)
+                ? `<button onclick="window.location.href='teacher.html'" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark transition">VÀO PHÂN HỆ GIÁO VIÊN</button>
                    <button onclick="logoutGoogle()" class="w-full mt-3 py-2 bg-slate-200 rounded-xl font-bold hover:bg-slate-300 transition text-sm">Đăng xuất</button>`
                 : `<button onclick="loginWithGoogle()" class="w-full py-3 bg-white border border-slate-300 rounded-xl font-black shadow-md flex justify-center items-center gap-2 hover:bg-slate-50 transition"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> ĐĂNG NHẬP (GIÁO VIÊN)</button>`;
 
@@ -212,8 +261,8 @@
                             <div class="absolute -right-4 -top-4 text-emerald-500/10 text-8xl transition-transform group-hover:scale-110"><i class="fa-solid fa-graduation-cap"></i></div>
                             <h2 class="text-xl font-black text-emerald-800 mb-2 relative z-10">KHU VỰC HỌC SINH</h2>
                             <p class="text-emerald-600 font-medium mb-4 relative z-10 text-xs">Nhập mã bài thi để làm bài cá nhân</p>
-                            <input type="text" id="play-code-input" class="w-full p-3 border-2 border-emerald-300 rounded-xl focus:border-emerald-500 outline-none font-black text-center text-2xl tracking-widest text-emerald-700 uppercase mb-4 shadow-inner relative z-10 bg-white" placeholder="MÃ ĐỀ THI" maxlength="6" onkeypress="if(event.key === 'Enter') handlePlayCode()">
-                            <button id="btn-play-code" onclick="handlePlayCode()" class="w-full py-3 bg-emerald-500 text-white rounded-xl font-black shadow-md hover:bg-emerald-600 hover:scale-105 transition relative z-10 text-base"><i class="fa-solid fa-play mr-2"></i> VÀO THI NGAY</button>
+                            <input type="text" id="play-code-input" class="w-full p-3 border-2 border-emerald-300 rounded-xl focus:border-main outline-none font-black text-center text-2xl tracking-widest text-emerald-700 uppercase mb-4 shadow-inner relative z-10 bg-white" placeholder="MÃ ĐỀ THI" maxlength="6" onkeypress="if(event.key === 'Enter') handlePlayCode()">
+                            <button id="btn-play-code" onclick="handlePlayCode()" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark hover:scale-105 transition relative z-10 text-base"><i class="fa-solid fa-play mr-2"></i> VÀO THI NGAY</button>
                         </div>
                         
                         <div class="bg-gradient-to-br from-amber-50 to-orange-100 p-6 rounded-2xl shadow-md border border-amber-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col">
@@ -222,8 +271,8 @@
                             <p class="text-amber-600 font-medium mb-4 relative z-10 text-xs">Xem điểm & Vinh danh toàn trường</p>
                             <div class="flex-grow"></div>
                             <div class="flex flex-col gap-2 relative z-10">
-                                <button onclick="openLookupModal()" class="w-full py-3 bg-white border border-amber-300 text-amber-600 rounded-xl font-black shadow-sm hover:bg-amber-50 transition text-sm"><i class="fa-solid fa-magnifying-glass mr-2"></i> CÁ NHÂN</button>
-                                <button onclick="openLeaderboardModal()" class="w-full py-3 bg-amber-500 text-white rounded-xl font-black shadow-md hover:bg-amber-600 hover:scale-105 transition text-base"><i class="fa-solid fa-trophy mr-2"></i> BẢNG VÀNG</button>
+                                <button onclick="openLookupModal()" class="w-full py-3 bg-white border border-main text-main rounded-xl font-black shadow-sm hover:bg-mainLight transition text-sm"><i class="fa-solid fa-magnifying-glass mr-2"></i> CÁ NHÂN</button>
+                                <button onclick="openLeaderboardModal()" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark hover:scale-105 transition text-base"><i class="fa-solid fa-trophy mr-2"></i> BẢNG VÀNG</button>
                             </div>
                         </div>
                         

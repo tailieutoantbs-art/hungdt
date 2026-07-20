@@ -17,14 +17,10 @@
     <script>
         MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' }, startup: { typeset: false } };
         if (typeof tailwind !== 'undefined') {
-            tailwind.config = { 
-                theme: { 
-                    extend: { 
-                        colors: { main: '#0ea5e9', mainDark: '#0284c7', mainLight: '#e0f2fe', tbsGold: '#f59e0b' }, 
-                        fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'] } 
-                    } 
-                } 
-            };
+            let tMain = localStorage.getItem('themeMain') || '#0ea5e9';
+            let tDark = localStorage.getItem('themeDark') || '#0284c7';
+            let tLight = localStorage.getItem('themeLight') || '#e0f2fe';
+            tailwind.config = { theme: { extend: { colors: { main: tMain, mainDark: tDark, mainLight: tLight }, fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Montserrat"', 'sans-serif'], script: ['"Dancing Script"', 'cursive'] } } } };
         }
         if (typeof marked !== 'undefined') { marked.setOptions({ breaks: true, mangle: false, headerIds: false }); }
     </script>
@@ -38,6 +34,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="text-slate-800">
+    <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-lg pointer-events-none"></div>
     <div class="bg-particles"></div>
     <audio id="audio-correct" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
     <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
@@ -364,12 +361,33 @@
                 let isAns = (roundId==='round1'||roundId==='round3') ? state.answeredQuestions.includes(`${roundId}_${q.id}`) : [0,1,2,3].every(i=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
                 return `<button onclick="openQuestion('${q.id}')" class="w-12 h-12 rounded-xl font-black text-sm border-2 transition ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-inner':'bg-white text-slate-600 border-slate-200 hover:border-main hover:text-main'}">${q.id}</button>`;
             }).join('');
+            
+            let title = roundId === 'round1' ? "Phần I: Trắc nghiệm" : roundId === 'round2' ? "Phần II: Đúng / Sai" : "Phần III: Trả lời ngắn";
+            
             document.getElementById('app-content').innerHTML = `
                 <div class="w-full max-w-4xl fade-in">
-                    <button onclick="renderDashboard()" class="mb-4 px-4 py-2 bg-white rounded-xl shadow-sm font-bold text-xs text-slate-600 border"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
+                    <!-- Hamburger Menu Header -->
+                    <div class="flex items-center justify-between mb-4 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200 relative">
+                        <h2 class="font-black text-main text-lg uppercase tracking-wider">${title}</h2>
+                        <button id="student-menu-btn" onclick="toggleStudentMenu(event)" class="text-slate-500 hover:text-main transition text-2xl p-1"><i class="fa-solid fa-bars"></i></button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="student-dropdown-menu" class="absolute top-14 right-0 w-64 bg-white rounded-2xl shadow-2xl border-2 border-mainLight z-[9999] hidden flex flex-col p-2 zoom-in">
+                            <button onclick="renderDashboard()" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-house w-6"></i> Tổng quan</button>
+                            <button onclick="selectRound('round1')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-list-check w-6"></i> Phần I</button>
+                            <button onclick="selectRound('round2')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition border-b border-slate-100"><i class="fa-solid fa-check-double w-6"></i> Phần II</button>
+                            <button onclick="selectRound('round3')" class="w-full text-left px-4 py-3 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition"><i class="fa-solid fa-keyboard w-6"></i> Phần III</button>
+                        </div>
+                    </div>
                     <div class="flex flex-wrap gap-3 bg-white/60 p-4 rounded-2xl border">${btns}</div>
                 </div>
             `;
+        }
+
+        function toggleStudentMenu(e) {
+            e.stopPropagation();
+            let m = document.getElementById('student-dropdown-menu');
+            if(m) m.classList.toggle('hidden');
         }
 
         function openQuestion(qId) {
@@ -571,6 +589,19 @@
             
             document.getElementById('stats-modal').classList.remove('hidden'); triggerConfetti(); updateScoreUI();
         }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (state.currentPlayCode && !document.getElementById('result-modal')) {
+                e.preventDefault(); e.returnValue = '';
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            let m = document.getElementById('student-dropdown-menu');
+            if(m && !m.classList.contains('hidden') && !e.target.closest('#student-dropdown-menu') && !e.target.closest('#student-menu-btn')) {
+                m.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
