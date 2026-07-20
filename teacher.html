@@ -321,11 +321,207 @@
             round3: [ { id: 1, text: "Nghiệm của phương trình $\\log_3(5x)=2$ là", image: "", answer: "1", points: 15, explanation: "" } ] 
         };
 
+        function removeVietnameseTones(str) {
+            if (!str || typeof str !== 'string') return '';
+            return str.normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/đ/g, "d").replace(/Đ/g, "D");
+        }
+
+        function normalizeExamDataKeys(obj) {
+            if (!obj) return { round1: [], round2: [], round3: [] };
+
+            const classifyQuestion = (q) => {
+                if (!q || typeof q !== 'object') return null;
+                let rVal = String(q.round || q.part || q.phan || q.type || q.roundType || '').toLowerCase();
+                rVal = removeVietnameseTones(rVal).replace(/[^a-z0-9]/g, '');
+                if (['1', 'round1', 'part1', 'phan1', 'phani', 'tracnghiem', 'mc', 'p1'].some(k => rVal.includes(k))) return 'round1';
+                if (['2', 'round2', 'part2', 'phan2', 'phanii', 'dungsai', 'tf', 'p2'].some(k => rVal.includes(k))) return 'round2';
+                if (['3', 'round3', 'part3', 'phan3', 'phaniii', 'traloingan', 'sa', 'p3'].some(k => rVal.includes(k))) return 'round3';
+
+                if (Array.isArray(q.statements) || q.isTrue !== undefined || q.y_a || q.yA) return 'round2';
+                if (Array.isArray(q.options) || (q.optionA && q.optionB) || (q.a && q.b && q.c && q.d)) return 'round1';
+                return 'round3';
+            };
+
+            let res = { round1: [], round2: [], round3: [] };
+
+            if (Array.isArray(obj)) {
+                obj.forEach(q => {
+                    let cat = classifyQuestion(q);
+                    if (cat) res[cat].push(q);
+                });
+                return res;
+            }
+
+            if (typeof obj !== 'object') return res;
+
+            if (!obj.round1 && !obj.round2 && !obj.round3) {
+                for (let key of Object.keys(obj)) {
+                    let cleanK = removeVietnameseTones(key).toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (['data', 'exam', 'dethi', 'questions', 'result', 'items', 'payload', 'list'].includes(cleanK)) {
+                        if (Array.isArray(obj[key])) {
+                            obj[key].forEach(q => {
+                                let cat = classifyQuestion(q);
+                                if (cat) res[cat].push(q);
+                            });
+                            return res;
+                        } else if (typeof obj[key] === 'object') {
+                            obj = obj[key];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (let k of Object.keys(obj)) {
+                let cleanK = removeVietnameseTones(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+                let val = obj[k];
+                if (Array.isArray(val)) {
+                    if (['round1', 'part1', 'phan1', 'phani', 'tracnghiem', 'mc', 'p1'].some(t => cleanK.includes(t))) {
+                        res.round1.push(...val);
+                    } else if (['round2', 'part2', 'phan2', 'phanii', 'dungsai', 'tf', 'p2'].some(t => cleanK.includes(t))) {
+                        res.round2.push(...val);
+                    } else if (['round3', 'part3', 'phan3', 'phaniii', 'traloingan', 'sa', 'p3'].some(t => cleanK.includes(t))) {
+                        res.round3.push(...val);
+                    } else {
+                        val.forEach(q => {
+                            let cat = classifyQuestion(q);
+                            if (cat) res[cat].push(q);
+                        });
+                    }
+                }
+            }
+
+            if (res.round1.length === 0 && Array.isArray(obj.round1)) res.round1 = obj.round1;
+            if (res.round2.length === 0 && Array.isArray(obj.round2)) res.round2 = obj.round2;
+            if (res.round3.length === 0 && Array.isArray(obj.round3)) res.round3 = obj.round3;
+
+            return res;
+        }
+
+        function smartParseJSON(rawStr) {
+            if (!rawStr || typeof rawStr !== 'string') return null;
+            let str = rawStr.trim();
+            str = str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+
+            const codeBlockMatch = str.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+            if (codeBlockMatch && codeBlockMatch[1]) {
+                str = codeBlockMatch[1].trim();
+            }
+
+            const firstBrace = str.indexOf('{');
+            const firstBracket = str.indexOf('[');
+            let startIdx = -1;
+            let endIdx = -1;
+
+            if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+                startIdx = firstBrace;
+                endIdx = str.lastIndexOf('}');
+            } else if (firstBracket !== -1) {
+                startIdx = firstBracket;
+                endIdx = str.lastIndexOf(']');
+            }
+
+            if (startIdx !== -1 && endIdx > startIdx) {
+                str = str.substring(startIdx, endIdx + 1);
+            }
+
+            const cleanJsonStr = (s) => s.replace(/,\s*([\]}])/g, '$1');
+
+            try {
+                let obj = JSON.parse(cleanJsonStr(str));
+                return normalizeExamDataKeys(obj);
+            } catch (e) {
+                try {
+                    let repaired = str.replace(/\\(?:([^"\\/bfnrtu])|u(?![0-9a-fA-F]{4}))/g, (match, p1) => {
+                        return p1 ? '\\\\' + p1 : '\\\\';
+                    });
+                    repaired = cleanJsonStr(repaired);
+                    let obj = JSON.parse(repaired);
+                    return normalizeExamDataKeys(obj);
+                } catch (e2) {
+                    throw new Error("Không thể đọc chuỗi JSON. Vui lòng kiểm tra cú pháp ngoặc hoặc dữ liệu dán vào!");
+                }
+            }
+        }
+
         function sanitizeGameData(data) { 
             if (!data) return JSON.parse(JSON.stringify(DEFAULT_GAME_DATA)); 
-            const ensureArr = (obj) => { if (!obj) return []; if (Array.isArray(obj)) return obj.filter(item => item != null); return Object.values(obj).filter(item => item != null); }; 
-            data.round1 = ensureArr(data.round1); data.round2 = ensureArr(data.round2); data.round3 = ensureArr(data.round3); 
-            return data; 
+            const ensureArr = (obj) => { 
+                if (!obj) return []; 
+                return Array.isArray(obj) ? obj.filter(item => item != null) : Object.values(obj).filter(item => item != null); 
+            }; 
+            
+            let r1 = ensureArr(data.round1).map((q, idx) => {
+                let text = q.text || q.question || q.noidung || q.content || "";
+                let options = Array.isArray(q.options) ? q.options : [q.optionA || q.a || "", q.optionB || q.b || "", q.optionC || q.c || "", q.optionD || q.d || ""].filter(Boolean);
+                if (options.length === 0) options = ["A", "B", "C", "D"];
+                let answer = q.answer || q.correct || q.dapan || "";
+                return {
+                    id: idx + 1,
+                    text: String(text),
+                    image: String(q.image || q.img || ""),
+                    options: options.map(String),
+                    answer: String(answer),
+                    points: q.points !== undefined ? parseFloat(q.points) || 10 : 10,
+                    explanation: String(q.explanation || q.loigiai || q.huongdan || "")
+                };
+            });
+
+            let r2 = ensureArr(data.round2).map((q, idx) => {
+                let text = q.text || q.question || q.noidung || q.content || "";
+                let rawStmts = Array.isArray(q.statements) ? q.statements : [];
+                if (rawStmts.length === 0) {
+                    ['a', 'b', 'c', 'd'].forEach(lbl => {
+                        if (q['y_' + lbl] || q['y' + lbl] || q['statement_' + lbl]) {
+                            let st = q['y_' + lbl] || q['y' + lbl] || q['statement_' + lbl];
+                            rawStmts.push(typeof st === 'object' ? st : { label: lbl, text: String(st), isTrue: true });
+                        }
+                    });
+                }
+                let labels = ['a', 'b', 'c', 'd'];
+                let statements = rawStmts.map((s, sIdx) => {
+                    let sText = typeof s === 'string' ? s : (s.text || s.content || s.noidung || "");
+                    let isTrueVal = false;
+                    if (typeof s === 'object') {
+                        if (typeof s.isTrue === 'boolean') isTrueVal = s.isTrue;
+                        else if (typeof s.isTrue === 'string') {
+                            let lowerT = s.isTrue.toLowerCase().trim();
+                            isTrueVal = ['true', 'đúng', 'dung', 't', '1'].includes(lowerT);
+                        } else if (s.isTrue === 1 || s.is_true === true) isTrueVal = true;
+                    }
+                    return {
+                        label: labels[sIdx] || String(s.label || sIdx + 1),
+                        text: String(sText),
+                        isTrue: isTrueVal,
+                        points: s.points !== undefined ? parseFloat(s.points) || 10 : 10
+                    };
+                });
+
+                return {
+                    id: idx + 1,
+                    text: String(text),
+                    image: String(q.image || q.img || ""),
+                    statements: statements,
+                    explanation: String(q.explanation || q.loigiai || q.huongdan || "")
+                };
+            });
+
+            let r3 = ensureArr(data.round3).map((q, idx) => {
+                let text = q.text || q.question || q.noidung || q.content || "";
+                let answer = q.answer || q.dapan || q.correct || "";
+                return {
+                    id: idx + 1,
+                    text: String(text),
+                    image: String(q.image || q.img || ""),
+                    answer: String(answer),
+                    points: q.points !== undefined ? parseFloat(q.points) || 15 : 15,
+                    explanation: String(q.explanation || q.loigiai || q.huongdan || "")
+                };
+            });
+
+            return { round1: r1, round2: r2, round3: r3 }; 
         }
 
         let GAME_DATA = sanitizeGameData(JSON.parse(JSON.stringify(DEFAULT_GAME_DATA)));
@@ -620,7 +816,26 @@
             if(el && adminState.loadedSettings) el.value = adminState.loadedSettings.examMode || 'practice';
         }
 
-        function adminSetTab(t) { if (adminState.round === 'json') { try { adminState.data = JSON.parse(document.getElementById('admin-json-editor').value); } catch(e) { showToast("Lỗi JSON!", true); return; } } adminState.round = t; adminState.editingQ = null; renderAdminUI(); }
+        function adminSetTab(t) { 
+            if (adminState.round === 'json' && t !== 'json') { 
+                let editorEl = document.getElementById('admin-json-editor');
+                if (editorEl && editorEl.value.trim()) {
+                    try { 
+                        let parsed = smartParseJSON(editorEl.value);
+                        if (parsed) {
+                            adminState.data = sanitizeGameData(parsed);
+                            GAME_DATA = JSON.parse(JSON.stringify(adminState.data));
+                        }
+                    } catch(e) { 
+                        showToast("Lỗi JSON: " + (e.message || "Định dạng không hợp lệ"), true); 
+                        return; 
+                    } 
+                }
+            } 
+            adminState.round = t; 
+            adminState.editingQ = null; 
+            renderAdminUI(); 
+        }
 
         function renderAdminUI() {
             let updateBtn = document.getElementById('btn-update-loaded-exam');
@@ -868,11 +1083,20 @@
             if(!reqStr) reqStr = "\n\n- Không có yêu cầu cụ thể, vui lòng bóc tách toàn bộ tài liệu nguồn.";
 
             document.getElementById('ai-prompt-text').value = 
+                "Bạn là chuyên gia soạn thảo đề thi Toán THPT. Hãy tạo bộ đề thi bằng định dạng CHUẨN JSON đúng 100% theo cấu trúc mẫu bên dưới:\n\n" +
                 "CẤU TRÚC SỐ LƯỢNG VÀ MỨC ĐỘ YÊU CẦU: " + reqStr + "\n\n" +
                 "QUY TẮC ĐỊNH DẠNG DỮ LIỆU BẮT BUỘC:\n" +
-                "1. TẤT CẢ CÔNG THỨC TOÁN HỌC phải được định dạng theo chuẩn LaTeX và đặt trong cặp ký tự $...$.\n" +
-                "2. QUY TẮC ĐÁP ÁN PHẦN I (round1): Thuộc tính \"options\" chứa mảng 4 chuỗi text phương án. Thuộc tính \"answer\" PHẢI ghi lại CHÍNH XÁC toàn bộ nội dung text của phương án đúng đó (Không được ghi ký tự nhãn A, B, C, D).\n" +
-                "3. QUY TẮC PHẦN II (round2): Mỗi câu hỏi chứa đúng mảng \"statements\" gồm 4 ý gắn nhãn \"label\" là \"a\", \"b\", \"c\", \"d\". Thuộc tính \"isTrue\" nhận giá trị boolean thuần (true/false).\n";
+                "1. Trả về CHỈ duy nhất 1 khối JSON (đặt trong ```json ... ```) có 3 thuộc tính chính: \"round1\", \"round2\", \"round3\".\n" +
+                "2. Tất cả công thức Toán học theo chuẩn LaTeX trong $...$, chú ý nhân đôi dấu gạch chéo ngược (ví dụ: \\\\frac, \\\\log, \\\\sqrt).\n" +
+                "3. Phần 1 (\"round1\"): \"options\" là mảng 4 phương án. \"answer\" PHẢI ghi CHÍNH XÁC toàn bộ nội dung text của phương án đúng (Không ghi A, B, C, D).\n" +
+                "4. Phần 2 (\"round2\"): mảng \"statements\" gồm 4 ý với label: \"a\", \"b\", \"c\", \"d\" và isTrue: true hoặc false.\n" +
+                "5. Phần 3 (\"round3\"): \"answer\" là đáp án dạng chuỗi (ví dụ: \"12\" hoặc \"3/4\").\n\n" +
+                "CẤU TRÚC MẪU (SCHEMA):\n" +
+                "{\n" +
+                "  \"round1\": [ {\"id\": 1, \"text\": \"...\", \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"], \"answer\": \"Option A\", \"points\": 10, \"explanation\": \"\"} ],\n" +
+                "  \"round2\": [ {\"id\": 1, \"text\": \"...\", \"statements\": [{\"label\":\"a\",\"text\":\"...\",\"isTrue\":true,\"points\":10}, {\"label\":\"b\",\"text\":\"...\",\"isTrue\":false,\"points\":10}, {\"label\":\"c\",\"text\":\"...\",\"isTrue\":true,\"points\":10}, {\"label\":\"d\",\"text\":\"...\",\"isTrue\":false,\"points\":10}], \"explanation\": \"\"} ],\n" +
+                "  \"round3\": [ {\"id\": 1, \"text\": \"...\", \"answer\": \"1\", \"points\": 15, \"explanation\": \"\"} ]\n" +
+                "}";
         }
 
         let currentAiImageBase64 = null;
@@ -922,8 +1146,23 @@
                 if(data.error) throw new Error(data.error.message); 
                 
                 let jsonStr = data.candidates[0].content.parts[0].text.trim();
-                adminState.loadedCode = null; adminState.data = sanitizeGameData(JSON.parse(jsonStr)); GAME_DATA = JSON.parse(JSON.stringify(adminState.data)); 
-                showToast("AI đã sinh đề thành công!"); closeImportModal(); adminSetTab('round1'); 
+                let parsed = smartParseJSON(jsonStr);
+                if (!parsed) throw new Error("AI trả về kết quả không đúng cấu trúc JSON!");
+                
+                let sanitized = sanitizeGameData(parsed);
+                let totalQs = (sanitized.round1?.length || 0) + (sanitized.round2?.length || 0) + (sanitized.round3?.length || 0);
+                if (totalQs === 0) {
+                    throw new Error("AI không sinh ra câu hỏi nào trong dữ liệu JSON!");
+                }
+
+                adminState.loadedCode = null; 
+                adminState.round = 'round1'; 
+                adminState.data = sanitized; 
+                GAME_DATA = JSON.parse(JSON.stringify(adminState.data)); 
+                
+                showToast(`AI đã sinh ${totalQs} câu hỏi thành công!`); 
+                closeImportModal(); 
+                renderAdminUI(); 
             } catch(e) { 
                 showToast("Có lỗi từ AI: " + e.message, true); 
             } finally { 
@@ -931,7 +1170,31 @@
             } 
         }
 
-        function handleImportPaste() { try { adminState.loadedCode = null; adminState.data = sanitizeGameData(JSON.parse(document.getElementById('import-json-textarea').value)); GAME_DATA = JSON.parse(JSON.stringify(adminState.data)); showToast("Import JSON thành công!"); closeImportModal(); adminSetTab('round1'); } catch(e) { showToast("Cấu trúc JSON bị lỗi!", true); } }
+        function handleImportPaste() { 
+            try { 
+                let rawText = document.getElementById('import-json-textarea').value;
+                if (!rawText || !rawText.trim()) throw new Error("Vui lòng dán nội dung JSON vào ô nhập!");
+                let parsed = smartParseJSON(rawText);
+                if (!parsed) throw new Error("Vui lòng dán nội dung JSON hợp lệ!");
+                
+                let sanitized = sanitizeGameData(parsed);
+                let totalQs = (sanitized.round1?.length || 0) + (sanitized.round2?.length || 0) + (sanitized.round3?.length || 0);
+                if (totalQs === 0) {
+                    throw new Error("Không tìm thấy câu hỏi nào hợp lệ trong dữ liệu JSON. Vui lòng kiểm tra lại cấu trúc JSON!");
+                }
+
+                adminState.loadedCode = null; 
+                adminState.round = 'round1'; 
+                adminState.data = sanitized; 
+                GAME_DATA = JSON.parse(JSON.stringify(adminState.data)); 
+                
+                showToast(`Import JSON thành công (${totalQs} câu hỏi)!`); 
+                closeImportModal(); 
+                renderAdminUI(); 
+            } catch(e) { 
+                showToast("Cấu trúc JSON bị lỗi: " + (e.message || "Vui lòng kiểm tra lại!"), true); 
+            } 
+        }
         function resetToDefaultData() { showConfirmModal("Khôi phục", "Xóa toàn bộ đề hiện tại để về mẫu trắng?", () => { adminState.loadedCode = null; GAME_DATA = sanitizeGameData(JSON.parse(JSON.stringify(DEFAULT_GAME_DATA))); adminState.data = JSON.parse(JSON.stringify(GAME_DATA)); adminSetTab('round1'); showToast("Đã làm sạch bản nháp!"); }); }
 
         let adminStudentList = [];
