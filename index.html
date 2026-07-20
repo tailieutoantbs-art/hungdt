@@ -69,6 +69,16 @@
         <i class="fa-solid fa-circle-check text-3xl"></i><span id="toast-msg">Thành công!</span>
     </div>
 
+    <!-- Modal Chỉnh Sửa Bảng Tin -->
+    <div id="board-edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden items-center justify-center fade-in px-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-4xl relative zoom-in flex flex-col h-[80vh]">
+            <button onclick="document.getElementById('board-edit-modal').classList.add('hidden'); document.getElementById('board-edit-modal').classList.remove('flex');" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 text-3xl transition-transform hover:scale-110"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-black text-slate-800 mb-4 uppercase tracking-widest border-b-2 border-slate-100 pb-3"><i class="fa-solid fa-pen-to-square text-main mr-2"></i>Soạn Thảo Bảng Tin</h2>
+            <textarea id="board-edit-content" class="w-full flex-grow p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 font-mono resize-none shadow-inner mb-4 text-sm" placeholder="Nhập nội dung bảng tin (Hỗ trợ Markdown)..."></textarea>
+            <button onclick="saveBoardContent()" class="w-full py-4 bg-main text-white font-black rounded-xl shadow-md hover:bg-mainDark hover:shadow-lg transition-all text-lg btn-3d"><i class="fa-solid fa-floppy-disk mr-2"></i>Lưu Thay Đổi</button>
+        </div>
+    </div>
+
     <header id="main-header" class="glass sticky top-0 z-50 px-6 py-2 flex flex-col md:flex-row justify-between items-center rounded-b-3xl mx-4 mt-0 gap-4 md:gap-0 shadow-sm transition-all duration-300 relative">
         <div class="flex items-center gap-3 cursor-pointer" onclick="navTo('home')">
             <div class="relative w-16 h-16 flex items-center justify-center shrink-0 bg-white rounded-full p-1 border border-slate-100 shadow-md">
@@ -533,16 +543,23 @@
         // ======================= BẢNG TIN =======================
         async function renderBoard() {
             let appContent = document.getElementById('app-content');
-            appContent.innerHTML = `<div class="mt-32 text-center text-indigo-500 font-bold"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br>Đang tải bảng tin...</div>`;
+            appContent.innerHTML = `<div class="mt-32 text-center text-main font-bold"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br>Đang tải bảng tin...</div>`;
             try {
                 let doc = await db.collection("GameData").doc("BoardInfo").get();
                 let content = doc.exists ? doc.data().content : "Chưa có thông báo.";
                 let processedContent = marked.parse(content.replace(/\\n/g, '<br>'));
                 
+                let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+                let isAdmin = state.currentUser || isDev;
+                let editBtnHtml = isAdmin ? `<button onclick="openBoardEditor()" class="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md hover:bg-amber-600 transition ml-4 btn-3d"><i class="fa-solid fa-pen-to-square mr-2"></i>Sửa Bảng Tin</button>` : '';
+
                 appContent.innerHTML = `
                     <div class="w-full max-w-5xl fade-in mt-2 relative group">
-                        <div class="flex items-center justify-between mb-6 border-b-2 border-slate-200 pb-4">
-                            <h2 class="text-3xl font-black text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-meteor text-orange-500 mr-3 animate-pulse"></i>BẢNG TIN TBS</h2>
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 border-b-2 border-slate-200 pb-4 gap-4 md:gap-0">
+                            <div class="flex items-center">
+                                <h2 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-meteor text-orange-500 mr-3 animate-pulse"></i>BẢNG TIN TBS</h2>
+                                ${editBtnHtml}
+                            </div>
                             <div class="bg-white border-2 border-slate-200 px-4 py-2 rounded-xl shadow-sm font-bold text-sm text-slate-500 flex items-center gap-2"><i class="fa-regular fa-calendar text-main"></i> Hôm nay: ${new Date().toLocaleDateString('vi-VN')}</div>
                         </div>
 
@@ -560,7 +577,7 @@
                                     <h3 class="text-lg font-black text-slate-700 mb-4 border-b-2 border-slate-100 pb-2 uppercase tracking-wide">Sự Kiện Sắp Tới</h3>
                                     <ul class="space-y-3">
                                         <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div><span class="text-sm font-medium text-slate-600">Thi thử THPT Quốc gia (Toán)</span></li>
-                                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></div><span class="text-sm font-medium text-slate-600">Cập nhật Ngân hàng câu hỏi tháng 8</span></li>
+                                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-main shrink-0"></div><span class="text-sm font-medium text-slate-600">Cập nhật Ngân hàng câu hỏi tháng 8</span></li>
                                         <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></div><span class="text-sm font-medium text-slate-600">Khảo sát chất lượng Lớp 12</span></li>
                                     </ul>
                                 </div>
@@ -568,7 +585,7 @@
                             
                             <div class="md:col-span-2">
                                 <div class="bg-white p-8 md:p-10 rounded-3xl shadow-lg border-2 border-slate-100 relative h-full">
-                                    <div class="absolute top-0 right-0 bg-sky-500 text-white px-6 py-2 rounded-bl-3xl rounded-tr-3xl font-black text-sm uppercase tracking-widest shadow-md">Tin Tuần / Tháng</div>
+                                    <div class="absolute top-0 right-0 bg-main text-white px-6 py-2 rounded-bl-3xl rounded-tr-3xl font-black text-sm uppercase tracking-widest shadow-md">Tin Tuần / Tháng</div>
                                     <div class="prose prose-slate prose-lg max-w-none text-slate-700 font-medium leading-relaxed math-scroll min-h-[400px]">
                                         ${processedContent}
                                     </div>
@@ -580,6 +597,31 @@
                 if(window.MathJax) MathJax.typesetPromise();
             } catch(e) {
                 appContent.innerHTML = "<div class='text-center text-red-400 py-10'><i class='fa-solid fa-triangle-exclamation text-5xl mb-3'></i><br>Lỗi kết nối khi tải bảng tin.</div>";
+            }
+        }
+
+        async function openBoardEditor() {
+            try {
+                let doc = await db.collection("GameData").doc("BoardInfo").get();
+                let content = doc.exists ? doc.data().content : "";
+                document.getElementById('board-edit-content').value = content;
+                document.getElementById('board-edit-modal').classList.remove('hidden');
+                document.getElementById('board-edit-modal').classList.add('flex');
+            } catch(e) {
+                showToast("Lỗi tải nội dung", true);
+            }
+        }
+
+        async function saveBoardContent() {
+            let content = document.getElementById('board-edit-content').value;
+            try {
+                await db.collection("GameData").doc("BoardInfo").set({ content: content });
+                document.getElementById('board-edit-modal').classList.add('hidden');
+                document.getElementById('board-edit-modal').classList.remove('flex');
+                showToast("Đã lưu bảng tin!");
+                renderBoard(); // Reload the board
+            } catch(e) {
+                showToast("Lỗi khi lưu bảng tin", true);
             }
         }
 
