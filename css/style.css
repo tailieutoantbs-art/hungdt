@@ -97,6 +97,18 @@ body[data-theme="gold"] {
 
 mjx-container { font-size: 1.1em !important; } 
 mjx-container[display="true"] { max-width: 100%; overflow-x: auto !important; overflow-y: hidden; padding-bottom: 0.5rem; }
-.math-scroll { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+mjx-container, .math-scroll { 
+    max-width: 100%; 
+    overflow-x: auto; 
+    overflow-y: hidden;
+    scrollbar-width: none !important; 
+    -ms-overflow-style: none !important; 
+}
+mjx-container::-webkit-scrollbar, .math-scroll::-webkit-scrollbar { 
+    display: none !important; 
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
 
 @keyframes shine-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } } .shine-anim { animation: shine-anim 3s infinite; }

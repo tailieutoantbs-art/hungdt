@@ -467,18 +467,23 @@
             state.currentRound = roundId;
             let btns = (GAME_DATA[roundId]||[]).map(q => {
                 let isAns = (roundId==='round1'||roundId==='round3') ? state.answeredQuestions.includes(`${roundId}_${q.id}`) : [0,1,2,3].every(i=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
-                return `<button onclick="openQuestion('${q.id}')" class="w-12 h-12 rounded-xl font-black text-sm border-2 transition ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-inner':'bg-white text-slate-600 border-slate-200 hover:border-main hover:text-main'}">${q.id}</button>`;
+                return `<button onclick="openQuestion('${q.id}')" class="w-full aspect-square rounded-2xl font-black text-base md:text-lg border-2 transition btn-3d flex items-center justify-center ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-main hover:text-main shadow-sm'}">${q.id}</button>`;
             }).join('');
             
             let title = roundId === 'round1' ? "Phần I: Trắc nghiệm" : roundId === 'round2' ? "Phần II: Đúng / Sai" : "Phần III: Trả lời ngắn";
+            let qCount = (GAME_DATA[roundId]||[]).length;
             
             document.getElementById('app-content').innerHTML = `
                 <div class="w-full max-w-4xl fade-in">
-                    <div class="flex items-center justify-between mb-4 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4 px-6 py-3.5 bg-white rounded-2xl shadow-sm border border-slate-200">
                         <h2 class="font-black text-main text-lg uppercase tracking-wider">${title}</h2>
-                        <span class="text-xs font-bold text-slate-400">Chọn câu hỏi bên dưới</span>
+                        <span class="text-xs font-bold text-slate-400">Chọn câu hỏi bên dưới (${qCount} câu)</span>
                     </div>
-                    <div class="flex flex-wrap gap-3 bg-white/60 p-4 rounded-2xl border">${btns}</div>
+                    <div class="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                            ${btns}
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -544,7 +549,7 @@
                             else { cls = "opacity-40 pointer-events-none"; }
                         }
                     }
-                    return `<button onclick="checkAnswer(this, ${opt.isCorrect}, ${i})" ${isAns?'disabled':''} class="flex items-center gap-3 p-3 rounded-xl font-bold text-left border-2 transition ${cls}"><span class="w-8 h-8 rounded-lg flex items-center justify-center font-black bg-slate-100 text-slate-500">${['A','B','C','D'][i]}</span><div class="math-scroll">${marked.parseInline(opt.text||"")}</div></button>`;
+                    return `<button onclick="checkAnswer(this, ${opt.isCorrect}, ${i})" ${isAns?'disabled':''} class="flex items-center gap-3 p-3.5 min-h-[64px] rounded-2xl font-bold text-left border-2 transition ${cls}"><span class="w-9 h-9 rounded-xl flex items-center justify-center font-black bg-slate-100 text-slate-600 shrink-0 shadow-inner">${['A','B','C','D'][i]}</span><div class="math-scroll flex-grow">${marked.parseInline(opt.text||"")}</div></button>`;
                 }).join('') + `</div>`;
             } 
             else if (state.currentRound === 'round2') {
