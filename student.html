@@ -181,10 +181,17 @@
     </div>
 
     <div id="stats-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center shadow-2xl border-2 border-mainLight">
-            <h3 class="text-2xl font-black text-main mb-4">HOÀN THÀNH BÀI THI!</h3>
+        <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center shadow-2xl border-2 border-mainLight zoom-in">
+            <h3 class="text-2xl font-black text-main mb-4 uppercase tracking-wider">HOÀN THÀNH BÀI THI!</h3>
             <div id="stats-content" class="space-y-4"></div>
-            <button onclick="window.location.href='index.html'" class="w-full mt-6 py-3 bg-main text-white rounded-xl font-bold">Về trang chủ Portal</button>
+            <div class="mt-6 flex flex-col gap-2.5">
+                <button onclick="document.getElementById('stats-modal').classList.add('hidden'); renderDashboard();" class="w-full py-3 bg-main hover:bg-mainDark text-white rounded-xl font-bold transition shadow-sm btn-3d flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-signature"></i> Xem lại bài thi & Hướng dẫn giải
+                </button>
+                <button onclick="window.location.href='index.html'" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition border border-slate-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house"></i> Trở về trang chủ
+                </button>
+            </div>
         </div>
     </div>
 
@@ -787,15 +794,6 @@
                     </div>
                 </div>
             `;
-            
-            let closeBtn = document.querySelector('#stats-modal button');
-            if(closeBtn) {
-                closeBtn.innerText = "Xem lại bài thi & Hướng dẫn giải";
-                closeBtn.onclick = () => {
-                    document.getElementById('stats-modal').classList.add('hidden');
-                    renderDashboard(); 
-                };
-            }
             
             document.getElementById('stats-modal').classList.remove('hidden'); triggerConfetti(); updateScoreUI();
         }
