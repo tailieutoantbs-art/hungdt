@@ -532,7 +532,7 @@
                     </div>
                     <div class="bg-white p-6 rounded-2xl mb-4 shadow-sm border border-slate-100 text-lg font-bold leading-relaxed">
                         ${marked.parse(q.text || "")}
-                        ${q.image ? `<img src="${q.image}" class="mt-4 max-h-60 mx-auto rounded-xl shadow-sm">` : ''}
+                        ${q.image ? `<div class="mt-4 flex justify-center"><img src="${q.image}" class="max-h-80 max-w-full rounded-2xl shadow-md border-2 border-slate-100 object-contain hover:scale-[1.02] transition cursor-pointer" onclick="window.open(this.src, '_blank')"></div>` : ''}
                     </div>
             `;
 

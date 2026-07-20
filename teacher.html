@@ -908,7 +908,7 @@
             
             html += `<div class="mb-8 bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm"><div class="flex justify-between items-center mb-4"><label class="font-black text-sm text-slate-700 uppercase tracking-widest">Nội dung câu hỏi (Bọc biểu thức Toán bằng $...$):</label><button onclick="openMathModal('edit-q-text')" class="px-4 py-2 bg-sky-50 text-sky-600 rounded-xl text-xs font-black hover:bg-sky-600 hover:text-white transition border border-sky-100 shadow-sm btn-3d"><i class="fa-solid fa-calculator mr-2"></i> Gõ Toán Học</button></div><textarea id="edit-q-text" class="w-full p-5 border-2 border-slate-200 rounded-2xl outline-none focus:border-sky-500 shadow-inner text-lg font-medium text-slate-800 transition" rows="4">${String(q.text||'')}</textarea></div>`;
             
-            html += `<div class="mb-8 bg-sky-50/50 p-6 rounded-[2rem] border-2 border-sky-100 shadow-sm"><label class="block font-black mb-4 text-sm text-sky-800 uppercase tracking-widest"><i class="fa-solid fa-image mr-2"></i> Hình Ảnh Đính Kèm (Không bắt buộc):</label><div class="flex flex-col lg:flex-row gap-5 items-center"><div id="image-paste-zone" tabindex="0" class="flex-grow w-full min-h-[140px] border-[3px] border-dashed border-sky-300 bg-white rounded-2xl flex items-center justify-center cursor-text outline-none focus:border-sky-500 relative transition hover:bg-sky-50"><div id="image-preview" class="pointer-events-none text-center p-4">${q.image ? `<img src="${q.image}" class="max-h-[160px] rounded-xl object-contain mx-auto shadow-sm border border-slate-100">` : `<i class="fa-solid fa-paste text-5xl text-sky-200 mb-3"></i><div class="text-sm text-slate-500 font-bold">Click vào đây và nhấn Ctrl+V để dán ảnh</div>`}</div></div><div class="flex lg:flex-col gap-3 shrink-0 w-full lg:w-48"><label class="flex-1 cursor-pointer bg-sky-600 hover:bg-sky-700 text-white font-black py-3.5 px-4 rounded-xl text-sm text-center transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Tải File Lên<input type="file" id="image-upload" class="hidden" accept="image/*" onchange="handleFileUpload(event)"></label><button onclick="clearPastedImage()" class="flex-1 bg-white border-2 border-rose-200 hover:bg-rose-500 hover:text-white hover:border-rose-500 text-rose-500 font-black py-3.5 px-4 rounded-xl text-sm transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-trash-can mr-2"></i> Gỡ Bỏ Ảnh</button></div></div></div>`;
+            html += `<div class="mb-8 bg-sky-50/50 p-6 rounded-[2rem] border-2 border-sky-100 shadow-sm"><label class="block font-black mb-4 text-sm text-sky-800 uppercase tracking-widest"><i class="fa-solid fa-image mr-2"></i> Hình Ảnh Đính Kèm (Không bắt buộc):</label><div class="flex flex-col lg:flex-row gap-5 items-center"><div id="image-paste-zone" tabindex="0" class="flex-grow w-full min-h-[140px] border-[3px] border-dashed border-sky-300 bg-white rounded-2xl flex items-center justify-center cursor-text outline-none focus:border-sky-500 relative transition hover:bg-sky-50"><div id="image-preview" class="pointer-events-none text-center p-4">${q.image ? `<img src="${q.image}" class="max-h-[160px] rounded-xl object-contain mx-auto shadow-sm border border-slate-100">` : `<i class="fa-solid fa-paste text-5xl text-sky-200 mb-3"></i><div class="text-sm text-slate-500 font-bold">Click vào đây và nhấn Ctrl+V để dán ảnh</div>`}</div></div><div class="flex lg:flex-col gap-3 shrink-0 w-full lg:w-48"><button onclick="openCropModal()" class="flex-1 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-black py-3.5 px-4 rounded-xl text-sm text-center transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt Ảnh 1-Click</button><label class="flex-1 cursor-pointer bg-sky-600 hover:bg-sky-700 text-white font-black py-3.5 px-4 rounded-xl text-sm text-center transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Tải File Lên<input type="file" id="image-upload" class="hidden" accept="image/*" onchange="handleFileUpload(event)"></label><button onclick="clearPastedImage()" class="flex-1 bg-white border-2 border-rose-200 hover:bg-rose-500 hover:text-white hover:border-rose-500 text-rose-500 font-black py-3.5 px-4 rounded-xl text-sm transition btn-3d shadow-sm uppercase"><i class="fa-solid fa-trash-can mr-2"></i> Gỡ Bỏ Ảnh</button></div></div></div>`;
 
             if (adminState.round === 'round1') {
                 html += `<div class="mb-8 bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm"><label class="block font-black mb-5 text-sm text-slate-700 uppercase tracking-widest">Các phương án lựa chọn:</label><div class="grid grid-cols-1 md:grid-cols-2 gap-5">`; 
@@ -995,7 +995,46 @@
         function setupImagePasteZone() { let zone = document.getElementById('image-paste-zone'); if(!zone) return; zone.addEventListener('paste', async (e) => { e.preventDefault(); let items = (e.clipboardData || e.originalEvent.clipboardData).items; for (let index in items) { if (items[index].kind === 'file' && items[index].type.startsWith('image/')) { document.getElementById('image-preview').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-4xl text-sky-500"></i>`; let url = await processImageFile(items[index].getAsFile()); if(url) { document.getElementById('image-preview').innerHTML = `<img src="${url}" class="max-h-[160px] rounded-xl object-contain mx-auto shadow-sm border border-slate-100">`; if(adminState.editingQ) adminState.editingQ.image = url; } else clearPastedImage(); } } }); }
         async function handleFileUpload(e) { let file = e.target.files[0]; if(!file) return; document.getElementById('image-preview').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-4xl text-sky-500"></i>`; let url = await processImageFile(file); if(url) { document.getElementById('image-preview').innerHTML = `<img src="${url}" class="max-h-[160px] rounded-xl object-contain mx-auto shadow-sm border border-slate-100">`; if(adminState.editingQ) adminState.editingQ.image = url; } else clearPastedImage(); }
         function clearPastedImage() { document.getElementById('image-preview').innerHTML = `<i class="fa-solid fa-paste text-5xl text-sky-200 mb-3"></i><div class="text-sm text-slate-500 font-bold">Click vào đây và nhấn Ctrl+V để dán ảnh</div>`; if(adminState.editingQ) adminState.editingQ.image = ""; document.getElementById('image-upload').value = ""; }
-        async function processImageFile(file) { if (file.size > 2 * 1024 * 1024) { showToast("Ảnh > 2MB. Vui lòng nén!", true); return null; } let f = new FormData(); f.append("file", file); f.append("upload_preset", UPLOAD_PRESET); try { let res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: f }); let d = await res.json(); if(d.secure_url) { showToast("Upload ảnh thành công!"); return d.secure_url; } } catch (e) {} return null; }
+        async function processImageFile(file) { 
+            if (!file) return null;
+            try {
+                let webpUrl = await compressImageToWebP(file, 800, 0.85);
+                showToast("Đã nén & xử lý ảnh thành công (~5-15KB)!");
+                return webpUrl;
+            } catch(e) {
+                showToast("Không thể xử lý file ảnh!", true);
+                return null;
+            }
+        }
+
+        function compressImageToWebP(file, maxWidth = 800, quality = 0.85) {
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onload = (e) => {
+                    let img = new Image();
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) {
+                            h = Math.round((h * maxWidth) / w);
+                            w = maxWidth;
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        let ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+                        let webpData = canvas.toDataURL('image/webp', quality);
+                        resolve(webpData);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
         
         let currentMathTargetId = '';
         function openMathModal(targetId) { currentMathTargetId = targetId; document.getElementById('math-editor').value = document.getElementById(targetId).value || ""; document.getElementById('mathlive-modal').classList.remove('hidden'); setTimeout(() => document.getElementById('math-editor').focus(), 100); }
@@ -1611,7 +1650,210 @@
                 let diceBtn = document.getElementById('btn-random-picker');
                 if (diceBtn && !diceBtn.disabled) diceBtn.click();
             }
-        });
+    <!-- 1-CLICK EXAM IMAGE CROPPER MODAL -->
+    <div id="crop-image-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl border-2 border-slate-200 overflow-hidden zoom-in">
+            <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-blue-700 text-white flex justify-between items-center">
+                <h3 class="font-black text-lg uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-crop-simple text-amber-300"></i> BỘ CÔNG CỤ TRÍCH XUẤT & CẮT HÌNH ĐỀ THI (1-CLICK)
+                </h3>
+                <button onclick="closeCropModal()" class="text-white/80 hover:text-white text-2xl font-bold"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-600">
+                <div class="flex items-center gap-3">
+                    <label class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl cursor-pointer transition shadow-sm btn-3d">
+                        <i class="fa-solid fa-file-image mr-1"></i> Chọn File Ảnh Đề Thi
+                        <input type="file" id="crop-file-input" accept="image/*" class="hidden" onchange="handleCropFileSelect(event)">
+                    </label>
+                    <span class="text-slate-400">hoặc nhấp vào khung tối bên dưới và bấm <b>Ctrl + V</b> để dán ảnh chụp màn hình</span>
+                </div>
+                <div id="crop-status-text" class="text-sky-600 font-bold">Hãy chọn hoặc dán ảnh trang đề thi</div>
+            </div>
+
+            <div id="crop-canvas-container" tabindex="0" class="flex-grow p-4 overflow-auto flex items-center justify-center bg-slate-900 relative min-h-[360px] outline-none select-none">
+                <div id="crop-placeholder" class="text-center text-slate-400 font-bold p-8">
+                    <i class="fa-solid fa-file-paste text-6xl mb-4 text-slate-600"></i>
+                    <p class="text-lg text-slate-300">Dán (Ctrl + V) hoặc Tải ảnh trang đề thi tại đây</p>
+                    <p class="text-xs text-slate-500 mt-1">Dùng chuột kéo khoanh vùng hình vẽ (Đồ thị, Hình không gian, Bảng biến thiên) để cắt</p>
+                </div>
+                <canvas id="crop-canvas" class="hidden max-w-full cursor-crosshair border border-slate-700 shadow-2xl"></canvas>
+            </div>
+
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex justify-between items-center">
+                <button onclick="closeCropModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition">Hủy bỏ</button>
+                <button id="btn-do-crop" onclick="executeCropAndAttach()" disabled class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 opacity-50 cursor-not-allowed text-white font-black rounded-xl text-sm shadow-md transition btn-3d flex items-center gap-2">
+                    <i class="fa-solid fa-scissors"></i> Cắt & Gắn Vào Câu Đang Chọn
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===============================================
+        // 1-CLICK EXAM IMAGE CROPPER LOGIC
+        // ===============================================
+        let cropState = { img: null, canvas: null, ctx: null, isDragging: false, startX: 0, startY: 0, cropX: 0, cropY: 0, cropW: 0, cropH: 0 };
+
+        function openCropModal() {
+            document.getElementById('crop-image-modal').classList.remove('hidden');
+            setTimeout(() => {
+                let container = document.getElementById('crop-canvas-container');
+                if (container) container.focus();
+            }, 100);
+            setupCropCanvasEvents();
+        }
+
+        function closeCropModal() {
+            document.getElementById('crop-image-modal').classList.add('hidden');
+        }
+
+        function setupCropCanvasEvents() {
+            let canvas = document.getElementById('crop-canvas');
+            if (!canvas) return;
+            
+            window.removeEventListener('paste', handleCropModalPaste);
+            window.addEventListener('paste', handleCropModalPaste);
+
+            canvas.onmousedown = (e) => {
+                if (!cropState.img) return;
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                cropState.isDragging = true;
+                cropState.startX = (e.clientX - rect.left) * scaleX;
+                cropState.startY = (e.clientY - rect.top) * scaleY;
+                cropState.cropW = 0;
+                cropState.cropH = 0;
+                let btn = document.getElementById('btn-do-crop');
+                if (btn) { btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed'); }
+            };
+
+            canvas.onmousemove = (e) => {
+                if (!cropState.isDragging || !cropState.img) return;
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                let currentX = (e.clientX - rect.left) * scaleX;
+                let currentY = (e.clientY - rect.top) * scaleY;
+
+                cropState.cropX = Math.min(cropState.startX, currentX);
+                cropState.cropY = Math.min(cropState.startY, currentY);
+                cropState.cropW = Math.abs(currentX - cropState.startX);
+                cropState.cropH = Math.abs(currentY - cropState.startY);
+
+                drawCropCanvas();
+            };
+
+            canvas.onmouseup = () => {
+                if (!cropState.isDragging) return;
+                cropState.isDragging = false;
+                if (cropState.cropW > 10 && cropState.cropH > 10) {
+                    let btn = document.getElementById('btn-do-crop');
+                    if (btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                }
+            };
+        }
+
+        function handleCropModalPaste(e) {
+            let modal = document.getElementById('crop-image-modal');
+            if (!modal || modal.classList.contains('hidden')) return;
+            let items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                if (items[index].kind === 'file' && items[index].type.startsWith('image/')) {
+                    let file = items[index].getAsFile();
+                    loadCropImageFromFile(file);
+                    break;
+                }
+            }
+        }
+
+        function loadCropImageFromFile(file) {
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                let img = new Image();
+                img.onload = () => {
+                    cropState.img = img;
+                    let canvas = document.getElementById('crop-canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    cropState.ctx = canvas.getContext('2d');
+                    canvas.classList.remove('hidden');
+                    document.getElementById('crop-placeholder').classList.add('hidden');
+                    document.getElementById('crop-status-text').innerText = `Kích thước ảnh đề thi gốc: ${img.width}x${img.height}px. Hãy dùng chuột kéo khoanh vùng hình vẽ!`;
+                    drawCropCanvas();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleCropFileSelect(e) {
+            let file = e.target.files[0];
+            if (file) loadCropImageFromFile(file);
+        }
+
+        function drawCropCanvas() {
+            let canvas = document.getElementById('crop-canvas');
+            let ctx = cropState.ctx;
+            if (!canvas || !ctx || !cropState.img) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(cropState.img, 0, 0);
+
+            if (cropState.cropW > 0 && cropState.cropH > 0) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.drawImage(
+                    cropState.img,
+                    cropState.cropX, cropState.cropY, cropState.cropW, cropState.cropH,
+                    cropState.cropX, cropState.cropY, cropState.cropW, cropState.cropH
+                );
+
+                ctx.strokeStyle = '#0ea5e9';
+                ctx.lineWidth = Math.max(2, Math.round(canvas.width / 400));
+                ctx.setLineDash([6, 4]);
+                ctx.strokeRect(cropState.cropX, cropState.cropY, cropState.cropW, cropState.cropH);
+                ctx.setLineDash([]);
+            }
+        }
+
+        async function executeCropAndAttach() {
+            if (!cropState.img || cropState.cropW < 10 || cropState.cropH < 10) return;
+            
+            let offCanvas = document.createElement('canvas');
+            let maxWidth = 800;
+            let targetW = cropState.cropW;
+            let targetH = cropState.cropH;
+            if (targetW > maxWidth) {
+                targetH = Math.round((targetH * maxWidth) / targetW);
+                targetW = maxWidth;
+            }
+            offCanvas.width = targetW;
+            offCanvas.height = targetH;
+            let ctx = offCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetW, targetH);
+            ctx.drawImage(
+                cropState.img,
+                cropState.cropX, cropState.cropY, cropState.cropW, cropState.cropH,
+                0, 0, targetW, targetH
+            );
+
+            let webpUrl = offCanvas.toDataURL('image/webp', 0.85);
+
+            let previewEl = document.getElementById('image-preview');
+            if (previewEl) {
+                previewEl.innerHTML = `<img src="${webpUrl}" class="max-h-[160px] rounded-xl object-contain mx-auto shadow-sm border border-slate-100">`;
+            }
+            if (adminState.editingQ) {
+                adminState.editingQ.image = webpUrl;
+            }
+
+            showToast("Đã trích xuất & nén hình ảnh câu hỏi thành công (~5-15KB)!");
+            closeCropModal();
+        }
     </script>
 </body>
 </html>
