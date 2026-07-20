@@ -310,7 +310,43 @@
     <div id="edit-info-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full relative shadow-2xl border-4 border-sky-100"><h3 class="text-2xl font-black text-slate-800 mb-2">Sửa thông tin đề thi</h3><p class="text-slate-500 font-bold mb-4">Mã: <span id="edit-info-target-code" class="text-sky-600"></span></p><div class="space-y-4 mb-6 text-left"><input type="text" id="edit-info-name" placeholder="Tên đề thi mới..." class="w-full p-3 border-2 border-sky-200 rounded-xl outline-none focus:border-sky-500 font-bold shadow-inner"><input type="text" id="edit-info-folder" placeholder="Thư mục/Khối..." class="w-full p-3 border-2 border-sky-200 rounded-xl outline-none focus:border-sky-500 font-bold shadow-inner"></div><div class="flex gap-4"><button onclick="closeEditInfoModal()" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold btn-3d hover:bg-slate-300">Hủy</button><button onclick="confirmEditInfo()" class="flex-1 py-3 bg-sky-500 text-white rounded-xl font-bold btn-3d hover:bg-sky-600">Lưu</button></div></div></div>
     <div id="delete-code-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full border-4 border-red-100 shadow-2xl"><div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm"><i class="fa-solid fa-trash"></i></div><h3 class="text-xl font-black text-slate-800 mb-2">Xác Nhận Xóa Đề</h3><p class="text-slate-600 font-bold mb-6">Mã: <span id="delete-target-code" class="text-red-500"></span></p><div class="flex gap-4"><button onclick="closeDeleteCodeModal()" class="flex-1 py-2.5 bg-slate-200 rounded-xl font-bold btn-3d hover:bg-slate-300">Hủy</button><button onclick="confirmDeleteCode()" class="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold btn-3d hover:bg-red-600">Xóa Vĩnh Viễn</button></div></div></div>
     <div id="clear-history-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full border-4 border-red-100 shadow-2xl"><div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-xl font-black text-slate-800 mb-6">Xóa Sạch Lịch Sử?</h3><div class="flex gap-4"><button onclick="closeClearHistoryModal()" class="flex-1 py-2.5 bg-slate-200 rounded-xl font-bold btn-3d hover:bg-slate-300">Hủy</button><button onclick="confirmClearHistory()" class="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold btn-3d hover:bg-red-600">Đồng ý xóa</button></div></div></div>
-    <div id="change-password-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl w-full max-w-sm zoom-in border-4 border-slate-200 shadow-2xl"><button onclick="closeChangePasswordModal()" class="absolute top-4 right-4 text-slate-400 bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:text-rose-500"><i class="fa-solid fa-xmark"></i></button><h3 class="text-xl font-black text-center mb-6 text-slate-800 uppercase">Đổi MK Admin</h3><div class="space-y-4"><input type="email" id="cp-email" placeholder="Email Admin" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 font-bold outline-none text-sm shadow-inner"><input type="password" id="cp-current" placeholder="Mật khẩu hiện tại" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-sm shadow-inner"><input type="password" id="cp-new" placeholder="Mật khẩu mới" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-sm shadow-inner"><input type="password" id="cp-confirm" placeholder="Nhập lại mới" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-sm shadow-inner"><button onclick="confirmChangePassword()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-black btn-3d hover:bg-slate-700 uppercase tracking-widest mt-2">LƯU THAY ĐỔI</button></div></div></div>
+    <div id="crop-image-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl border-2 border-slate-200 overflow-hidden zoom-in">
+            <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-blue-700 text-white flex justify-between items-center">
+                <h3 class="font-black text-lg uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-crop-simple text-amber-300"></i> BỘ CÔNG CỤ TRÍCH XUẤT & CẮT HÌNH ĐỀ THI (1-CLICK)
+                </h3>
+                <button onclick="closeCropModal()" class="text-white/80 hover:text-white text-2xl font-bold"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-600">
+                <div class="flex items-center gap-3">
+                    <label class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl cursor-pointer transition shadow-sm btn-3d">
+                        <i class="fa-solid fa-file-image mr-1"></i> Chọn File Ảnh Đề Thi
+                        <input type="file" id="crop-file-input" accept="image/*" class="hidden" onchange="handleCropFileSelect(event)">
+                    </label>
+                    <span class="text-slate-400">hoặc nhấp vào khung tối bên dưới và bấm <b>Ctrl + V</b> để dán ảnh chụp màn hình</span>
+                </div>
+                <div id="crop-status-text" class="text-sky-600 font-bold">Hãy chọn hoặc dán ảnh trang đề thi</div>
+            </div>
+
+            <div id="crop-canvas-container" tabindex="0" class="flex-grow p-4 overflow-auto flex items-center justify-center bg-slate-900 relative min-h-[360px] outline-none select-none">
+                <div id="crop-placeholder" class="text-center text-slate-400 font-bold p-8">
+                    <i class="fa-solid fa-file-paste text-6xl mb-4 text-slate-600"></i>
+                    <p class="text-lg text-slate-300">Dán (Ctrl + V) hoặc Tải ảnh trang đề thi tại đây</p>
+                    <p class="text-xs text-slate-500 mt-1">Dùng chuột kéo khoanh vùng hình vẽ (Đồ thị, Hình không gian, Bảng biến thiên) để cắt</p>
+                </div>
+                <canvas id="crop-canvas" class="hidden max-w-full cursor-crosshair border border-slate-700 shadow-2xl"></canvas>
+            </div>
+
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex justify-between items-center">
+                <button onclick="closeCropModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition">Hủy bỏ</button>
+                <button id="btn-do-crop" onclick="executeCropAndAttach()" disabled class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 opacity-50 cursor-not-allowed text-white font-black rounded-xl text-sm shadow-md transition btn-3d flex items-center gap-2">
+                    <i class="fa-solid fa-scissors"></i> Cắt & Gắn Vào Câu Đang Chọn
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // CONFIG & FIREBASE INIT (Moved to config.js) 
@@ -1650,46 +1686,8 @@
                 let diceBtn = document.getElementById('btn-random-picker');
                 if (diceBtn && !diceBtn.disabled) diceBtn.click();
             }
-    <!-- 1-CLICK EXAM IMAGE CROPPER MODAL -->
-    <div id="crop-image-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl border-2 border-slate-200 overflow-hidden zoom-in">
-            <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-blue-700 text-white flex justify-between items-center">
-                <h3 class="font-black text-lg uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-crop-simple text-amber-300"></i> BỘ CÔNG CỤ TRÍCH XUẤT & CẮT HÌNH ĐỀ THI (1-CLICK)
-                </h3>
-                <button onclick="closeCropModal()" class="text-white/80 hover:text-white text-2xl font-bold"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+        });
 
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-600">
-                <div class="flex items-center gap-3">
-                    <label class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl cursor-pointer transition shadow-sm btn-3d">
-                        <i class="fa-solid fa-file-image mr-1"></i> Chọn File Ảnh Đề Thi
-                        <input type="file" id="crop-file-input" accept="image/*" class="hidden" onchange="handleCropFileSelect(event)">
-                    </label>
-                    <span class="text-slate-400">hoặc nhấp vào khung tối bên dưới và bấm <b>Ctrl + V</b> để dán ảnh chụp màn hình</span>
-                </div>
-                <div id="crop-status-text" class="text-sky-600 font-bold">Hãy chọn hoặc dán ảnh trang đề thi</div>
-            </div>
-
-            <div id="crop-canvas-container" tabindex="0" class="flex-grow p-4 overflow-auto flex items-center justify-center bg-slate-900 relative min-h-[360px] outline-none select-none">
-                <div id="crop-placeholder" class="text-center text-slate-400 font-bold p-8">
-                    <i class="fa-solid fa-file-paste text-6xl mb-4 text-slate-600"></i>
-                    <p class="text-lg text-slate-300">Dán (Ctrl + V) hoặc Tải ảnh trang đề thi tại đây</p>
-                    <p class="text-xs text-slate-500 mt-1">Dùng chuột kéo khoanh vùng hình vẽ (Đồ thị, Hình không gian, Bảng biến thiên) để cắt</p>
-                </div>
-                <canvas id="crop-canvas" class="hidden max-w-full cursor-crosshair border border-slate-700 shadow-2xl"></canvas>
-            </div>
-
-            <div class="px-6 py-4 bg-white border-t border-slate-200 flex justify-between items-center">
-                <button onclick="closeCropModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition">Hủy bỏ</button>
-                <button id="btn-do-crop" onclick="executeCropAndAttach()" disabled class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 opacity-50 cursor-not-allowed text-white font-black rounded-xl text-sm shadow-md transition btn-3d flex items-center gap-2">
-                    <i class="fa-solid fa-scissors"></i> Cắt & Gắn Vào Câu Đang Chọn
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
         // ===============================================
         // 1-CLICK EXAM IMAGE CROPPER LOGIC
         // ===============================================
