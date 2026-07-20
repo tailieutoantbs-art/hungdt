@@ -71,10 +71,16 @@
 
     <!-- Modal Chỉnh Sửa Bảng Tin -->
     <div id="board-edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden items-center justify-center fade-in px-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-4xl relative zoom-in flex flex-col h-[80vh]">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-4xl relative zoom-in flex flex-col h-[90vh]">
             <button onclick="document.getElementById('board-edit-modal').classList.add('hidden'); document.getElementById('board-edit-modal').classList.remove('flex');" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 text-3xl transition-transform hover:scale-110"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-black text-slate-800 mb-4 uppercase tracking-widest border-b-2 border-slate-100 pb-3"><i class="fa-solid fa-pen-to-square text-main mr-2"></i>Soạn Thảo Bảng Tin</h2>
+            
+            <label class="font-bold text-slate-700 text-sm mb-1 block"><i class="fa-solid fa-align-left mr-2 text-sky-500"></i>Nội dung bảng tin (Hỗ trợ Markdown):</label>
             <textarea id="board-edit-content" class="w-full flex-grow p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 font-mono resize-none shadow-inner mb-4 text-sm" placeholder="Nhập nội dung bảng tin (Hỗ trợ Markdown)..."></textarea>
+            
+            <label class="font-bold text-slate-700 text-sm mb-1 block"><i class="fa-solid fa-calendar-days mr-2 text-rose-500"></i>Sự kiện sắp tới (Mỗi dòng 1 sự kiện):</label>
+            <textarea id="board-edit-events" class="w-full h-32 p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 font-mono resize-none shadow-inner mb-4 text-sm" placeholder="Ví dụ: Thi thử THPT Quốc gia (Toán)"></textarea>
+            
             <button onclick="saveBoardContent()" class="w-full py-4 bg-main text-white font-black rounded-xl shadow-md hover:bg-mainDark hover:shadow-lg transition-all text-lg btn-3d"><i class="fa-solid fa-floppy-disk mr-2"></i>Lưu Thay Đổi</button>
         </div>
     </div>
@@ -546,11 +552,18 @@
             appContent.innerHTML = `<div class="mt-32 text-center text-main font-bold"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br>Đang tải bảng tin...</div>`;
             try {
                 let doc = await db.collection("GameData").doc("BoardInfo").get();
-                let content = doc.exists ? doc.data().content : "Chưa có thông báo.";
+                let data = doc.exists ? doc.data() : {};
+                let content = data.content || "Chưa có thông báo.";
+                let eventsStr = data.events || "Thi thử THPT Quốc gia (Toán)\nCập nhật Ngân hàng câu hỏi tháng 8\nKhảo sát chất lượng Lớp 12";
+                
                 let processedContent = marked.parse(content.replace(/\\n/g, '<br>'));
                 
+                let eventsArr = eventsStr.split('\\n').filter(e => e.trim());
+                let colors = ['bg-emerald-500', 'bg-main', 'bg-rose-500', 'bg-amber-500', 'bg-violet-500'];
+                let eventsHtml = eventsArr.length ? eventsArr.map((e, i) => `<li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full ${colors[i % colors.length]} shrink-0"></div><span class="text-sm font-medium text-slate-600">${e.trim()}</span></li>`).join('') : '<li class="text-sm font-medium text-slate-500">Chưa có sự kiện nào.</li>';
+
                 let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
-                let isAdmin = state.currentUser || isDev;
+                let isAdmin = (state.currentUser && (state.currentUser.email === 'tailieutoantbs@gmail.com' || state.currentUser.email === 'tailieutoantbs.@gmail.com')) || isDev;
                 let editBtnHtml = isAdmin ? `<button onclick="openBoardEditor()" class="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md hover:bg-amber-600 transition ml-4 btn-3d"><i class="fa-solid fa-pen-to-square mr-2"></i>Sửa Bảng Tin</button>` : '';
 
                 appContent.innerHTML = `
@@ -576,9 +589,7 @@
                                 <div class="bg-white p-6 rounded-3xl shadow-md border-2 border-slate-100">
                                     <h3 class="text-lg font-black text-slate-700 mb-4 border-b-2 border-slate-100 pb-2 uppercase tracking-wide">Sự Kiện Sắp Tới</h3>
                                     <ul class="space-y-3">
-                                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div><span class="text-sm font-medium text-slate-600">Thi thử THPT Quốc gia (Toán)</span></li>
-                                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-main shrink-0"></div><span class="text-sm font-medium text-slate-600">Cập nhật Ngân hàng câu hỏi tháng 8</span></li>
-                                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></div><span class="text-sm font-medium text-slate-600">Khảo sát chất lượng Lớp 12</span></li>
+                                        ${eventsHtml}
                                     </ul>
                                 </div>
                             </div>
@@ -603,8 +614,11 @@
         async function openBoardEditor() {
             try {
                 let doc = await db.collection("GameData").doc("BoardInfo").get();
-                let content = doc.exists ? doc.data().content : "";
-                document.getElementById('board-edit-content').value = content;
+                let data = doc.exists ? doc.data() : {};
+                let content = data.content || "";
+                let events = data.events || "Thi thử THPT Quốc gia (Toán)\\nCập nhật Ngân hàng câu hỏi tháng 8\\nKhảo sát chất lượng Lớp 12";
+                document.getElementById('board-edit-content').value = content.replace(/<br>/g, '\\n');
+                document.getElementById('board-edit-events').value = events.replace(/<br>/g, '\\n');
                 document.getElementById('board-edit-modal').classList.remove('hidden');
                 document.getElementById('board-edit-modal').classList.add('flex');
             } catch(e) {
@@ -614,8 +628,9 @@
 
         async function saveBoardContent() {
             let content = document.getElementById('board-edit-content').value;
+            let events = document.getElementById('board-edit-events').value;
             try {
-                await db.collection("GameData").doc("BoardInfo").set({ content: content });
+                await db.collection("GameData").doc("BoardInfo").set({ content: content, events: events });
                 document.getElementById('board-edit-modal').classList.add('hidden');
                 document.getElementById('board-edit-modal').classList.remove('flex');
                 showToast("Đã lưu bảng tin!");
