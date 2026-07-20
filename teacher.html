@@ -1418,17 +1418,51 @@
                 rawResults.forEach(item => { 
                     let key = String(item.id).trim().toLowerCase() + "_" + String(item.code).trim().toUpperCase(); 
                     let currentScore = Number(item.score) || 0; 
+                    
+                    const getPartScore = (r, pNum) => {
+                        if (!r) return '-';
+                        let val = undefined;
+                        if (pNum === 1) val = r.scoreR1 ?? r.score1 ?? r.r1 ?? r.R1 ?? r.ScoreR1 ?? r.Score1 ?? r["Phần 1"] ?? r["Phần I"] ?? r["phan1"];
+                        else if (pNum === 2) val = r.scoreR2 ?? r.score2 ?? r.r2 ?? r.R2 ?? r.ScoreR2 ?? r.Score2 ?? r["Phần 2"] ?? r["Phần II"] ?? r["phan2"];
+                        else if (pNum === 3) val = r.scoreR3 ?? r.score3 ?? r.r3 ?? r.R3 ?? r.ScoreR3 ?? r.Score3 ?? r["Phần 3"] ?? r["Phần III"] ?? r["phan3"];
+                        if (val === undefined || val === null || String(val).trim() === '') {
+                            for (let k in r) {
+                                let norm = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                if (pNum === 1 && (norm === 'scorer1' || norm === 'r1' || norm === 'phan1' || norm === 'phani' || norm === 'score1')) return r[k];
+                                if (pNum === 2 && (norm === 'scorer2' || norm === 'r2' || norm === 'phan2' || norm === 'phanii' || norm === 'score2')) return r[k];
+                                if (pNum === 3 && (norm === 'scorer3' || norm === 'r3' || norm === 'phan3' || norm === 'phaniii' || norm === 'score3')) return r[k];
+                            }
+                        }
+                        return (val !== undefined && val !== null && String(val).trim() !== '') ? val : '-';
+                    };
+
+                    let sR1 = getPartScore(item, 1);
+                    let sR2 = getPartScore(item, 2);
+                    let sR3 = getPartScore(item, 3);
+                    let itemAttempt = Number(item.attempt) || Number(item.attempts) || 1;
+
                     if (!groupedData[key]) { 
-                        groupedData[key] = { ...item, attempts: 1, maxScore: currentScore }; 
+                        groupedData[key] = { 
+                            ...item, 
+                            attempts: itemAttempt, 
+                            maxScore: currentScore,
+                            scoreR1: sR1,
+                            scoreR2: sR2,
+                            scoreR3: sR3
+                        }; 
                     } else { 
-                        groupedData[key].attempts++; 
-                        if (currentScore > groupedData[key].maxScore) { 
+                        groupedData[key].attempts = Math.max(groupedData[key].attempts + 1, itemAttempt); 
+                        if (currentScore >= groupedData[key].maxScore) { 
                             groupedData[key].maxScore = currentScore; 
-                            groupedData[key].scoreR1 = item.scoreR1 !== undefined ? item.scoreR1 : item.r1; 
-                            groupedData[key].scoreR2 = item.scoreR2 !== undefined ? item.scoreR2 : item.r2; 
-                            groupedData[key].scoreR3 = item.scoreR3 !== undefined ? item.scoreR3 : item.r3; 
+                            groupedData[key].scoreR1 = sR1; 
+                            groupedData[key].scoreR2 = sR2; 
+                            groupedData[key].scoreR3 = sR3; 
                             groupedData[key].date = item.date; 
-                        } 
+                        } else {
+                            if (groupedData[key].scoreR1 === '-' && sR1 !== '-') groupedData[key].scoreR1 = sR1;
+                            if (groupedData[key].scoreR2 === '-' && sR2 !== '-') groupedData[key].scoreR2 = sR2;
+                            if (groupedData[key].scoreR3 === '-' && sR3 !== '-') groupedData[key].scoreR3 = sR3;
+                        }
                     } 
                 }); 
                 
