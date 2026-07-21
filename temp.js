@@ -456,7 +456,14 @@
         function closeMathModal() { document.getElementById('mathlive-modal').classList.add('hidden'); currentMathTargetId = ''; }
         function insertMathToTarget() { if (!currentMathTargetId) return closeMathModal(); let tex = document.getElementById('math-editor').value; let target = document.getElementById(currentMathTargetId); if (target) { let start = target.selectionStart; target.value = target.value.substring(0, start) + tex + target.value.substring(target.selectionEnd); target.focus(); target.selectionStart = target.selectionEnd = start + tex.length; } closeMathModal(); }
 
-        function openExportModal() { document.getElementById('export-modal').classList.remove('hidden'); }
+        function openExportModal() { 
+            document.getElementById('export-modal').classList.remove('hidden'); 
+            if (adminState.loadedCode) {
+                document.getElementById('export-overwrite-container')?.classList.remove('hidden');
+            } else {
+                document.getElementById('export-overwrite-container')?.classList.add('hidden');
+            }
+        }
         function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
         function exportWordLocal() {
             let html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Đề Thi Toán & Tin</title></head><body style='font-family: \"Times New Roman\", serif; font-size: 12pt;'><h2 style='text-align:center;'>ĐỀ KIỂM TRA</h2><hr/>";
@@ -473,6 +480,10 @@
             let btn = document.getElementById('btn-export-online'); let oldH = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> XỬ LÝ...'; btn.disabled = true;
             try {
                 let code = Math.random().toString(36).substring(2, 8).toUpperCase();
+                let isOverwrite = adminState.loadedCode && document.querySelector('input[name="exportOption"]:checked')?.value === 'overwrite';
+                if (isOverwrite) {
+                    code = adminState.loadedCode;
+                }
                 let userEmail = state.currentUser ? state.currentUser.email : 'Unknown';
                 let settings = { examMode: adminState.loadedSettings?.examMode || 'practice', name: name, folder: document.getElementById('export-exam-folder').value.trim() || 'Chung', timeLimit: parseInt(document.getElementById('export-time-limit').value) || 60, password: document.getElementById('export-exam-password').value.trim(), openTime: document.getElementById('export-open-time').value ? new Date(document.getElementById('export-open-time').value).toISOString() : null, closeTime: document.getElementById('export-close-time').value ? new Date(document.getElementById('export-close-time').value).toISOString() : null, author: userEmail };
                 await db.collection("SharedGames").doc(code).set({ data: GAME_DATA, settings: settings, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -783,7 +794,7 @@
                 
                 let groupedData = {}; 
                 rawResults.forEach(item => { 
-                    let key = String(item.id).trim().toLowerCase() + "_" + String(item.code).trim().toUpperCase(); 
+                    let key = String(item.id || '').trim().toLowerCase() + "_" + String(item.name || '').trim().toLowerCase() + "_" + String(item.code || '').trim().toUpperCase(); 
                     let currentScore = Number(item.score) || 0; 
                     if (!groupedData[key]) { 
                         groupedData[key] = { ...item, attempts: 1, maxScore: currentScore }; 

@@ -96,6 +96,95 @@ function triggerConfetti() {
 }
 
 /**
+ * Clean and normalize LaTeX / Math expressions in text before rendering.
+ * Fixes unclosed dollar signs, dollar signs spanning across Vietnamese text, 
+ * and auto-wraps raw LaTeX expressions (e.g. \mathbb{R}, \frac{...}) in \( ... \).
+ */
+function sanitizeMathText(text) {
+    if (!text || typeof text !== 'string') return '';
+    let s = text.trim();
+
+    // 1. Unescape literal \n into real linebreaks
+    s = s.replace(/\\n/g, '\n');
+
+    // 2. Fix dollar signs spanning across Vietnamese text / paragraphs
+    // A single inline math $...$ shouldn't contain long Vietnamese words or sentence stops
+    const vnWordsRegex = /(?:hoặc|và|đồng biến|nghịch biến|Cho|Ta có|Suy ra|Khi đó|Tập xác định|Bảng xét dấu|Bảng biến thiên|hàm số|mệnh đề|kết luận|thỏa mãn|giá trị|phương trình|bất phương trình|hệ phương trình|điều kiện|khoảng|đoạn|nửa khoảng|bằng|là|khi|thuộc|với|tại)/i;
+
+    // Check $...$ blocks
+    s = s.replace(/(?<!\\)\$([^$\n]+?)(?<!\\)\$/g, (match, inner) => {
+        // If inner content has Vietnamese text without \text{}, it's a mismatched dollar!
+        if (vnWordsRegex.test(inner) && !inner.includes('\\text')) {
+            return inner; // strip the outer dollars
+        }
+        return match;
+    });
+
+    // Strip remaining isolated single $ signs if odd count
+    let dollarCount = (s.match(/(?<!\\)\$/g) || []).length;
+    if (dollarCount % 2 !== 0) {
+        s = s.replace(/(?<!\\)\$/g, '');
+    }
+
+    // 3. Auto-wrap raw LaTeX commands that are NOT inside $...$ or \(...\) or \[...\]
+    let mathBlocks = [];
+    let hidden = s.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/g, (match) => {
+        mathBlocks.push(match);
+        return `___MATH_SAFE_${mathBlocks.length - 1}___`;
+    });
+
+    // Auto-wrap TeX expressions (e.g., \mathbb{R}, \setminus, \frac{...}{...}, \infty, \Leftrightarrow, (-\infty; -5), etc.)
+    hidden = hidden.replace(/((?:[a-zA-Z0-9_'^=+\-*/\s,.:();{}[\]\-]*?\\(?:mathbb|frac|sqrt|setminus|infty|Leftrightarrow|Rightarrow|rightarrow|Leftarrow|leftarrow|angle|triangle|in|notin|subset|cap|cup|int|lim|sum|alpha|beta|pi|theta|vec|overline|underline|text|mathrm|mathbf)[a-zA-Z0-9_'^=+\-*/\s,.:();{}[\]\-]*)|(?:\([^)]*\\infty[^)]*\))|(?:\([-+]?\d+\s*;\s*[-+]?\d+\)))/gi, (match) => {
+        let m = match.trim();
+        if (!m) return match;
+        if (vnWordsRegex.test(m) && !m.includes('\\text')) return match;
+        return `\\(${m}\\)`;
+    });
+
+    // Unhide math blocks
+    hidden = hidden.replace(/___MATH_SAFE_(\d+)___/g, (match, idx) => {
+        return mathBlocks[parseInt(idx, 10)];
+    });
+
+    return hidden;
+}
+
+/**
+ * Render Markdown safely without corrupting LaTeX math syntax.
+ * @param {string} text - Raw Markdown + LaTeX text
+ * @param {boolean} isInline - True for inline rendering (no wrapper <p> tags)
+ * @returns {string} Safe HTML with intact MathJax delimiters
+ */
+function parseMarkdownSafe(text, isInline = false) {
+    if (!text || typeof text !== 'string') return '';
+
+    let cleaned = sanitizeMathText(text);
+
+    // Protect all math delimiters before passing to marked
+    let mathBlocks = [];
+    let placeholderText = cleaned.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/g, (match) => {
+        mathBlocks.push(match);
+        return `___MATH_BLOCK_${mathBlocks.length - 1}___`;
+    });
+
+    let html = placeholderText;
+    if (typeof marked !== 'undefined') {
+        if (isInline && marked.parseInline) {
+            html = marked.parseInline(placeholderText);
+        } else if (marked.parse) {
+            html = marked.parse(placeholderText, { breaks: true });
+        }
+    }
+
+    // Restore protected math blocks
+    html = html.replace(/___MATH_BLOCK_(\d+)___/g, (match, idx) => {
+        return mathBlocks[parseInt(idx, 10)];
+    });
+
+    return html;
+}
+
+/**
  * Format mathematical explanation scientifically with clear line breaks, spacing, and structure.
  * @param {string} text - Raw explanation text
  * @returns {string} HTML string rendered from formatted Markdown
@@ -103,10 +192,7 @@ function triggerConfetti() {
 function formatExplanation(text) {
     if (!text || typeof text !== 'string') return '';
 
-    let formatted = text.trim();
-
-    // 1. Unescape literal \n or \\n into real newlines
-    formatted = formatted.replace(/\\n/g, '\n');
+    let formatted = sanitizeMathText(text);
 
     // 2. If explanation is a single block without double newlines, insert smart line breaks
     if (!formatted.includes('\n\n')) {
@@ -124,12 +210,6 @@ function formatExplanation(text) {
     let lines = formatted.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     let mdText = lines.join('\n\n');
 
-    // 4. Parse with marked
-    if (typeof marked !== 'undefined' && marked.parse) {
-        return marked.parse(mdText, { breaks: true });
-    }
-    
-    // Fallback if marked is not available
-    return mdText.replace(/\n\n/g, '<br><br>');
+    return parseMarkdownSafe(mdText, false);
 }
 

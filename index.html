@@ -408,8 +408,8 @@
             let groupedData = {};
             rawResults.forEach(r => {
                 let code = String(r.code).trim().toUpperCase(); 
-                let sId = String(r.id).trim().toLowerCase();
-                let key = isPersonal ? code : `${sId}_${code}`;
+                let sId = String(r.id || '').trim().toLowerCase();
+                let key = isPersonal ? code : `${sId}_${String(r.name || '').trim().toLowerCase()}_${code}`;
                 
                 let currentScore = Number(r.score) || 0;
                 let sR1 = extractPartScore(r, 1);

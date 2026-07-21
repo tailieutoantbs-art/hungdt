@@ -219,6 +219,19 @@
             </div>
             
             <div class="bg-sky-50 p-5 rounded-2xl border border-sky-200 text-left shadow-sm space-y-3">
+                <div id="export-overwrite-container" class="hidden mb-3">
+                    <label class="text-[10px] font-bold text-sky-700 uppercase">Tùy chọn xuất bản</label>
+                    <div class="flex gap-4 mt-1">
+                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                            <input type="radio" name="exportOption" value="new" checked class="w-4 h-4 text-sky-600 focus:ring-sky-500 border-slate-300">
+                            Tạo mã đề mới
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-bold text-rose-600 cursor-pointer">
+                            <input type="radio" name="exportOption" value="overwrite" class="w-4 h-4 text-rose-600 focus:ring-rose-500 border-slate-300">
+                            Ghi đè đề đang sửa
+                        </label>
+                    </div>
+                </div>
                 <div class="hidden">
                     <label class="text-[10px] font-bold text-sky-700 uppercase">Chế độ kiểm tra bài thi</label>
                     <select id="export-exam-mode" class="w-full p-2.5 border rounded-xl outline-none text-sm font-bold bg-white shadow-inner">
@@ -727,7 +740,7 @@
                         <span class="px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-full font-black text-base uppercase shadow-lg tracking-widest ring-4 ring-sky-100 border-2 border-white">CÂU HỎI SỐ ${q.id}</span>
                     </div>
                     <div class="bg-white p-12 rounded-[2.5rem] border-2 border-sky-100 shadow-2xl text-3xl font-bold leading-loose mb-10 math-scroll text-blue-950">
-                        ${marked.parse(q.text||"")}
+                        ${parseMarkdownSafe(q.text||"")}
                         ${q.image ? `<img src="${q.image}" class="max-h-[450px] mx-auto mt-10 rounded-3xl shadow-xl border-4 border-slate-50">` : ''}
                     </div>`;
 
@@ -739,7 +752,7 @@
                     let cls = isAns ? (opt.isCorrect ? "bg-gradient-to-r from-emerald-400 to-emerald-600 text-white border-emerald-400 shadow-2xl scale-[1.03] ring-4 ring-emerald-200 z-10" : "bg-slate-50 text-slate-400 opacity-50 pointer-events-none border-slate-200") : "bg-white border-sky-100 hover:border-sky-400 cursor-pointer hover:shadow-xl btn-3d text-blue-950";
                     return `<div onclick="checkAnswer(${opt.isCorrect}, '${q.id}')" class="p-8 border-[4px] rounded-3xl flex items-center gap-6 font-bold text-2xl transition-all duration-500 ${cls}">
                                 <span class="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-3xl shrink-0 shadow-inner ${isAns&&opt.isCorrect?'bg-white/20 text-white':'bg-sky-50 text-sky-600'}">${['A','B','C','D'][i]}</span>
-                                <div class="math-scroll">${marked.parseInline(opt.text||"")}</div>
+                                <div class="math-scroll">${parseMarkdownSafe(opt.text||"", true)}</div>
                             </div>`;
                 }).join('') + `</div>`;
             } else if (state.currentRound === 'round2') {
@@ -750,7 +763,7 @@
                     return `<div class="bg-white p-8 rounded-[2rem] border-[3px] border-sky-50 flex items-center justify-between gap-8 shadow-md hover:shadow-lg transition-all duration-300">
                                 <div class="font-bold text-3xl math-scroll text-blue-950 leading-relaxed">
                                     <span class="text-white bg-gradient-to-br from-sky-400 to-blue-500 w-14 h-14 inline-flex items-center justify-center rounded-xl shadow-md mr-5 text-2xl font-black uppercase">${s.label}</span> 
-                                    ${marked.parseInline(s.text||"")}
+                                    ${parseMarkdownSafe(s.text||"", true)}
                                 </div>
                                 ${displayBox}
                             </div>`;
@@ -1078,7 +1091,14 @@
         function closeMathModal() { document.getElementById('mathlive-modal').classList.add('hidden'); currentMathTargetId = ''; }
         function insertMathToTarget() { if (!currentMathTargetId) return closeMathModal(); let tex = document.getElementById('math-editor').value; let target = document.getElementById(currentMathTargetId); if (target) { let start = target.selectionStart; target.value = target.value.substring(0, start) + tex + target.value.substring(target.selectionEnd); target.focus(); target.selectionStart = target.selectionEnd = start + tex.length; } closeMathModal(); }
 
-        function openExportModal() { document.getElementById('export-modal').classList.remove('hidden'); }
+        function openExportModal() { 
+            document.getElementById('export-modal').classList.remove('hidden'); 
+            if (adminState.loadedCode) {
+                document.getElementById('export-overwrite-container').classList.remove('hidden');
+            } else {
+                document.getElementById('export-overwrite-container').classList.add('hidden');
+            }
+        }
         function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
         function exportWordLocal() {
             let html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Đề Thi Toán & Tin</title></head><body style='font-family: \"Times New Roman\", serif; font-size: 12pt;'><h2 style='text-align:center;'>ĐỀ KIỂM TRA</h2><hr/>";
@@ -1095,6 +1115,10 @@
             let btn = document.getElementById('btn-export-online'); let oldH = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> XỬ LÝ...'; btn.disabled = true;
             try {
                 let code = Math.random().toString(36).substring(2, 8).toUpperCase();
+                let isOverwrite = adminState.loadedCode && document.querySelector('input[name="exportOption"]:checked')?.value === 'overwrite';
+                if (isOverwrite) {
+                    code = adminState.loadedCode;
+                }
                 let userEmail = state.currentUser ? state.currentUser.email : 'Unknown';
                 let settings = { examMode: adminState.loadedSettings?.examMode || 'practice', name: name, folder: document.getElementById('export-exam-folder').value.trim() || 'Chung', timeLimit: parseInt(document.getElementById('export-time-limit').value) || 60, password: document.getElementById('export-exam-password').value.trim(), openTime: document.getElementById('export-open-time').value ? new Date(document.getElementById('export-open-time').value).toISOString() : null, closeTime: document.getElementById('export-close-time').value ? new Date(document.getElementById('export-close-time').value).toISOString() : null, author: userEmail };
                 await db.collection("SharedGames").doc(code).set({ data: GAME_DATA, settings: settings, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -1161,6 +1185,7 @@
             document.getElementById('ai-prompt-text').value = 
                 "Bạn là chuyên gia soạn thảo đề thi Toán THPT. Hãy tạo bộ đề thi bằng định dạng CHUẨN JSON đúng 100% theo cấu trúc mẫu bên dưới:\n\n" +
                 "CẤU TRÚC SỐ LƯỢNG VÀ MỨC ĐỘ YÊU CẦU: " + reqStr + "\n\n" +
+                "CHÚ Ý QUAN TRỌNG: Hãy trích xuất ĐỦ số lượng câu hỏi đã yêu cầu. Có thể bỏ qua số thứ tự câu trong tài liệu gốc. Nếu tài liệu có nhiều câu hơn số lượng yêu cầu, hãy chọn ngẫu nhiên các câu tốt nhất để lấy đủ số lượng. Đánh lại ID câu hỏi từ 1 đến N.\n\n" +
                 "QUY TẮC ĐỊNH DẠNG DỮ LIỆU BẮT BUỘC:\n" +
                 "1. Trả về CHỈ duy nhất 1 khối JSON (đặt trong ```json ... ```) có 3 thuộc tính chính: \"round1\", \"round2\", \"round3\".\n" +
                 "2. Tất cả công thức Toán học theo chuẩn LaTeX trong $...$, chú ý nhân đôi dấu gạch chéo ngược (ví dụ: \\\\frac, \\\\log, \\\\sqrt).\n" +
@@ -1494,7 +1519,7 @@
                 
                 let groupedData = {}; 
                 rawResults.forEach(item => { 
-                    let key = String(item.id).trim().toLowerCase() + "_" + String(item.code).trim().toUpperCase(); 
+                    let key = String(item.id || '').trim().toLowerCase() + "_" + String(item.name || '').trim().toLowerCase() + "_" + String(item.code || '').trim().toUpperCase(); 
                     let currentScore = Number(item.score) || 0; 
                     
                     const getPartScore = (r, pNum) => {

@@ -531,7 +531,7 @@
                         <span class="px-4 py-1 bg-main text-white rounded-full font-black text-xs uppercase shadow-sm">Câu ${currentIndex + 1} / ${totalQs}</span>
                     </div>
                     <div class="bg-white p-6 rounded-2xl mb-4 shadow-sm border border-slate-100 text-lg font-bold leading-relaxed">
-                        ${marked.parse(q.text || "")}
+                        ${parseMarkdownSafe(q.text || "")}
                         ${q.image ? `<div class="mt-4 flex justify-center"><img src="${q.image}" class="max-h-80 max-w-full rounded-2xl shadow-md border-2 border-slate-100 object-contain hover:scale-[1.02] transition cursor-pointer" onclick="window.open(this.src, '_blank')"></div>` : ''}
                     </div>
             `;
@@ -556,7 +556,7 @@
                             else { cls = "opacity-40 pointer-events-none"; }
                         }
                     }
-                    return `<button onclick="checkAnswer(this, ${opt.isCorrect}, ${i})" ${isAns?'disabled':''} class="flex items-center gap-3 p-3.5 min-h-[64px] rounded-2xl font-bold text-left border-2 transition ${cls}"><span class="w-9 h-9 rounded-xl flex items-center justify-center font-black bg-slate-100 text-slate-600 shrink-0 shadow-inner">${['A','B','C','D'][i]}</span><div class="math-scroll flex-grow">${marked.parseInline(opt.text||"")}</div></button>`;
+                    return `<button onclick="checkAnswer(this, ${opt.isCorrect}, ${i})" ${isAns?'disabled':''} class="flex items-center gap-3 p-3.5 min-h-[64px] rounded-2xl font-bold text-left border-2 transition ${cls}"><span class="w-9 h-9 rounded-xl flex items-center justify-center font-black bg-slate-100 text-slate-600 shrink-0 shadow-inner">${['A','B','C','D'][i]}</span><div class="math-scroll flex-grow">${parseMarkdownSafe(opt.text||"", true)}</div></button>`;
                 }).join('') + `</div>`;
             } 
             else if (state.currentRound === 'round2') {
@@ -576,7 +576,7 @@
                             else { fC = ch.isCorrect ? "bg-green-500 text-white border-green-600 shadow" : "bg-red-500 text-white border-red-600 shake-wrong shadow"; tC = "opacity-30 pointer-events-none"; }
                         }
                     }
-                    return `<div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm"><div class="font-bold flex-grow text-base"><span class="text-main mr-1">${s.label})</span> ${marked.parseInline(s.text||"")}</div><div class="flex gap-2"><button onclick="checkTF(this, true, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${tC}">ĐÚNG</button><button onclick="checkTF(this, false, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${fC}">SAI</button></div></div>`;
+                    return `<div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm"><div class="font-bold flex-grow text-base"><span class="text-main mr-1">${s.label})</span> ${parseMarkdownSafe(s.text||"", true)}</div><div class="flex gap-2"><button onclick="checkTF(this, true, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${tC}">ĐÚNG</button><button onclick="checkTF(this, false, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${fC}">SAI</button></div></div>`;
                 }).join('') + `</div>`;
             } 
             else if (state.currentRound === 'round3') {
