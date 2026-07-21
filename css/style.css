@@ -112,3 +112,38 @@ mjx-container::-webkit-scrollbar, .math-scroll::-webkit-scrollbar {
 }
 
 @keyframes shine-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } } .shine-anim { animation: shine-anim 3s infinite; }
+
+/* Scientific Explanation / Solution Box Styling */
+.explanation-box {
+    line-height: 1.8 !important;
+    word-break: break-word;
+}
+.explanation-box p {
+    margin-bottom: 0.85rem !important;
+}
+.explanation-box p:last-child {
+    margin-bottom: 0 !important;
+}
+.explanation-box ul, .explanation-box ol {
+    margin-left: 1.5rem !important;
+    margin-bottom: 0.85rem !important;
+    list-style-type: disc !important;
+}
+.explanation-box ol {
+    list-style-type: decimal !important;
+}
+.explanation-box li {
+    margin-bottom: 0.4rem !important;
+}
+.explanation-box blockquote {
+    border-left: 4px solid #f59e0b !important;
+    padding-left: 1rem !important;
+    margin-bottom: 0.85rem !important;
+    color: #475569 !important;
+    font-style: italic !important;
+}
+.explanation-box strong, .explanation-box b {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+

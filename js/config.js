@@ -94,3 +94,42 @@ function triggerConfetti() {
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); 
     }
 }
+
+/**
+ * Format mathematical explanation scientifically with clear line breaks, spacing, and structure.
+ * @param {string} text - Raw explanation text
+ * @returns {string} HTML string rendered from formatted Markdown
+ */
+function formatExplanation(text) {
+    if (!text || typeof text !== 'string') return '';
+
+    let formatted = text.trim();
+
+    // 1. Unescape literal \n or \\n into real newlines
+    formatted = formatted.replace(/\\n/g, '\n');
+
+    // 2. If explanation is a single block without double newlines, insert smart line breaks
+    if (!formatted.includes('\n\n')) {
+        // Break before question parts: Ý a), Ý b), a), b), c), d), Mệnh đề a...
+        formatted = formatted.replace(/([.;?!]|\b)\s*([+*•]|\bÝ\s*[a-d1-4][):.]|\bMệnh đề\s*[a-d1-4][):.]|\([a-d]\)|^[a-d]\))/gi, '\n\n$2');
+
+        // Break before logical steps or transitions when preceded by punctuation (.;?!), or when starting key phrases
+        formatted = formatted.replace(/([.;?!])\s*(Ta có|Tại|Thay|Vận tốc|Gia tốc|Quãng đường|Khi đó|Do đó|Suy ra|Bảng biến thiên|Xét hàm|Tập xác định|Điều kiện|Kết luận|Lời giải|Phương trình|Hệ phương trình|Bất phương trình)\b/g, '$1\n\n$2');
+        
+        // Break before "Xét ý a", "Xét ý b", "Ý a", "Ý b"
+        formatted = formatted.replace(/([.;?!])\s*(Xét\s+ý\s+[a-d])/gi, '$1\n\n$2');
+    }
+
+    // 3. Ensure single newlines become double newlines for Marked paragraph separation
+    let lines = formatted.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    let mdText = lines.join('\n\n');
+
+    // 4. Parse with marked
+    if (typeof marked !== 'undefined' && marked.parse) {
+        return marked.parse(mdText, { breaks: true });
+    }
+    
+    // Fallback if marked is not available
+    return mdText.replace(/\n\n/g, '<br><br>');
+}
+

@@ -202,8 +202,9 @@
 
             let explHtml = q.explanation ? `<div class="mt-10 ${isAnsAll?'':'hidden'}">
                 <button onclick="document.getElementById('sol-${q.id}').classList.toggle('hidden'); triggerMathJax();" class="px-8 py-5 bg-gradient-to-r from-amber-100 to-amber-200 font-black rounded-3xl text-amber-800 border-4 border-white hover:brightness-105 transition-all w-full text-left shadow-lg btn-3d text-2xl tracking-wider uppercase ring-2 ring-amber-300"><i class="fa-solid fa-lightbulb text-amber-500 mr-4 text-3xl drop-shadow-sm"></i> Lời giải chi tiết</button>
-                <div id="sol-${q.id}" class="hidden mt-6 p-10 bg-amber-50/50 border-4 border-amber-100 rounded-[2.5rem] math-scroll text-2xl shadow-inner leading-relaxed text-blue-950 font-medium">${marked.parse(q.explanation)}</div>
+                <div id="sol-${q.id}" class="hidden mt-6 p-10 bg-amber-50/50 border-4 border-amber-100 rounded-[2.5rem] math-scroll text-2xl shadow-inner leading-relaxed text-blue-950 font-medium explanation-box">${formatExplanation(q.explanation)}</div>
             </div>` : '';
+
             
             html += `
                 <div class="flex justify-between items-center mt-14 pt-8 border-t-[4px] border-slate-100">

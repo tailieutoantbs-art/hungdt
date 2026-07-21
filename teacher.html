@@ -763,8 +763,9 @@
 
             let explHtml = q.explanation ? `<div class="mt-10 ${isAnsAll?'':'hidden'}">
                 <button onclick="document.getElementById('sol-${q.id}').classList.toggle('hidden'); triggerMathJax();" class="px-8 py-5 bg-gradient-to-r from-amber-100 to-amber-200 font-black rounded-3xl text-amber-800 border-4 border-white hover:brightness-105 transition-all w-full text-left shadow-lg btn-3d text-2xl tracking-wider uppercase ring-2 ring-amber-300"><i class="fa-solid fa-lightbulb text-amber-500 mr-4 text-3xl drop-shadow-sm"></i> Lời giải chi tiết</button>
-                <div id="sol-${q.id}" class="hidden mt-6 p-10 bg-amber-50/50 border-4 border-amber-100 rounded-[2.5rem] math-scroll text-2xl shadow-inner leading-relaxed text-blue-950 font-medium">${marked.parse(q.explanation)}</div>
+                <div id="sol-${q.id}" class="hidden mt-6 p-10 bg-amber-50/50 border-4 border-amber-100 rounded-[2.5rem] math-scroll text-2xl shadow-inner leading-relaxed text-blue-950 font-medium explanation-box">${formatExplanation(q.explanation)}</div>
             </div>` : '';
+
             
             html += `
                 <div class="flex justify-between items-center mt-14 pt-8 border-t-[4px] border-slate-100">
@@ -1165,7 +1166,9 @@
                 "2. Tất cả công thức Toán học theo chuẩn LaTeX trong $...$, chú ý nhân đôi dấu gạch chéo ngược (ví dụ: \\\\frac, \\\\log, \\\\sqrt).\n" +
                 "3. Phần 1 (\"round1\"): \"options\" là mảng 4 phương án. \"answer\" PHẢI ghi CHÍNH XÁC toàn bộ nội dung text của phương án đúng (Không ghi A, B, C, D).\n" +
                 "4. Phần 2 (\"round2\"): mảng \"statements\" gồm 4 ý với label: \"a\", \"b\", \"c\", \"d\" và isTrue: true hoặc false.\n" +
-                "5. Phần 3 (\"round3\"): \"answer\" là đáp án dạng chuỗi (ví dụ: \"12\" hoặc \"3/4\").\n\n" +
+                "5. Phần 3 (\"round3\"): \"answer\" là đáp án dạng chuỗi (ví dụ: \"12\" hoặc \"3/4\").\n" +
+                "6. Phần \"explanation\" (Lời giải chi tiết): Trình bày khoa học, xuống dòng ngắt ý rõ ràng giữa các bước, biến đổi toán học hoặc các mệnh đề (dùng \\n\\n để ngắt dòng).\n\n" +
+
                 "CẤU TRÚC MẪU (SCHEMA):\n" +
                 "{\n" +
                 "  \"round1\": [ {\"id\": 1, \"text\": \"...\", \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"], \"answer\": \"Option A\", \"points\": 10, \"explanation\": \"\"} ],\n" +
