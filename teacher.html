@@ -87,23 +87,25 @@
 
     <div id="admin-modal" class="hidden w-full max-w-7xl mx-auto flex-grow flex flex-col p-2 md:p-4 z-10 relative">
         <div class="bg-white p-6 rounded-3xl w-full flex-grow flex flex-col shadow-2xl relative overflow-hidden border-4 border-slate-200">
-            <div class="absolute top-4 right-4 flex items-center gap-3 z-10 flex-wrap justify-end bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                <button id="btn-update-loaded-exam" onclick="updateExistingExam()" class="hidden px-4 py-2 bg-amber-100 text-amber-700 font-bold rounded-xl hover:bg-amber-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Cập nhật [<span id="loaded-code-display"></span>]</button>
-                <button onclick="openChangePasswordModal()" class="w-10 h-10 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-800 hover:text-white transition shadow-sm btn-3d" title="Đổi mật khẩu"><i class="fa-solid fa-key"></i></button>
-                <button onclick="openImportModal()" class="px-4 py-2 bg-mainLight text-mainDark font-bold rounded-xl hover:bg-main hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Nhập / AI</button>
-                <button onclick="openExportModal()" class="px-4 py-2 bg-sky-100 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-share-nodes mr-1"></i> Xuất Đề</button>
-                <button onclick="resetToDefaultData()" class="px-4 py-2 bg-rose-100 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục</button>
-            </div>
-            
-            <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4 mt-2 md:mt-0">
-                <h2 class="text-2xl font-black flex items-center gap-2 text-slate-800 whitespace-nowrap"><i class="fa-solid fa-cloud text-sky-500"></i> Studio Biên Soạn</h2>
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+                    <h2 class="text-2xl font-black flex items-center gap-2 text-slate-800 whitespace-nowrap"><i class="fa-solid fa-cloud text-sky-500"></i> Studio Biên Soạn</h2>
+                    
+                    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-full md:w-auto z-20">
+                        <span class="text-xs font-bold text-slate-500 uppercase ml-2 whitespace-nowrap"><i class="fa-solid fa-sliders text-sky-400 mr-1"></i> Chế độ:</span>
+                        <select id="global-exam-mode" class="bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-700 outline-none cursor-pointer w-full shadow-sm hover:border-sky-400 transition" onchange="changeGlobalMode(this.value)">
+                            <option value="practice">Đề Luyện Tập (Chấm điểm tùy chỉnh)</option>
+                            <option value="exam">Đề Thi THPT QG (Chấm điểm chuẩn tổ hợp)</option>
+                        </select>
+                    </div>
+                </div>
                 
-                <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-full md:w-auto mt-2 md:mt-0 z-20">
-                    <span class="text-xs font-bold text-slate-500 uppercase ml-2 whitespace-nowrap"><i class="fa-solid fa-sliders text-sky-400 mr-1"></i> Chế độ:</span>
-                    <select id="global-exam-mode" class="bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-700 outline-none cursor-pointer w-full shadow-sm hover:border-sky-400 transition" onchange="changeGlobalMode(this.value)">
-                        <option value="practice">Đề Luyện Tập (Chấm điểm tùy chỉnh)</option>
-                        <option value="exam">Đề Thi THPT QG (Chấm điểm chuẩn tổ hợp)</option>
-                    </select>
+                <div class="flex items-center gap-3 z-10 flex-wrap justify-start xl:justify-end bg-white p-2 rounded-xl shadow-sm border border-slate-100 w-full xl:w-auto">
+                    <button id="btn-update-loaded-exam" onclick="updateExistingExam()" class="hidden px-4 py-2 bg-amber-100 text-amber-700 font-bold rounded-xl hover:bg-amber-500 hover:text-white transition shadow-sm btn-3d"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Cập nhật [<span id="loaded-code-display"></span>]</button>
+                    <button onclick="openChangePasswordModal()" class="w-10 h-10 shrink-0 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-800 hover:text-white transition shadow-sm btn-3d" title="Đổi mật khẩu"><i class="fa-solid fa-key"></i></button>
+                    <button onclick="openImportModal()" class="px-4 py-2 bg-mainLight text-mainDark font-bold rounded-xl hover:bg-main hover:text-white transition shadow-sm btn-3d whitespace-nowrap"><i class="fa-solid fa-file-import mr-1"></i> Nhập / AI</button>
+                    <button onclick="openExportModal()" class="px-4 py-2 bg-sky-100 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition shadow-sm btn-3d whitespace-nowrap"><i class="fa-solid fa-share-nodes mr-1"></i> Xuất Đề</button>
+                    <button onclick="resetToDefaultData()" class="px-4 py-2 bg-rose-100 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d whitespace-nowrap"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục</button>
                 </div>
             </div>
             
@@ -770,7 +772,11 @@
                 }).join('') + `</div>`;
             } else if (state.currentRound === 'round3') {
                 let qK = `round3_${q.id}`; let isA = state.answeredQuestions.includes(qK);
-                let showBox = isA ? `<div class="p-10 bg-gradient-to-br from-amber-300 to-amber-500 border-4 border-amber-200 rounded-[2.5rem] font-black text-center text-white text-4xl shadow-2xl uppercase tracking-widest transform scale-105 transition-all">ĐÁP ÁN CHUẨN: <span class="bg-white px-8 py-3 rounded-2xl shadow-md text-amber-600 ml-5 block mt-6 md:inline-block md:mt-0">${q.answer}</span></div>` : `<button onclick="state.answeredQuestions.push('${qK}'); openQuestion('${q.id}'); triggerConfetti(); playSound('powerup');" class="w-full py-8 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black text-3xl rounded-[2.5rem] uppercase shadow-xl btn-3d tracking-widest hover:shadow-2xl transition-all ring-4 ring-sky-100 border-2 border-white"><i class="fa-solid fa-eye mr-4 text-4xl"></i> HIỂN THỊ ĐÁP ÁN CHUẨN</button>`; 
+                let showBox = isA ? `<div class="p-10 bg-gradient-to-br from-amber-300 to-amber-500 border-4 border-amber-200 rounded-[2.5rem] font-black text-center text-white text-4xl shadow-2xl uppercase tracking-widest transform scale-105 transition-all">ĐÁP ÁN CHUẨN: <span class="bg-white px-8 py-3 rounded-2xl shadow-md text-amber-600 ml-5 block mt-6 md:inline-block md:mt-0">${q.answer}</span></div>` : `<div class="flex flex-col gap-4 max-w-3xl mx-auto">
+                    <button onclick="checkRound3(true, '${q.id}')" class="w-full py-6 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white font-black text-2xl rounded-[2rem] uppercase shadow-xl btn-3d tracking-widest hover:shadow-2xl transition-all border-2 border-white"><i class="fa-solid fa-check mr-4 text-3xl"></i> ĐỘI TRẢ LỜI ĐÚNG (+ ĐIỂM)</button>
+                    <button onclick="checkRound3(false, '${q.id}')" class="w-full py-6 bg-gradient-to-r from-rose-400 to-rose-600 text-white font-black text-2xl rounded-[2rem] uppercase shadow-xl btn-3d tracking-widest hover:shadow-2xl transition-all border-2 border-white"><i class="fa-solid fa-xmark mr-4 text-3xl"></i> ĐỘI TRẢ LỜI SAI</button>
+                    <button onclick="state.answeredQuestions.push('${qK}'); openQuestion('${q.id}'); playSound('powerup'); triggerConfetti();" class="w-full mt-4 py-4 bg-slate-200 text-slate-500 font-bold text-xl rounded-[2rem] uppercase shadow-sm btn-3d hover:bg-slate-300 transition-all border-2 border-white"><i class="fa-solid fa-eye mr-2 text-2xl"></i> Bỏ qua & Hiển thị đáp án</button>
+                </div>`; 
                 html += `<div class="mt-8">${showBox}</div>`;
             }
 
@@ -796,6 +802,23 @@
             let pts = GAME_DATA.round1.find(x => String(x.id) === String(qId))?.points !== undefined ? parseFloat(GAME_DATA.round1.find(x => String(x.id) === String(qId)).points) : 10;
             if(isC) { playSound('correct'); state.teams[state.currentTeamIndex].score += pts; state.teams[state.currentTeamIndex].score = Math.round(state.teams[state.currentTeamIndex].score * 100) / 100; showFloatingPoints(pts); } else { playSound('wrong'); } 
             renderScoreboard(); openQuestion(qId); 
+        }
+
+        function checkRound3(isC, qId) {
+            let qK = `round3_${qId}`; if(state.answeredQuestions.includes(qK)) return;
+            let pts = GAME_DATA.round3.find(x => String(x.id) === String(qId))?.points !== undefined ? parseFloat(GAME_DATA.round3.find(x => String(x.id) === String(qId)).points) : 15;
+            if (isC) {
+                state.answeredQuestions.push(qK); // Only lock if correct (or we can lock anyway)
+                playSound('correct'); 
+                triggerConfetti();
+                state.teams[state.currentTeamIndex].score += pts; 
+                state.teams[state.currentTeamIndex].score = Math.round(state.teams[state.currentTeamIndex].score * 100) / 100; 
+                showFloatingPoints(pts);
+                renderScoreboard(); openQuestion(qId);
+            } else {
+                playSound('wrong');
+                // Don't lock question so another team can try.
+            }
         }
 
         function checkTF(isC, qId, i) { 
@@ -826,12 +849,15 @@
                 }
                 
                 if (answeredCount === 4) {
-                    let baseScore = totalMaxPtsForQuestion / 4;
+                    let baseScore = totalMaxPtsForQuestion; // Total points for the whole question (sum of 4 statements)
                     let earnedPts = 0;
                     if (correctCount === 1) earnedPts = baseScore * 0.1;
                     else if (correctCount === 2) earnedPts = baseScore * 0.25;
                     else if (correctCount === 3) earnedPts = baseScore * 0.5;
                     else if (correctCount === 4) earnedPts = baseScore * 1.0;
+                    
+                    // Format score to 2 decimal places to avoid floating point issues
+                    earnedPts = Math.round(earnedPts * 100) / 100;
                     state.teams[state.currentTeamIndex].score += earnedPts;
                     state.teams[state.currentTeamIndex].score = Math.round(state.teams[state.currentTeamIndex].score * 100) / 100;
                     showFloatingPoints(earnedPts);
@@ -843,10 +869,32 @@
         function showFloatingPoints(pts, isN=false) { let el = document.createElement('div'); el.className = `fixed pointer-events-none z-[9999] text-7xl font-black ${isN?'text-rose-500':'text-emerald-500'} drop-shadow-2xl`; el.innerHTML = isN?pts:`+${pts}`; el.style.left='50%'; el.style.top='35%'; document.body.appendChild(el); setTimeout(()=>el.remove(),1500); }
         
         function renderScoreboard() { 
+            let cols = state.teams.length;
+            let gridClass = cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-3' : 'grid-cols-4';
+            document.getElementById('teams-container').className = `flex-grow grid ${gridClass} gap-4 max-w-4xl mx-auto`;
             document.getElementById('teams-container').innerHTML = state.teams.map((t, i) => { 
-                let activeClass = (state.currentTeamIndex === i) ? 'ring-8 ring-white scale-110 bg-sky-50 shadow-2xl z-20' : 'opacity-70 bg-white border-2 border-slate-100 scale-95 shadow-md'; 
-                return `<div onclick="state.currentTeamIndex=${i}; renderScoreboard();" class="p-4 text-center rounded-[2rem] cursor-pointer transition-all duration-300 ${activeClass}"><div class="text-[12px] font-black text-slate-400 uppercase tracking-widest truncate mb-2">${t.name}</div><div class="text-5xl font-black text-sky-700 drop-shadow-sm">${t.score}</div></div>`; 
+                let activeClass = (state.currentTeamIndex === i) ? 'ring-8 ring-white scale-110 bg-sky-50 shadow-2xl z-20' : 'opacity-70 bg-white border-2 border-slate-100 scale-95 shadow-md hover:opacity-100'; 
+                return `<div onclick="state.currentTeamIndex=${i}; renderScoreboard();" class="relative p-4 text-center rounded-[2rem] cursor-pointer transition-all duration-300 ${activeClass} group">
+                    <button onclick="event.stopPropagation(); editTeamScore(${i})" class="absolute top-3 right-3 w-8 h-8 bg-white text-slate-400 hover:text-sky-600 rounded-full shadow border border-slate-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-3d" title="Sửa điểm"><i class="fa-solid fa-pen text-xs"></i></button>
+                    <div class="text-[12px] font-black text-slate-400 uppercase tracking-widest truncate mb-2 pr-6">${t.name}</div>
+                    <div class="text-5xl font-black text-sky-700 drop-shadow-sm">${t.score}</div>
+                </div>`; 
             }).join(''); 
+        }
+
+        function editTeamScore(idx) {
+            let current = state.teams[idx].score;
+            let newScore = prompt(`Nhập điểm mới cho ${state.teams[idx].name}:`, current);
+            if (newScore !== null) {
+                let parsed = parseFloat(newScore);
+                if (!isNaN(parsed)) {
+                    state.teams[idx].score = Math.round(parsed * 100) / 100;
+                    renderScoreboard();
+                    playSound('powerup');
+                } else {
+                    alert("Điểm không hợp lệ! Vui lòng nhập một số.");
+                }
+            }
         }
 
         function pickRandomTeam() { let btn = document.getElementById('btn-random-picker'); let icon = btn.querySelector('i'); if(btn.disabled) return; btn.disabled = true; icon.classList.add('fa-spin'); playSound('powerup'); let rolls=0; let int=setInterval(()=>{ let rIdx = Math.floor(Math.random() * state.teams.length); let teamDivs = document.getElementById('teams-container').children; for(let i=0; i<teamDivs.length; i++) teamDivs[i].classList.remove('ring-8','scale-110','bg-sky-50','shadow-2xl','z-20'); if(teamDivs[rIdx]) teamDivs[rIdx].classList.add('ring-8','scale-110','bg-sky-50','shadow-2xl','z-20'); rolls++; if(rolls>=20) { clearInterval(int); icon.classList.remove('fa-spin'); btn.disabled=false; triggerConfetti(); state.currentTeamIndex = rIdx; renderScoreboard(); } }, 100); }

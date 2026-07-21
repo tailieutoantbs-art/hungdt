@@ -164,7 +164,7 @@ function parseMarkdownSafe(text, isInline = false) {
     let mathBlocks = [];
     let placeholderText = cleaned.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/g, (match) => {
         mathBlocks.push(match);
-        return `___MATH_BLOCK_${mathBlocks.length - 1}___`;
+        return `@@@MATH_BLOCK_${mathBlocks.length - 1}@@@`;
     });
 
     let html = placeholderText;
@@ -177,7 +177,7 @@ function parseMarkdownSafe(text, isInline = false) {
     }
 
     // Restore protected math blocks
-    html = html.replace(/___MATH_BLOCK_(\d+)___/g, (match, idx) => {
+    html = html.replace(/@@@MATH_BLOCK_(\d+)@@@/g, (match, idx) => {
         return mathBlocks[parseInt(idx, 10)];
     });
 
