@@ -147,3 +147,9 @@ mjx-container::-webkit-scrollbar, .math-scroll::-webkit-scrollbar {
     font-weight: 700 !important;
 }
 
+/* Fix keyboard z-index being covered by modals */
+math-virtual-keyboard, .ML__keyboard {
+    z-index: 999999 !important;
+}
+
+

@@ -685,11 +685,15 @@
             let isC = (rawUser.toLowerCase() === rawCorrect.toLowerCase());
             
             if(!isC) {
-                const norm = (s) => String(s).toLowerCase().replace(/\s/g,'').replace(/,/g,'.');
+                const norm = (s) => String(s).toLowerCase().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g, '-');
                 let uMath = norm(rawUser), cMath = norm(rawCorrect);
                 if(uMath === cMath) { isC = true; } else {
                     const parseFrac = (s) => { if(s.includes('/')) { let p = s.split('/'); return Number(p[0])/Number(p[1]); } return Number(s); };
-                    if(!isNaN(parseFrac(uMath)) && !isNaN(parseFrac(cMath)) && Math.abs(parseFrac(uMath) - parseFrac(cMath)) < 0.001) isC = true;
+                    let nU = parseFrac(uMath), nC = parseFrac(cMath);
+                    if(!isNaN(nU) && !isNaN(nC)) {
+                        if(Math.abs(nU - nC) < 0.001) isC = true;
+                        else if(nU.toFixed(2) === nC.toFixed(2)) isC = true;
+                    }
                 }
             }
             state.userChoices[qK] = { userVal: uA, isCorrect: isC };

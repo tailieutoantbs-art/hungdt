@@ -554,7 +554,8 @@
                 "1. TẤT CẢ CÔNG THỨC TOÁN HỌC phải được định dạng theo chuẩn LaTeX và đặt trong cặp ký tự $...$.\n" +
                 "2. QUY TẮC ĐÁP ÁN PHẦN I (round1): Thuộc tính \"options\" chứa mảng 4 chuỗi text phương án. Thuộc tính \"answer\" PHẢI ghi lại CHÍNH XÁC toàn bộ nội dung text của phương án đúng đó (Không được ghi ký tự nhãn A, B, C, D).\n" +
                 "3. QUY TẮC PHẦN II (round2): Mỗi câu hỏi chứa đúng mảng \"statements\" gồm 4 ý gắn nhãn \"label\" là \"a\", \"b\", \"c\", \"d\". Thuộc tính \"isTrue\" nhận giá trị boolean thuần (true/false).\n" +
-                "4. Tuyệt đối KHÔNG thêm trích dẫn nguồn (ví dụ: [cite: 1]) vào bất kỳ đâu trong nội dung câu hỏi hoặc lời giải.\n";
+                "4. Tuyệt đối KHÔNG thêm trích dẫn nguồn (ví dụ: [cite: 1]) vào bất kỳ đâu trong nội dung câu hỏi hoặc lời giải.\n" +
+                "5. BẮT BUỘC: Tự kiểm tra lại (double-check) toàn bộ các câu hỏi, phương án đáp án, các câu đúng/sai, đáp án tự luận trước khi chốt kết quả JSON cuối cùng để đảm bảo tính CHÍNH XÁC TUYỆT ĐỐI về mặt Toán học.\n";
         }
 
         let currentAiImageBase64 = null;
