@@ -199,7 +199,7 @@
         // CONFIG & FIREBASE INIT (Moved to config.js)
 
         let GAME_DATA = null;
-        let state = { currentPlayCode: '', currentSettings: null, studentList: [], studentId: '', studentName: '', studentClass: '', timer: { totalSeconds: 0, remaining: 0, intervalId: null, isRunning: false }, currentRound: null, currentQuestion: null, answeredQuestions: [], userChoices: {}, stats: { round1: { total: 0, correct: 0 }, round2: { total: 0, correct: 0 }, round3: { total: 0, correct: 0 } }, streak: 0, violationCount: 0, shuffledOptions: {}, powerups: { freeze: 1, fifty: 1 }, score: 0, scoreR1: 0, scoreR2: 0, scoreR3: 0 };
+        let state = { currentPlayCode: '', currentSettings: null, studentList: [], studentId: '', studentName: '', studentClass: '', timer: { totalSeconds: 0, remaining: 0, intervalId: null, isRunning: false }, currentRound: null, currentQuestion: null, answeredQuestions: [], userChoices: {}, stats: { round1: { total: 0, correct: 0 }, round2: { total: 0, correct: 0 }, round3: { total: 0, correct: 0 } }, streak: 0, violationCount: 0, shuffledOptions: {}, shuffledQuestions: null, shuffledStatements: {}, powerups: { freeze: 1, fifty: 1 }, score: 0, scoreR1: 0, scoreR2: 0, scoreR3: 0 };
 
         window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -353,8 +353,23 @@
                 state.timer.remaining = cache.timer; state.answeredQuestions = cache.answeredQuestions||[];
                 state.userChoices = cache.userChoices||{}; state.stats = cache.stats; state.streak = cache.streak||0;
                 state.shuffledOptions = cache.shuffledOptions||{}; state.powerups = cache.powerups;
+                state.shuffledQuestions = cache.shuffledQuestions || null;
+                state.shuffledStatements = cache.shuffledStatements || {};
             } else {
                 state.timer.remaining = state.currentSettings.timeLimit ? state.currentSettings.timeLimit * 60 : 3600;
+                let shuffleArr = (arr) => { let a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+                state.shuffledQuestions = {
+                    round1: shuffleArr((GAME_DATA.round1||[]).map(q=>q.id)),
+                    round2: shuffleArr((GAME_DATA.round2||[]).map(q=>q.id)),
+                    round3: shuffleArr((GAME_DATA.round3||[]).map(q=>q.id))
+                };
+                state.shuffledStatements = {};
+            }
+            if(state.shuffledQuestions) {
+                let sR = state.shuffledQuestions;
+                if(GAME_DATA.round1) GAME_DATA.round1.sort((a,b) => sR.round1.indexOf(a.id) - sR.round1.indexOf(b.id));
+                if(GAME_DATA.round2) GAME_DATA.round2.sort((a,b) => sR.round2.indexOf(a.id) - sR.round2.indexOf(b.id));
+                if(GAME_DATA.round3) GAME_DATA.round3.sort((a,b) => sR.round3.indexOf(a.id) - sR.round3.indexOf(b.id));
             }
             document.getElementById('scoreboard').classList.remove('hidden');
             document.getElementById('timer-container').classList.remove('hidden');
@@ -437,7 +452,7 @@
             state.timer.isRunning = true;
             state.timer.intervalId = setInterval(() => {
                 state.timer.remaining--; updateTimerDisplay();
-                if(state.timer.remaining % 10 === 0) { localStorage.setItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId, JSON.stringify({ score: state.score, scoreR1: state.scoreR1, scoreR2: state.scoreR2, scoreR3: state.scoreR3, timer: state.timer.remaining, answeredQuestions: state.answeredQuestions, userChoices: state.userChoices, stats: state.stats, streak: state.streak, shuffledOptions: state.shuffledOptions, powerups: state.powerups })); }
+                if(state.timer.remaining % 10 === 0) { localStorage.setItem('math_tbs_progress_' + state.currentPlayCode + '_' + state.studentId, JSON.stringify({ score: state.score, scoreR1: state.scoreR1, scoreR2: state.scoreR2, scoreR3: state.scoreR3, timer: state.timer.remaining, answeredQuestions: state.answeredQuestions, userChoices: state.userChoices, stats: state.stats, streak: state.streak, shuffledOptions: state.shuffledOptions, powerups: state.powerups, shuffledQuestions: state.shuffledQuestions, shuffledStatements: state.shuffledStatements })); }
                 if(state.timer.remaining <= 0) { forceSubmitScore(); }
             }, 1000);
         }
@@ -560,8 +575,16 @@
                 }).join('') + `</div>`;
             } 
             else if (state.currentRound === 'round2') {
-                html += `<div class="flex flex-col gap-2.5">` + (q.statements||[]).map((s, i) => {
-                    let qK = `round2_${q.id}_${i}`; let isA = state.answeredQuestions.includes(qK);
+                let sK = `round2_${q.id}`;
+                if (!state.shuffledStatements) state.shuffledStatements = {};
+                if (!state.shuffledStatements[sK]) {
+                    let order = (q.statements||[]).map((_, i) => i);
+                    order.sort(()=>Math.random()-0.5);
+                    state.shuffledStatements[sK] = order;
+                }
+                let renderStmts = state.shuffledStatements[sK].map(idx => ({...q.statements[idx], originalIndex: idx}));
+                html += `<div class="flex flex-col gap-2.5">` + renderStmts.map((s, renderIndex) => {
+                    let qK = `round2_${q.id}_${s.originalIndex}`; let isA = state.answeredQuestions.includes(qK);
                     let tC="bg-slate-50 border-slate-200 hover:bg-green-500 hover:text-white", fC="bg-slate-50 border-slate-200 hover:bg-red-500 hover:text-white";
                     if(isExam && !isRev) {
                         tC="bg-slate-50 border-slate-200 hover:bg-sky-500 hover:text-white"; fC="bg-slate-50 border-slate-200 hover:bg-sky-500 hover:text-white";
@@ -576,7 +599,7 @@
                             else { fC = ch.isCorrect ? "bg-green-500 text-white border-green-600 shadow" : "bg-red-500 text-white border-red-600 shake-wrong shadow"; tC = "opacity-30 pointer-events-none"; }
                         }
                     }
-                    return `<div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm"><div class="font-bold flex-grow text-base"><span class="text-main mr-1">${s.label})</span> ${parseMarkdownSafe(s.text||"", true)}</div><div class="flex gap-2"><button onclick="checkTF(this, true, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${tC}">ĐÚNG</button><button onclick="checkTF(this, false, ${s.isTrue}, ${i})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${fC}">SAI</button></div></div>`;
+                    return `<div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm"><div class="font-bold flex-grow text-base"><span class="text-main mr-1">${['a','b','c','d'][renderIndex]})</span> ${parseMarkdownSafe(s.text||"", true)}</div><div class="flex gap-2"><button onclick="checkTF(this, true, ${s.isTrue}, ${s.originalIndex})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${tC}">ĐÚNG</button><button onclick="checkTF(this, false, ${s.isTrue}, ${s.originalIndex})" ${isA?'disabled':''} class="px-4 py-1.5 rounded-lg font-black text-xs border transition ${fC}">SAI</button></div></div>`;
                 }).join('') + `</div>`;
             } 
             else if (state.currentRound === 'round3') {

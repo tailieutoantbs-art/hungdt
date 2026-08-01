@@ -471,16 +471,18 @@
             let isPersonal = (currentLookupScope === 'personal');
             let csvContent = "";
             if(isPersonal) {
-                csvContent = "\\uFEFFNgày Thi,Mã Đề,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\\n";
+                csvContent = "\uFEFFNgày Thi,Mã Đề,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\n";
                 currentGroupResultsData.forEach(r => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
-                    csvContent += `"${r.date || '-'}","${r.code}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\\n`;
+                    csvContent += `"${r.date || '-'}","${r.code}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\n`;
                 });
             } else {
-                csvContent = "\\uFEFFHọ Tên,Lớp,Mã Đề,Ngày Thi,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\\n";
+                csvContent = "\uFEFFHọ Tên,Lớp,Mã Đề,Ngày Thi,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\n";
                 currentGroupResultsData.forEach(r => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
-                    csvContent += `"${r.name || r.id}","${r.cls || r.class || '-'}","${r.code}","${r.date || '-'}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\\n`;
+                    let escName = (r.name || r.id || '').replace(/"/g, '""');
+                    let escCls = (r.cls || r.class || '-').replace(/"/g, '""');
+                    csvContent += `"${escName}","${escCls}","${r.code}","${r.date || '-'}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\n`;
                 });
             }
             
