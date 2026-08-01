@@ -150,6 +150,22 @@ function sanitizeMathText(text) {
 }
 
 /**
+ * Remove prefixes like "Câu 12: ", "Bài 3. " from question text
+ */
+function stripQuestionPrefix(text) {
+    if (!text) return "";
+    return String(text).replace(/^(?:Câu|Bài)\s*\d+[\.\:]\s*/i, '');
+}
+
+/**
+ * Remove prefixes like "A. ", "B) " from option text
+ */
+function stripOptionPrefix(text) {
+    if (!text) return "";
+    return String(text).replace(/^[A-D][\.\:\)]\s*/i, '');
+}
+
+/**
  * Render Markdown safely without corrupting LaTeX math syntax.
  * @param {string} text - Raw Markdown + LaTeX text
  * @param {boolean} isInline - True for inline rendering (no wrapper <p> tags)
