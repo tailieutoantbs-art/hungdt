@@ -730,9 +730,9 @@
 
         function selectRound(rId) {
             state.currentRound = rId;
-            let btns = (GAME_DATA[rId]||[]).map(q => {
+            let btns = (GAME_DATA[rId]||[]).map((q, index) => {
                 let isAns = (rId==='round1'||rId==='round3') ? state.answeredQuestions.includes(`${rId}_${q.id}`) : q.statements?.every((_,i)=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
-                return `<button onclick="openQuestion('${q.id}')" class="glass-panel aspect-square rounded-[1.2rem] font-black text-2xl border-2 transition btn-3d ${isAns?'bg-slate-100 text-slate-300 opacity-60 border-slate-200 shadow-none':'text-sky-600 bg-white border-sky-200 hover:bg-sky-500 hover:text-white shadow-lg hover:border-sky-500 hover:scale-105'}">${q.id}</button>`;
+                return `<button onclick="openQuestion('${q.id}')" class="glass-panel aspect-square rounded-[1.2rem] font-black text-2xl border-2 transition btn-3d ${isAns?'bg-slate-100 text-slate-300 opacity-60 border-slate-200 shadow-none':'text-sky-600 bg-white border-sky-200 hover:bg-sky-500 hover:text-white shadow-lg hover:border-sky-500 hover:scale-105'}">${index + 1}</button>`;
             }).join('');
             
             document.getElementById('app-content').innerHTML = `

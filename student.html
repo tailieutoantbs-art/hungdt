@@ -487,9 +487,9 @@
 
         function selectRound(roundId) {
             state.currentRound = roundId;
-            let btns = (GAME_DATA[roundId]||[]).map(q => {
+            let btns = (GAME_DATA[roundId]||[]).map((q, index) => {
                 let isAns = (roundId==='round1'||roundId==='round3') ? state.answeredQuestions.includes(`${roundId}_${q.id}`) : [0,1,2,3].every(i=>state.answeredQuestions.includes(`round2_${q.id}_${i}`));
-                return `<button onclick="openQuestion('${q.id}')" class="w-full aspect-square rounded-2xl font-black text-base md:text-lg border-2 transition btn-3d flex items-center justify-center ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-main hover:text-main shadow-sm'}">${q.id}</button>`;
+                return `<button onclick="openQuestion('${q.id}')" class="w-full aspect-square rounded-2xl font-black text-base md:text-lg border-2 transition btn-3d flex items-center justify-center ${isAns?'bg-emerald-500 border-emerald-600 text-white shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-main hover:text-main shadow-sm'}">${index + 1}</button>`;
             }).join('');
             
             let title = roundId === 'round1' ? "Phần I: Trắc nghiệm" : roundId === 'round2' ? "Phần II: Đúng / Sai" : "Phần III: Trả lời ngắn";
