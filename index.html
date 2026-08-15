@@ -69,19 +69,174 @@
         <i class="fa-solid fa-circle-check text-3xl"></i><span id="toast-msg">Thành công!</span>
     </div>
 
-    <!-- Modal Chỉnh Sửa Bảng Tin -->
-    <div id="board-edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden items-center justify-center fade-in px-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-4xl relative zoom-in flex flex-col h-[90vh]">
-            <button onclick="document.getElementById('board-edit-modal').classList.add('hidden'); document.getElementById('board-edit-modal').classList.remove('flex');" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 text-3xl transition-transform hover:scale-110"><i class="fa-solid fa-xmark"></i></button>
-            <h2 class="text-2xl font-black text-slate-800 mb-4 uppercase tracking-widest border-b-2 border-slate-100 pb-3"><i class="fa-solid fa-pen-to-square text-main mr-2"></i>Soạn Thảo Bảng Tin</h2>
+    <!-- Modal Chỉnh Sửa Bảng Tin TBS Chuyên Nghiệp -->
+    <div id="board-edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] hidden items-center justify-center fade-in p-2 md:p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-4 md:p-6 w-full max-w-5xl relative zoom-in flex flex-col max-h-[95vh] border-2 border-slate-100 overflow-hidden">
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3 mb-3 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-pen-to-square"></i></div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wide">Soạn Thảo Bảng Tin TBS</h2>
+                        <p class="text-xs font-semibold text-slate-500 hidden sm:block">Định dạng font chữ, màu sắc, canh lề và chèn nội dung nổi bật</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <!-- Mode Switcher Tabs -->
+                    <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+                        <button type="button" onclick="switchBoardEditorTab('visual')" id="tab-btn-visual" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-main shadow-sm transition flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> Trực quan</button>
+                        <button type="button" onclick="switchBoardEditorTab('preview')" id="tab-btn-preview" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-main transition flex items-center gap-1.5"><i class="fa-solid fa-eye"></i> Xem trước</button>
+                        <button type="button" onclick="switchBoardEditorTab('code')" id="tab-btn-code" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-main transition flex items-center gap-1.5"><i class="fa-solid fa-code"></i> Mã HTML</button>
+                    </div>
+                    <button onclick="closeBoardEditorModal()" class="text-slate-400 hover:text-rose-500 text-2xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
             
-            <label class="font-bold text-slate-700 text-sm mb-1 block"><i class="fa-solid fa-align-left mr-2 text-sky-500"></i>Nội dung bảng tin (Hỗ trợ Markdown):</label>
-            <textarea id="board-edit-content" class="w-full flex-grow p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 font-mono resize-none shadow-inner mb-4 text-sm" placeholder="Nhập nội dung bảng tin (Hỗ trợ Markdown)..."></textarea>
+            <div class="overflow-y-auto admin-scroll flex-grow space-y-4 pr-1">
+                <!-- Toolbar Area (Chỉ hiện khi ở tab Trực Quan) -->
+                <div id="board-toolbar-section" class="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 space-y-2 shadow-xs">
+                    <!-- Row 1: Fast Templates & Highlights & Emojis -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 mr-1"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>Mẫu nhanh:</span>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertBoardTemplate('codes')" class="px-2.5 py-1 bg-white hover:bg-sky-50 hover:text-sky-600 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition shadow-2xs">📋 Danh sách mã đề</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertBoardTemplate('exam')" class="px-2.5 py-1 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition shadow-2xs">🏆 Lịch thi & kiểm tra</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertBoardTemplate('opening')" class="px-2.5 py-1 bg-white hover:bg-emerald-50 hover:text-emerald-600 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition shadow-2xs">🚀 Khai giảng lớp mới</button>
+                            <div class="h-4 w-[1px] bg-slate-300 mx-1 hidden sm:block"></div>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertCallout('info')" class="px-2 py-1 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-lg text-xs font-bold transition">ℹ️ Khung Xanh</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertCallout('alert')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-bold transition">⚠️ Khung Đỏ</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertCallout('success')" class="px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg text-xs font-bold transition">✅ Khung Xanh Lá</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertCallout('highlight')" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-xs font-bold transition">🔥 Khung Vàng</button>
+                        </div>
+                        <div class="flex items-center gap-1 overflow-x-auto pb-0.5">
+                            <span class="text-[11px] font-bold text-slate-400 hidden lg:inline">Biểu tượng:</span>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('📢')" class="hover:scale-125 transition text-sm">📢</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('📌')" class="hover:scale-125 transition text-sm">📌</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('🔥')" class="hover:scale-125 transition text-sm">🔥</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('⭐')" class="hover:scale-125 transition text-sm">⭐</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('🚀')" class="hover:scale-125 transition text-sm">🚀</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('💡')" class="hover:scale-125 transition text-sm">💡</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('⏰')" class="hover:scale-125 transition text-sm">⏰</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('🎯')" class="hover:scale-125 transition text-sm">🎯</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('🏆')" class="hover:scale-125 transition text-sm">🏆</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('👑')" class="hover:scale-125 transition text-sm">👑</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('✅')" class="hover:scale-125 transition text-sm">✅</button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('⚠️')" class="hover:scale-125 transition text-sm">⚠️</button>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Typography, Formatting, Alignment & Colors -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Headings / Block Type -->
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                            <select id="board-format-block" onchange="changeHeading(this.value)" class="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-1">
+                                <option value="p">Đoạn văn (P)</option>
+                                <option value="h1">Tiêu đề lớn (H1)</option>
+                                <option value="h2">Tiêu đề vừa (H2)</option>
+                                <option value="h3">Tiêu đề nhỏ (H3)</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size Selector -->
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                            <i class="fa-solid fa-text-height text-slate-400 text-xs ml-1"></i>
+                            <select id="board-font-size" onchange="changeFontSize(this.value)" class="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="13px">13px (Nhỏ)</option>
+                                <option value="15px" selected>15px (Chuẩn)</option>
+                                <option value="18px">18px (Vừa)</option>
+                                <option value="20px">20px (Lớn)</option>
+                                <option value="24px">24px (Rất lớn)</option>
+                                <option value="28px">28px (Cực lớn)</option>
+                                <option value="34px">34px (Khổng lồ)</option>
+                            </select>
+                        </div>
+
+                        <!-- Basic Formatting: Bold, Italic, Underline, Strikethrough -->
+                        <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-2xs gap-0.5">
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('bold')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-xs transition" title="In đậm (Ctrl+B)"><b>B</b></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('italic')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center italic text-slate-700 text-xs transition" title="In nghiêng (Ctrl+I)"><i>I</i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('underline')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center underline text-slate-700 text-xs transition" title="Gạch chân (Ctrl+U)"><u>U</u></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('strikeThrough')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center line-through text-slate-700 text-xs transition" title="Gạch ngang"><s>S</s></button>
+                        </div>
+
+                        <!-- Text Alignments -->
+                        <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-2xs gap-0.5">
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('justifyLeft')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Canh trái"><i class="fa-solid fa-align-left"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('justifyCenter')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Canh giữa"><i class="fa-solid fa-align-center"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('justifyRight')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Canh phải"><i class="fa-solid fa-align-right"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('justifyFull')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Canh đều 2 bên"><i class="fa-solid fa-align-justify"></i></button>
+                        </div>
+
+                        <!-- Text Colors (Màu chữ) -->
+                        <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-2xs gap-1.5">
+                            <span class="text-[11px] font-bold text-slate-400 ml-1"><i class="fa-solid fa-palette text-xs mr-0.5"></i>Màu:</span>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#1e293b')" class="w-5 h-5 rounded-full bg-slate-800 hover:scale-125 transition border border-white shadow-2xs" title="Màu đen/mặc định"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#dc2626')" class="w-5 h-5 rounded-full bg-red-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu đỏ"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#0284c7')" class="w-5 h-5 rounded-full bg-sky-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu xanh dương"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#16a34a')" class="w-5 h-5 rounded-full bg-emerald-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu xanh lá"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#ea580c')" class="w-5 h-5 rounded-full bg-orange-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu cam"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#9333ea')" class="w-5 h-5 rounded-full bg-purple-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu tím"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeTextColor('#ca8a04')" class="w-5 h-5 rounded-full bg-yellow-600 hover:scale-125 transition border border-white shadow-2xs" title="Màu vàng"></button>
+                            <label class="w-6 h-6 rounded-full border border-dashed border-slate-400 hover:border-main flex items-center justify-center cursor-pointer hover:scale-110 transition relative" title="Chọn màu bất kỳ">
+                                <i class="fa-solid fa-eye-dropper text-[10px] text-slate-500"></i>
+                                <input type="color" onchange="changeTextColor(this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                            </label>
+                        </div>
+
+                        <!-- Text Highlight (Màu nền chữ) -->
+                        <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-2xs gap-1.5">
+                            <span class="text-[11px] font-bold text-slate-400 ml-1"><i class="fa-solid fa-highlighter text-xs mr-0.5"></i>Nền:</span>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeHighlight('#fef08a')" class="w-5 h-5 rounded-md bg-yellow-200 hover:scale-125 transition border border-slate-200 shadow-2xs" title="Nền vàng"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeHighlight('#bbf7d0')" class="w-5 h-5 rounded-md bg-green-200 hover:scale-125 transition border border-slate-200 shadow-2xs" title="Nền xanh lá"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeHighlight('#bae6fd')" class="w-5 h-5 rounded-md bg-sky-200 hover:scale-125 transition border border-slate-200 shadow-2xs" title="Nền xanh dương"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeHighlight('#fbcfe8')" class="w-5 h-5 rounded-md bg-pink-200 hover:scale-125 transition border border-slate-200 shadow-2xs" title="Nền hồng"></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="changeHighlight('transparent')" class="w-5 h-5 rounded-md bg-white hover:scale-125 transition border border-slate-300 text-[10px] flex items-center justify-center text-slate-400" title="Bỏ màu nền"><i class="fa-solid fa-ban"></i></button>
+                        </div>
+
+                        <!-- Lists, Horizontal Rule, Table & Clear Format -->
+                        <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-2xs gap-0.5">
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('insertUnorderedList')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Danh sách chấm"><i class="fa-solid fa-list-ul"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('insertOrderedList')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Danh sách số"><i class="fa-solid fa-list-ol"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="formatDoc('insertHorizontalRule')" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Đường kẻ ngang"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertBoardLink()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Chèn liên kết Web"><i class="fa-solid fa-link"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="insertBoardTable()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition" title="Chèn Bảng mẫu"><i class="fa-solid fa-table"></i></button>
+                            <button type="button" onmousedown="event.preventDefault()" onclick="clearFormatting()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-rose-600 text-xs transition" title="Xóa định dạng"><i class="fa-solid fa-eraser"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div>
+                    <label class="font-bold text-slate-700 text-sm mb-1.5 flex items-center justify-between">
+                        <span class="flex items-center"><i class="fa-solid fa-align-left mr-2 text-main"></i>Nội dung Tin Tuần / Tháng:</span>
+                        <span class="text-xs font-normal text-slate-400">Hỗ trợ định dạng trực quan, HTML và công thức Toán MathJax</span>
+                    </label>
+                    
+                    <!-- Visual Rich Editor Div -->
+                    <div id="board-rich-editor" contenteditable="true" class="w-full min-h-[260px] max-h-[360px] overflow-y-auto p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 bg-white shadow-inner admin-scroll leading-relaxed text-base transition"></div>
+                    
+                    <!-- HTML / Markdown Code Textarea (Chỉ hiện khi ở tab Mã HTML) -->
+                    <textarea id="board-edit-content" class="w-full min-h-[260px] max-h-[360px] p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-800 font-mono resize-none shadow-inner text-xs bg-slate-900 text-emerald-400 hidden admin-scroll" placeholder="Nhập hoặc chỉnh sửa trực tiếp mã HTML/Markdown..."></textarea>
+                    
+                    <!-- Live Preview Div (Chỉ hiện khi ở tab Xem trước) -->
+                    <div id="board-preview-container" class="w-full min-h-[260px] max-h-[360px] overflow-y-auto p-6 border-2 border-amber-200 bg-amber-50/30 rounded-2xl shadow-inner admin-scroll hidden prose prose-slate max-w-none"></div>
+                </div>
+                
+                <!-- Events Area -->
+                <div class="border-t border-slate-200 pt-3">
+                    <label class="font-bold text-slate-700 text-sm mb-1.5 flex items-center justify-between">
+                        <span class="flex items-center"><i class="fa-solid fa-calendar-days mr-2 text-rose-500"></i>Sự kiện sắp tới (Cột bên trái - Mỗi dòng 1 sự kiện):</span>
+                    </label>
+                    <textarea id="board-edit-events" class="w-full h-24 p-3 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 resize-none shadow-inner text-sm bg-white admin-scroll" placeholder="Ví dụ: Thi thử THPT Quốc gia (Toán)&#10;Cập nhật Ngân hàng câu hỏi tháng 8&#10;Khảo sát chất lượng Lớp 12"></textarea>
+                </div>
+            </div>
             
-            <label class="font-bold text-slate-700 text-sm mb-1 block"><i class="fa-solid fa-calendar-days mr-2 text-rose-500"></i>Sự kiện sắp tới (Mỗi dòng 1 sự kiện):</label>
-            <textarea id="board-edit-events" class="w-full h-32 p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-main font-medium text-slate-700 font-mono resize-none shadow-inner mb-4 text-sm" placeholder="Ví dụ: Thi thử THPT Quốc gia (Toán)"></textarea>
-            
-            <button onclick="saveBoardContent()" class="w-full py-4 bg-main text-white font-black rounded-xl shadow-md hover:bg-mainDark hover:shadow-lg transition-all text-lg btn-3d"><i class="fa-solid fa-floppy-disk mr-2"></i>Lưu Thay Đổi</button>
+            <!-- Footer Action Buttons -->
+            <div class="flex items-center gap-3 pt-3 border-t border-slate-100 shrink-0 mt-2">
+                <button type="button" onclick="closeBoardEditorModal()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-base">Hủy bỏ</button>
+                <button type="button" onclick="saveBoardContent()" class="flex-2 py-3.5 bg-main text-white font-black rounded-xl shadow-md hover:bg-mainDark hover:shadow-lg transition-all text-base btn-3d"><i class="fa-solid fa-floppy-disk mr-2"></i>LƯU THAY ĐỔI BẢNG TIN</button>
+            </div>
         </div>
     </div>
 
@@ -987,25 +1142,29 @@
         }
 
 
-        // ======================= BẢNG TIN =======================
+        // ======================= BẢNG TIN TBS NÂNG CAO =======================
+        let currentBoardEditorTab = 'visual';
+
         async function renderBoard() {
             let appContent = document.getElementById('app-content');
             appContent.innerHTML = `<div class="mt-32 text-center text-main font-bold"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><br>Đang tải bảng tin...</div>`;
             try {
                 let doc = await db.collection("GameData").doc("BoardInfo").get();
                 let data = doc.exists ? doc.data() : {};
-                let content = data.content || "Chưa có thông báo.";
+                let content = data.content || `<p style="font-size: 16px; color: #475569;">Chưa có thông báo nào được đăng tải.</p>`;
                 let eventsStr = data.events || "Thi thử THPT Quốc gia (Toán)\nCập nhật Ngân hàng câu hỏi tháng 8\nKhảo sát chất lượng Lớp 12";
                 
-                let processedContent = marked.parse(content.replace(/\\n/g, '<br>'));
+                // Process HTML or Markdown
+                let isHtml = /<(?:div|p|h[1-6]|span|table|ul|ol|hr|b|i|u|strong|em|font|section|article)[\s>]/i.test(content);
+                let processedContent = isHtml ? content : marked.parse(content.replace(/\n/g, '<br>'));
                 
-                let eventsArr = eventsStr.split('\\n').filter(e => e.trim());
+                let eventsArr = eventsStr.split('\n').filter(e => e.trim());
                 let colors = ['bg-emerald-500', 'bg-main', 'bg-rose-500', 'bg-amber-500', 'bg-violet-500'];
-                let eventsHtml = eventsArr.length ? eventsArr.map((e, i) => `<li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full ${colors[i % colors.length]} shrink-0"></div><span class="text-sm font-medium text-slate-600">${e.trim()}</span></li>`).join('') : '<li class="text-sm font-medium text-slate-500">Chưa có sự kiện nào.</li>';
+                let eventsHtml = eventsArr.length ? eventsArr.map((e, i) => `<li class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full ${colors[i % colors.length]} shrink-0"></div><span class="text-sm font-semibold text-slate-700">${e.trim()}</span></li>`).join('') : '<li class="text-sm font-medium text-slate-500">Chưa có sự kiện nào.</li>';
 
                 let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
                 let isAdmin = (state.currentUser && (state.currentUser.email === 'tailieutoantbs@gmail.com' || state.currentUser.email === 'tailieutoantbs.@gmail.com')) || isDev;
-                let editBtnHtml = isAdmin ? `<button onclick="openBoardEditor()" class="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md hover:bg-amber-600 transition ml-4 btn-3d"><i class="fa-solid fa-pen-to-square mr-2"></i>Sửa Bảng Tin</button>` : '';
+                let editBtnHtml = isAdmin ? `<button onclick="openBoardEditor()" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-black text-sm shadow-md hover:from-amber-600 hover:to-orange-600 hover:scale-105 transition-all ml-4 btn-3d flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Sửa Bảng Tin</button>` : '';
 
                 appContent.innerHTML = `
                     <div class="w-full max-w-5xl fade-in mt-2 relative group">
@@ -1028,7 +1187,9 @@
                                     </div>
                                 </div>
                                 <div class="bg-white p-6 rounded-3xl shadow-md border-2 border-slate-100">
-                                    <h3 class="text-lg font-black text-slate-700 mb-4 border-b-2 border-slate-100 pb-2 uppercase tracking-wide">Sự Kiện Sắp Tới</h3>
+                                    <h3 class="text-lg font-black text-slate-700 mb-4 border-b-2 border-slate-100 pb-2 uppercase tracking-wide flex items-center justify-between">
+                                        <span><i class="fa-solid fa-calendar-days text-rose-500 mr-2"></i>Sự Kiện Sắp Tới</span>
+                                    </h3>
                                     <ul class="space-y-3">
                                         ${eventsHtml}
                                     </ul>
@@ -1036,9 +1197,9 @@
                             </div>
                             
                             <div class="md:col-span-2">
-                                <div class="bg-white p-8 md:p-10 rounded-3xl shadow-lg border-2 border-slate-100 relative h-full">
-                                    <div class="absolute top-0 right-0 bg-main text-white px-6 py-2 rounded-bl-3xl rounded-tr-3xl font-black text-sm uppercase tracking-widest shadow-md">Tin Tuần / Tháng</div>
-                                    <div class="prose prose-slate prose-lg max-w-none text-slate-700 font-medium leading-relaxed math-scroll min-h-[400px]">
+                                <div class="bg-white p-8 md:p-10 rounded-3xl shadow-lg border-2 border-slate-100 relative h-full flex flex-col">
+                                    <div class="absolute top-0 right-0 bg-gradient-to-r from-sky-500 to-mainDark text-white px-6 py-2 rounded-bl-3xl rounded-tr-3xl font-black text-sm uppercase tracking-widest shadow-md flex items-center gap-2"><i class="fa-solid fa-bell"></i> Tin Tuần / Tháng</div>
+                                    <div id="board-rendered-content" class="text-slate-700 font-normal leading-relaxed math-scroll min-h-[380px] flex-grow pt-4">
                                         ${processedContent}
                                     </div>
                                 </div>
@@ -1057,27 +1218,288 @@
                 let doc = await db.collection("GameData").doc("BoardInfo").get();
                 let data = doc.exists ? doc.data() : {};
                 let content = data.content || "";
-                let events = data.events || "Thi thử THPT Quốc gia (Toán)\\nCập nhật Ngân hàng câu hỏi tháng 8\\nKhảo sát chất lượng Lớp 12";
-                document.getElementById('board-edit-content').value = content.replace(/<br>/g, '\\n');
-                document.getElementById('board-edit-events').value = events.replace(/<br>/g, '\\n');
-                document.getElementById('board-edit-modal').classList.remove('hidden');
-                document.getElementById('board-edit-modal').classList.add('flex');
+                let events = data.events || "Thi thử THPT Quốc gia (Toán)\nCập nhật Ngân hàng câu hỏi tháng 8\nKhảo sát chất lượng Lớp 12";
+                
+                let richEditor = document.getElementById('board-rich-editor');
+                let codeEditor = document.getElementById('board-edit-content');
+                let eventsInput = document.getElementById('board-edit-events');
+                
+                if (richEditor) richEditor.innerHTML = content;
+                if (codeEditor) codeEditor.value = content;
+                if (eventsInput) eventsInput.value = events;
+                
+                switchBoardEditorTab('visual');
+                
+                let modal = document.getElementById('board-edit-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
             } catch(e) {
-                showToast("Lỗi tải nội dung", true);
+                showToast("Lỗi tải nội dung bảng tin", true);
+            }
+        }
+
+        function closeBoardEditorModal() {
+            let modal = document.getElementById('board-edit-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function switchBoardEditorTab(tab) {
+            currentBoardEditorTab = tab;
+            let richEditor = document.getElementById('board-rich-editor');
+            let codeEditor = document.getElementById('board-edit-content');
+            let previewBox = document.getElementById('board-preview-container');
+            let toolbar = document.getElementById('board-toolbar-section');
+            
+            let btnVisual = document.getElementById('tab-btn-visual');
+            let btnPreview = document.getElementById('tab-btn-preview');
+            let btnCode = document.getElementById('tab-btn-code');
+            
+            // Reset tab button styles
+            [btnVisual, btnPreview, btnCode].forEach(b => {
+                if (b) {
+                    b.classList.remove('bg-white', 'text-main', 'shadow-sm');
+                    b.classList.add('text-slate-600');
+                }
+            });
+
+            if (tab === 'visual') {
+                if (btnVisual) { btnVisual.classList.add('bg-white', 'text-main', 'shadow-sm'); btnVisual.classList.remove('text-slate-600'); }
+                if (codeEditor && !codeEditor.classList.contains('hidden')) {
+                    richEditor.innerHTML = codeEditor.value;
+                }
+                if (richEditor) richEditor.classList.remove('hidden');
+                if (codeEditor) codeEditor.classList.add('hidden');
+                if (previewBox) previewBox.classList.add('hidden');
+                if (toolbar) toolbar.classList.remove('hidden');
+            } else if (tab === 'code') {
+                if (btnCode) { btnCode.classList.add('bg-white', 'text-main', 'shadow-sm'); btnCode.classList.remove('text-slate-600'); }
+                if (richEditor && !richEditor.classList.contains('hidden')) {
+                    codeEditor.value = richEditor.innerHTML;
+                }
+                if (richEditor) richEditor.classList.add('hidden');
+                if (codeEditor) codeEditor.classList.remove('hidden');
+                if (previewBox) previewBox.classList.add('hidden');
+                if (toolbar) toolbar.classList.add('hidden');
+            } else if (tab === 'preview') {
+                if (btnPreview) { btnPreview.classList.add('bg-white', 'text-main', 'shadow-sm'); btnPreview.classList.remove('text-slate-600'); }
+                let currentHtml = (codeEditor && !codeEditor.classList.contains('hidden')) ? codeEditor.value : richEditor.innerHTML;
+                if (previewBox) {
+                    previewBox.innerHTML = currentHtml || '<p class="text-slate-400 italic">Chưa có nội dung xem trước.</p>';
+                    previewBox.classList.remove('hidden');
+                    if (window.MathJax) MathJax.typesetPromise([previewBox]);
+                }
+                if (richEditor) richEditor.classList.add('hidden');
+                if (codeEditor) codeEditor.classList.add('hidden');
+                if (toolbar) toolbar.classList.add('hidden');
+            }
+        }
+
+        function formatDoc(cmd, value = null) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            document.execCommand(cmd, false, value);
+        }
+
+        function changeHeading(tag) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            if (tag === 'p') {
+                document.execCommand('formatBlock', false, '<p>');
+            } else {
+                document.execCommand('formatBlock', false, `<${tag}>`);
+            }
+        }
+
+        function changeFontSize(size) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+                // Wrap block or apply command
+                document.execCommand('fontSize', false, '7');
+            } else {
+                document.execCommand('fontSize', false, '7');
+            }
+            
+            // Convert font size=7 tags to inline style with exact pixel value
+            let fontEls = richEditor.querySelectorAll('font[size="7"]');
+            fontEls.forEach(f => {
+                f.removeAttribute('size');
+                f.style.fontSize = size;
+                f.style.lineHeight = '1.6';
+            });
+        }
+
+        function changeTextColor(color) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            document.execCommand('foreColor', false, color);
+        }
+
+        function changeHighlight(color) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            if (color === 'transparent') {
+                document.execCommand('removeFormat');
+            } else {
+                try {
+                    document.execCommand('hiliteColor', false, color);
+                } catch(e) {
+                    document.execCommand('backColor', false, color);
+                }
+            }
+        }
+
+        function clearFormatting() {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            document.execCommand('removeFormat', false, null);
+        }
+
+        function insertEmoji(char) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            document.execCommand('insertText', false, char + ' ');
+        }
+
+        function insertBoardLink() {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            let url = prompt("Nhập đường dẫn trang web (URL):", "https://");
+            if (url && url !== "https://") {
+                let text = prompt("Nhập văn bản hiển thị cho liên kết (để trống nếu dùng chính URL):", "");
+                if (text) {
+                    let linkHtml = `<a href="${url}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: bold;">${text}</a>`;
+                    document.execCommand('insertHTML', false, linkHtml);
+                } else {
+                    document.execCommand('createLink', false, url);
+                }
+            }
+        }
+
+        function insertBoardTable() {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            let tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; color: #1e293b; font-weight: bold; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">STT</th>
+                            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: left;">Nội Dung</th>
+                            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Ghi Chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Học phần 1</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Đang mở</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Học phần 2</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Sắp mở</td>
+                        </tr>
+                    </tbody>
+                </table><p><br></p>
+            `;
+            document.execCommand('insertHTML', false, tableHtml);
+        }
+
+        function insertCallout(type) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            let boxHtml = '';
+            if (type === 'info') {
+                boxHtml = `<div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 12px 16px; border-radius: 10px; margin: 12px 0; color: #0369a1; font-weight: 500; font-size: 15px;"><strong style="font-weight: 800;">ℹ️ THÔNG BÁO:</strong> Nhập nội dung thông báo tại đây...</div><p><br></p>`;
+            } else if (type === 'alert') {
+                boxHtml = `<div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 10px; margin: 12px 0; color: #b91c1c; font-weight: 500; font-size: 15px;"><strong style="font-weight: 800;">⚠️ LƯU Ý QUAN TRỌNG:</strong> Nhập nội dung cảnh báo / hạn chót...</div><p><br></p>`;
+            } else if (type === 'success') {
+                boxHtml = `<div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 10px; margin: 12px 0; color: #15803d; font-weight: 500; font-size: 15px;"><strong style="font-weight: 800;">✅ CHÚC MỪNG:</strong> Tuyên dương thành tích xuất sắc...</div><p><br></p>`;
+            } else if (type === 'highlight') {
+                boxHtml = `<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 10px; margin: 12px 0; color: #b45309; font-weight: 500; font-size: 15px;"><strong style="font-weight: 800;">🔥 TIÊU ĐIỂM:</strong> Điểm nhấn quan trọng trong tuần...</div><p><br></p>`;
+            }
+            document.execCommand('insertHTML', false, boxHtml);
+        }
+
+        function insertBoardTemplate(type) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            let templateHtml = '';
+            
+            if (type === 'codes') {
+                templateHtml = `
+<h2 style="color: #0284c7; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 8px;">📢 DANH SÁCH MÃ ĐỀ LUYỆN TẬP TUẦN NÀY</h2>
+<p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 16px;"><em>Học sinh nhập mã đề tương ứng tại trang chủ để bắt đầu làm bài</em></p>
+<div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+    <p style="color: #1e293b; font-size: 15px; line-height: 2;">
+        🔥 <strong style="color: #0284c7;">SOCOBN</strong>: ĐƠN ĐIỆU VÀ CỰC TRỊ<br>
+        🔥 <strong style="color: #0284c7;">FGMZ82</strong>: GIÁ TRỊ LỚN NHẤT & NHỎ NHẤT (GTLN, GTNN)<br>
+        🔥 <strong style="color: #0284c7;">WTGUKF</strong>: ĐƯỜNG TIỆM CẬN ĐỒ THỊ<br>
+        🔥 <strong style="color: #0284c7;">M8QNMY</strong>: KHẢO SÁT HÀM SỐ VÀ VẼ ĐỒ THỊ<br>
+        🔥 <strong style="color: #0284c7;">K3B5AG</strong>: VÉC TƠ TRONG KHÔNG GIAN (HÌNH HỌC 12)<br>
+        🔥 <strong style="color: #0284c7;">WTYPHK</strong>: ĐỀ ÔN TẬP TỔNG HỢP LỚP 11B2
+    </p>
+</div>
+<p style="color: #dc2626; font-weight: bold; font-size: 15px; text-align: center;">👨‍🏫 Thầy Hùng - SĐT / Zalo: 0919.022.202</p>
+                `;
+            } else if (type === 'exam') {
+                templateHtml = `
+<h2 style="color: #dc2626; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 8px;">🏆 THÔNG BÁO LỊCH THI & KIỂM TRA ĐỊNH KỲ</h2>
+<p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 14px;"><em>Áp dụng cho học sinh toàn trường từ ngày 15/08</em></p>
+<div style="background-color: #fff7ed; border-left: 4px solid #ea580c; padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; color: #9a3412;">
+    <p style="font-weight: bold; font-size: 16px; margin-bottom: 6px;">⏰ Thời gian mở phòng thi trực tuyến:</p>
+    <ul style="list-style-type: disc; padding-left: 20px; font-size: 15px; line-height: 1.8;">
+        <li><strong>Khối 12:</strong> Bắt đầu từ 19h30 - 21h00 Thứ Bảy hàng tuần.</li>
+        <li><strong>Khối 11:</strong> Bắt đầu từ 20h00 - 21h30 Chủ Nhật hàng tuần.</li>
+        <li><strong>Khối 10:</strong> Mở hệ thống luyện tập tự do cả tuần.</li>
+    </ul>
+</div>
+<div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; font-size: 14px; color: #991b1b;">
+    <strong>⚠️ Lưu ý:</strong> Mỗi học sinh được làm bài tối đa 3 lần. Hệ thống tự động ghi nhận điểm cao nhất lên <strong>Bảng Vàng TBS</strong>.
+</div>
+                `;
+            } else if (type === 'opening') {
+                templateHtml = `
+<h2 style="color: #16a34a; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 8px;">🚀 THÔNG BÁO KHAI GIẢNG LỚP HỌC MỚI</h2>
+<div style="background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 14px;">
+    <p style="font-size: 15px; color: #166534; line-height: 1.9;">
+        📍 <strong>Địa điểm:</strong> Trung tâm KIÊN LONG - 217 Nguyễn Hồng Đào, P.14, Q.Tân Bình<br>
+        📅 <strong>Lịch học:</strong> Thứ 7 & Chủ Nhật hàng tuần<br>
+        🎯 <strong>Mục tiêu:</strong> Ôn tập trọng tâm, rèn kỹ năng giải nhanh đề thi Tốt nghiệp THPT & ĐGNL.
+    </p>
+</div>
+<p style="color: #0284c7; font-weight: bold; text-align: center; font-size: 15px;">Quý phụ huynh & Học sinh vui lòng liên hệ Thầy Hùng để đăng ký xếp lớp!</p>
+                `;
+            }
+
+            if (confirm("Chèn mẫu nội dung này vào Bảng tin? (Bạn có thể tiếp tục chỉnh sửa sau khi chèn)")) {
+                richEditor.innerHTML = templateHtml;
             }
         }
 
         async function saveBoardContent() {
-            let content = document.getElementById('board-edit-content').value;
-            let events = document.getElementById('board-edit-events').value;
+            let richEditor = document.getElementById('board-rich-editor');
+            let codeEditor = document.getElementById('board-edit-content');
+            let eventsInput = document.getElementById('board-edit-events');
+            
+            // Get content from active view
+            let content = (currentBoardEditorTab === 'code' && codeEditor) ? codeEditor.value : (richEditor ? richEditor.innerHTML : '');
+            let events = eventsInput ? eventsInput.value : '';
+            
             try {
-                await db.collection("GameData").doc("BoardInfo").set({ content: content, events: events });
-                document.getElementById('board-edit-modal').classList.add('hidden');
-                document.getElementById('board-edit-modal').classList.remove('flex');
-                showToast("Đã lưu bảng tin!");
+                await db.collection("GameData").doc("BoardInfo").set({ 
+                    content: content, 
+                    events: events,
+                    updatedAt: new Date().toISOString()
+                });
+                closeBoardEditorModal();
+                showToast("Đã lưu bảng tin thành công!");
                 renderBoard(); // Reload the board
             } catch(e) {
-                showToast("Lỗi khi lưu bảng tin", true);
+                showToast("Lỗi khi lưu bảng tin: " + e.message, true);
             }
         }
 
