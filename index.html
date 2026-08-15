@@ -136,8 +136,9 @@
                 <button id="btn-scope-school" onclick="setLookupScope('school')" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Trường</button>
             </div>
 
-            <div id="lookup-input-container">
-                <input type="text" id="lookup-input" class="w-full p-4 border-2 border-amber-300 rounded-xl mb-6 outline-none focus:border-amber-500 text-center font-bold text-slate-700 text-xl shadow-inner uppercase" placeholder="Nhập ID học sinh..." onkeypress="if(event.key === 'Enter') performLookup()">
+            <div id="lookup-input-container" class="relative">
+                <input type="text" id="lookup-input" class="w-full p-4 pr-12 border-2 border-amber-300 rounded-xl mb-6 outline-none focus:border-amber-500 text-center font-bold text-slate-700 text-xl shadow-inner uppercase" placeholder="Nhập ID học sinh..." onkeypress="if(event.key === 'Enter') performLookup()">
+                <button type="button" onclick="document.getElementById('lookup-input').value=''; document.getElementById('lookup-input').focus();" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-xl w-8 h-8 rounded-full flex items-center justify-center" title="Xóa nội dung"><i class="fa-solid fa-circle-xmark"></i></button>
             </div>
             
             <button id="btn-lookup" onclick="performLookup()" class="w-full py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg hover:bg-amber-600 transition text-lg"><i class="fa-solid fa-search mr-2"></i>Tra Cứu Ngay</button>
@@ -169,24 +170,87 @@
 
     <div id="leaderboard-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
         <div class="bg-white p-6 md:p-8 rounded-3xl w-full max-w-3xl relative shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-4 border-amber-200 zoom-in flex flex-col max-h-[90vh]">
-            <button onclick="document.getElementById('leaderboard-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 shrink-0 z-10"><i class="fa-solid fa-xmark"></i></button>
-            <div class="text-center shrink-0 border-b border-slate-100 pb-4 mb-4 relative overflow-hidden rounded-xl">
+            <!-- Top Controls -->
+            <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
+                <button onclick="refreshLeaderboardData()" class="w-10 h-10 flex items-center justify-center rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 hover:scale-105 transition shadow-sm border border-amber-200" title="Làm mới dữ liệu"><i id="btn-refresh-lb-icon" class="fa-solid fa-arrows-rotate text-base"></i></button>
+                <button onclick="openLeaderboardResetModal()" class="px-3 h-10 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 transition shadow-sm text-xs font-black btn-3d" title="Tạo mới / Reset Đợt Bảng Vàng"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i> <span class="hidden sm:inline">TẠO MỚI (RESET)</span></button>
+                <button onclick="document.getElementById('leaderboard-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 shrink-0 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="text-center shrink-0 border-b border-slate-100 pb-4 mb-4 relative overflow-hidden rounded-xl pt-2">
                 <div class="absolute inset-0 bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 opacity-50 z-0 shine-anim"></div>
                 <div class="relative z-10 p-2">
                     <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 shadow-inner"><i class="fa-solid fa-trophy animate-bounce"></i></div>
-                    <h3 class="text-3xl font-black text-slate-800 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">BẢNG VÀNG DANH DỰ</h3>
-                    <p class="text-sm text-slate-500 font-bold mt-1 mb-4">TOP ĐIỂM CAO NHẤT TOÀN TRƯỜNG</p>
+                    <h3 class="text-3xl font-black text-slate-800 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">BẢNG VÀNG VINH DỰ</h3>
+                    <p class="text-sm text-slate-500 font-bold mt-1 mb-2">TOP ĐIỂM CAO NHẤT TOÀN TRƯỜNG</p>
                     
-                    <div class="flex justify-center gap-2">
-                        <button id="btn-lb-week" onclick="setLeaderboardFilter('week')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-md transition-all">Tuần này</button>
+                    <!-- Cycle Info Badge -->
+                    <div class="mb-3">
+                        <div id="leaderboard-cycle-badge" class="inline-flex items-center gap-2 px-3.5 py-1 bg-white/90 border border-amber-300 rounded-full text-xs font-bold text-amber-900 shadow-sm">
+                            <i class="fa-solid fa-flag-checkered text-amber-600"></i>
+                            <span id="leaderboard-cycle-text">Đang tải thông tin đợt thi...</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center flex-wrap gap-2">
+                        <button id="btn-lb-cycle" onclick="setLeaderboardFilter('cycle')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-md transition-all"><i class="fa-solid fa-fire mr-1"></i>Đợt này</button>
+                        <button id="btn-lb-week" onclick="setLeaderboardFilter('week')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tuần này</button>
                         <button id="btn-lb-month" onclick="setLeaderboardFilter('month')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tháng này</button>
-                        <button id="btn-lb-all" onclick="setLeaderboardFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tất cả</button>
+                        <button id="btn-lb-all" onclick="setLeaderboardFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tất cả lịch sử</button>
                     </div>
                 </div>
             </div>
             <div class="flex-grow overflow-y-auto admin-scroll pr-2 relative bg-slate-50 rounded-xl p-2 border border-slate-100 shadow-inner min-h-[300px]">
                 <div id="leaderboard-loading" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center rounded-xl"><i class="fa-solid fa-spinner fa-spin text-4xl text-amber-500 mb-2"></i><span class="font-bold text-slate-500">Đang cập nhật dữ liệu...</span></div>
                 <div id="leaderboard-list" class="space-y-3 pb-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tạo Mới / Reset Bảng Vàng -->
+    <div id="leaderboard-reset-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10002] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 md:p-8 rounded-3xl w-full max-w-lg relative shadow-2xl border-4 border-amber-200 zoom-in flex flex-col">
+            <button onclick="closeLeaderboardResetModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 text-center uppercase tracking-wide mb-1">Tạo Mới Bảng Vàng</h3>
+            <p class="text-xs text-slate-500 text-center font-bold mb-4">Bắt đầu một đợt thi đua / vinh danh mới</p>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs text-amber-900 mb-4 leading-relaxed font-medium">
+                <i class="fa-solid fa-circle-info text-amber-600 mr-1.5"></i> Khi <b>Tạo mới (Reset)</b>, bảng vàng sẽ chỉ tính điểm các bài thi nộp từ mốc thời gian này trở đi. Toàn bộ lịch sử thi trong Google Sheets vẫn được lưu giữ an toàn.
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Tên đợt vinh danh / Kỳ thi:</label>
+                    <input type="text" id="lb-reset-cycle-title" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700 text-sm shadow-inner" placeholder="VD: Đợt thi thử Tháng 8 / Khảo sát tuần 3...">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mốc thời gian bắt đầu tính điểm:</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button type="button" onclick="setLbResetTimeMode('now')" id="btn-reset-time-now" class="py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow transition-all">Ngay bây giờ</button>
+                        <button type="button" onclick="setLbResetTimeMode('custom')" id="btn-reset-time-custom" class="py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tùy chọn ngày giờ</button>
+                    </div>
+                    <div id="lb-custom-time-container" class="hidden mt-2">
+                        <input type="datetime-local" id="lb-reset-custom-time" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700 text-sm shadow-inner">
+                    </div>
+                </div>
+
+                <div id="lb-auth-pin-container" class="hidden">
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1"><i class="fa-solid fa-key mr-1 text-amber-500"></i>Mã xác thực Giáo viên / Admin:</label>
+                    <input type="password" id="lb-reset-auth-pin" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 outline-none font-black text-center text-lg tracking-widest text-slate-800 shadow-inner" placeholder="••••••">
+                    <p class="text-[11px] text-slate-400 mt-1 italic">Nhập mã xác thực của giáo viên để xác nhận tạo mới.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button id="btn-confirm-lb-reset" onclick="confirmLeaderboardReset()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-xl shadow-lg hover:from-amber-600 hover:to-orange-600 transition text-base btn-3d"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> XÁC NHẬN TẠO MỚI</button>
+                <div class="flex gap-2 mt-1">
+                    <button type="button" onclick="clearLeaderboardReset()" class="flex-1 py-2.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold rounded-xl transition text-xs border border-slate-200" title="Khôi phục tính điểm toàn bộ lịch sử"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục Toàn Thời Gian</button>
+                    <button type="button" onclick="closeLeaderboardResetModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs">Đóng</button>
+                </div>
             </div>
         </div>
     </div>
@@ -610,85 +674,315 @@
         }
 
         // ======================= BẢNG VÀNG =======================
-        let currentLbFilter = 'all';
+        let currentLbFilter = 'cycle';
+        let leaderboardConfig = {
+            resetAt: null,
+            resetDateStr: null,
+            resetBy: null,
+            cycleTitle: "Toàn thời gian"
+        };
+
+        async function loadLeaderboardConfig() {
+            try {
+                let doc = await db.collection("GameData").doc("LeaderboardConfig").get();
+                if (doc.exists) {
+                    leaderboardConfig = doc.data() || {};
+                } else {
+                    leaderboardConfig = { resetAt: null, resetDateStr: null, resetBy: null, cycleTitle: "Toàn thời gian" };
+                }
+            } catch(e) {
+                console.warn("Lỗi đọc LeaderboardConfig:", e);
+            }
+        }
+
+        function updateLeaderboardCycleUI() {
+            let textEl = document.getElementById('leaderboard-cycle-text');
+            let btnCycle = document.getElementById('btn-lb-cycle');
+            if (!textEl) return;
+            
+            if (leaderboardConfig && leaderboardConfig.resetAt) {
+                let title = leaderboardConfig.cycleTitle ? `"${leaderboardConfig.cycleTitle}"` : "Đợt hiện tại";
+                let dateStr = leaderboardConfig.resetDateStr || (parseVietnameseDateTime(leaderboardConfig.resetAt) ? parseVietnameseDateTime(leaderboardConfig.resetAt).toLocaleString('vi-VN') : leaderboardConfig.resetAt);
+                textEl.innerHTML = `<span class="text-amber-700 font-bold">${title}</span> <span class="text-slate-500 font-medium">(Bắt đầu: ${dateStr})</span>`;
+                if (btnCycle) btnCycle.classList.remove('hidden');
+            } else {
+                textEl.innerHTML = `<span class="text-slate-500 font-medium">Toàn thời gian (Chưa đặt mốc tạo mới)</span>`;
+                if (btnCycle) {
+                    btnCycle.classList.add('hidden');
+                    if (currentLbFilter === 'cycle') currentLbFilter = 'all';
+                }
+            }
+        }
+
         function setLeaderboardFilter(filter) {
             currentLbFilter = filter;
-            let btns = ['week', 'month', 'all'];
+            let btns = ['cycle', 'week', 'month', 'all'];
             btns.forEach(b => {
                 let el = document.getElementById('btn-lb-' + b);
-                if(b === filter) { el.classList.add('bg-amber-500', 'text-white', 'shadow-md'); el.classList.remove('bg-slate-100', 'text-slate-600'); }
-                else { el.classList.remove('bg-amber-500', 'text-white', 'shadow-md'); el.classList.add('bg-slate-100', 'text-slate-600'); }
+                if (!el) return;
+                if (b === filter) {
+                    el.classList.add('bg-amber-500', 'text-white', 'shadow-md');
+                    el.classList.remove('bg-slate-100', 'text-slate-600');
+                } else {
+                    el.classList.remove('bg-amber-500', 'text-white', 'shadow-md');
+                    el.classList.add('bg-slate-100', 'text-slate-600');
+                }
             });
             fetchLeaderboard();
         }
 
-        function openLeaderboardModal() { document.getElementById('leaderboard-modal').classList.remove('hidden'); fetchLeaderboard(); }
-        async function fetchLeaderboard() {
+        async function openLeaderboardModal() {
+            document.getElementById('leaderboard-modal').classList.remove('hidden');
+            await loadLeaderboardConfig();
+            updateLeaderboardCycleUI();
+            if (leaderboardConfig && leaderboardConfig.resetAt) {
+                currentLbFilter = 'cycle';
+            } else {
+                currentLbFilter = 'all';
+            }
+            setLeaderboardFilter(currentLbFilter);
+        }
+
+        async function refreshLeaderboardData() {
+            let icon = document.getElementById('btn-refresh-lb-icon');
+            if (icon) icon.classList.add('fa-spin');
+            await loadLeaderboardConfig();
+            updateLeaderboardCycleUI();
+            await fetchLeaderboard(true);
+            if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 600);
+            showToast("Đã làm mới dữ liệu Bảng Vàng!");
+        }
+
+        async function fetchLeaderboard(forceRefresh = false) {
             let list = document.getElementById('leaderboard-list');
-            document.getElementById('leaderboard-loading').classList.remove('hidden');
+            let loading = document.getElementById('leaderboard-loading');
+            if (loading) loading.classList.remove('hidden');
+            
             try {
-                let res = await fetch(GOOGLE_WEB_APP_URL + "?action=getResults&t=" + Date.now()); 
-                state.allResultsData = JSON.parse(await res.text());
-                document.getElementById('leaderboard-loading').classList.add('hidden');
+                if (forceRefresh || !state.allResultsData || state.allResultsData.length === 0) {
+                    let res = await fetch(GOOGLE_WEB_APP_URL + "?action=getResults&t=" + Date.now()); 
+                    state.allResultsData = JSON.parse(await res.text());
+                }
+                if (loading) loading.classList.add('hidden');
                 
-                let filteredData = state.allResultsData;
+                let filteredData = state.allResultsData || [];
                 let now = new Date();
-                if(currentLbFilter === 'week') {
+
+                if (currentLbFilter === 'cycle' && leaderboardConfig && leaderboardConfig.resetAt) {
+                    let resetDate = parseVietnameseDateTime(leaderboardConfig.resetAt);
+                    if (resetDate) {
+                        filteredData = filteredData.filter(r => {
+                            let d = parseVietnameseDateTime(r.date);
+                            return d && d >= resetDate;
+                        });
+                    }
+                } else if (currentLbFilter === 'week') {
                     let weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    filteredData = state.allResultsData.filter(r => {
-                        if(!r.date) return false;
-                        let parts = r.date.split(' ')[0].split('/'); // assuming dd/mm/yyyy
-                        if(parts.length < 3) return false;
-                        let d = new Date(parts[2], parts[1]-1, parts[0]);
-                        return d >= weekAgo;
+                    filteredData = filteredData.filter(r => {
+                        let d = parseVietnameseDateTime(r.date);
+                        return d && d >= weekAgo;
                     });
-                } else if(currentLbFilter === 'month') {
+                } else if (currentLbFilter === 'month') {
                     let monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                    filteredData = state.allResultsData.filter(r => {
-                        if(!r.date) return false;
-                        let parts = r.date.split(' ')[0].split('/');
-                        if(parts.length < 3) return false;
-                        let d = new Date(parts[2], parts[1]-1, parts[0]);
-                        return d >= monthAgo;
+                    filteredData = filteredData.filter(r => {
+                        let d = parseVietnameseDateTime(r.date);
+                        return d && d >= monthAgo;
                     });
                 }
                 
                 // Group by ID to only show best score per student
                 let grouped = {};
                 filteredData.forEach(r => {
-                    let sId = String(r.id).trim().toLowerCase();
+                    let sId = String(r.id || '').trim().toLowerCase();
+                    if (!sId && r.name) sId = String(r.name).trim().toLowerCase();
                     let currentScore = Number(r.score) || 0;
-                    if(!grouped[sId] || currentScore > grouped[sId].score) {
+                    if (!grouped[sId] || currentScore > grouped[sId].score) {
                         grouped[sId] = { ...r, score: currentScore };
                     }
                 });
                 
                 let uniqueData = Object.values(grouped);
-                if(uniqueData.length === 0) { list.innerHTML = '<div class="text-center py-8 text-slate-500 font-bold"><i class="fa-solid fa-ghost text-4xl mb-3 opacity-50 block"></i>Chưa có dữ liệu xếp hạng</div>'; return; }
+                if (uniqueData.length === 0) {
+                    let filterName = (currentLbFilter === 'cycle') ? 'đợt này' : (currentLbFilter === 'week' ? 'tuần này' : (currentLbFilter === 'month' ? 'tháng này' : 'toàn trường'));
+                    list.innerHTML = `
+                        <div class="text-center py-12 text-slate-500 font-bold">
+                            <i class="fa-solid fa-ghost text-5xl mb-3 opacity-30 block text-amber-500"></i>
+                            Chưa có dữ liệu xếp hạng ${filterName}
+                            <div class="text-xs text-slate-400 font-normal mt-1">Các bài thi nộp thành công sẽ tự động xuất hiện tại đây</div>
+                        </div>`;
+                    return;
+                }
                 
                 let sorted = uniqueData.sort((a,b) => b.score - a.score).slice(0, 10);
                 
                 list.innerHTML = sorted.map((hs, i) => {
                     let rankStyle = '';
                     let rankIcon = '';
-                    if(i === 0) { rankStyle = 'bg-gradient-to-r from-yellow-200 to-amber-300 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)] transform scale-105 z-10 relative'; rankIcon = '<i class="fa-solid fa-medal text-yellow-600 text-2xl drop-shadow-md"></i>'; }
-                    else if(i === 1) { rankStyle = 'bg-gradient-to-r from-slate-200 to-slate-300 border-slate-400 shadow-md'; rankIcon = '<i class="fa-solid fa-medal text-slate-500 text-xl"></i>'; }
-                    else if(i === 2) { rankStyle = 'bg-gradient-to-r from-orange-200 to-orange-300 border-orange-400 shadow-md'; rankIcon = '<i class="fa-solid fa-medal text-orange-700 text-xl"></i>'; }
-                    else { rankStyle = 'bg-white border-slate-200 hover:bg-slate-50'; rankIcon = `<span class="font-black text-slate-400">${i+1}</span>`; }
+                    if (i === 0) {
+                        rankStyle = 'bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)] transform scale-[1.02] z-10 relative';
+                        rankIcon = '<i class="fa-solid fa-crown text-yellow-600 text-2xl drop-shadow-md animate-bounce"></i>';
+                    } else if (i === 1) {
+                        rankStyle = 'bg-gradient-to-r from-slate-200 to-slate-300 border-slate-400 shadow-md';
+                        rankIcon = '<i class="fa-solid fa-medal text-slate-600 text-xl"></i>';
+                    } else if (i === 2) {
+                        rankStyle = 'bg-gradient-to-r from-orange-200 to-orange-300 border-orange-400 shadow-md';
+                        rankIcon = '<i class="fa-solid fa-medal text-orange-700 text-xl"></i>';
+                    } else {
+                        rankStyle = 'bg-white border-slate-200 hover:bg-amber-50/50';
+                        rankIcon = `<span class="font-black text-slate-400 text-base">${i+1}</span>`;
+                    }
                     
                     return `
-                    <div class="flex items-center p-3 md:p-4 rounded-xl mb-3 border transition-all duration-300 hover:shadow-lg ${rankStyle}">
+                    <div class="flex items-center p-3 md:p-4 rounded-2xl mb-3 border transition-all duration-300 hover:shadow-lg ${rankStyle}">
                         <div class="w-10 flex justify-center items-center shrink-0">${rankIcon}</div>
-                        <div class="flex-grow pl-3 border-l border-white/50">
-                            <div class="font-bold text-slate-800 text-base md:text-lg uppercase">${hs.name !== 'Khách' && hs.name ? hs.name : 'ID ' + hs.id}</div>
-                            <div class="text-[11px] md:text-xs text-slate-500 font-medium mt-0.5"><span class="bg-white/60 px-2 py-0.5 rounded-md">Lớp: ${hs.cls || hs.class || '-'}</span> <span class="bg-white/60 px-2 py-0.5 rounded-md ml-1">Mã đề: ${hs.code}</span></div>
+                        <div class="flex-grow pl-3 border-l border-black/10">
+                            <div class="font-bold text-slate-800 text-base md:text-lg uppercase flex items-center gap-2">
+                                ${hs.name !== 'Khách' && hs.name ? hs.name : 'ID ' + hs.id}
+                                ${i === 0 ? '<span class="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">TOP 1</span>' : ''}
+                            </div>
+                            <div class="text-[11px] md:text-xs text-slate-500 font-medium mt-1 flex flex-wrap gap-1">
+                                <span class="bg-white/80 px-2 py-0.5 rounded-md border border-black/5 shadow-xs"><i class="fa-solid fa-graduation-cap text-slate-400 mr-1"></i>Lớp: <b>${hs.cls || hs.class || '-'}</b></span>
+                                <span class="bg-white/80 px-2 py-0.5 rounded-md border border-black/5 shadow-xs"><i class="fa-solid fa-hashtag text-slate-400 mr-1"></i>Mã đề: <b>${hs.code}</b></span>
+                                ${hs.date ? `<span class="bg-white/80 px-2 py-0.5 rounded-md border border-black/5 shadow-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i>${hs.date}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="font-black text-emerald-600 text-xl md:text-2xl drop-shadow-sm bg-white/70 px-3 py-1 rounded-lg border border-white shrink-0">${hs.score}</div>
+                        <div class="text-right shrink-0 pl-2">
+                            <div class="font-black text-emerald-600 text-xl md:text-2xl drop-shadow-sm bg-white/80 px-3 py-1 rounded-xl border border-emerald-100 shadow-xs">${hs.score}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Điểm cao nhất</div>
+                        </div>
                     </div>`;
                 }).join('');
             } catch(e) {
-                document.getElementById('leaderboard-loading').classList.add('hidden');
-                list.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">Lỗi tải dữ liệu Google Sheet</div>';
+                if (loading) loading.classList.add('hidden');
+                list.innerHTML = '<div class="text-center py-6 text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Lỗi tải dữ liệu Google Sheet</div>';
+            }
+        }
+
+        // ======================= RESET BẢNG VÀNG LOGIC =======================
+        let lbResetTimeMode = 'now';
+        function setLbResetTimeMode(mode) {
+            lbResetTimeMode = mode;
+            let btnNow = document.getElementById('btn-reset-time-now');
+            let btnCustom = document.getElementById('btn-reset-time-custom');
+            let contCustom = document.getElementById('lb-custom-time-container');
+            if (mode === 'now') {
+                btnNow.classList.add('bg-amber-500', 'text-white', 'shadow');
+                btnNow.classList.remove('bg-slate-100', 'text-slate-600');
+                btnCustom.classList.remove('bg-amber-500', 'text-white', 'shadow');
+                btnCustom.classList.add('bg-slate-100', 'text-slate-600');
+                contCustom.classList.add('hidden');
+            } else {
+                btnCustom.classList.add('bg-amber-500', 'text-white', 'shadow');
+                btnCustom.classList.remove('bg-slate-100', 'text-slate-600');
+                btnNow.classList.remove('bg-amber-500', 'text-white', 'shadow');
+                btnNow.classList.add('bg-slate-100', 'text-slate-600');
+                contCustom.classList.remove('hidden');
+
+                let now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('lb-reset-custom-time').value = now.toISOString().slice(0, 16);
+            }
+        }
+
+        function openLeaderboardResetModal() {
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            let pinCont = document.getElementById('lb-auth-pin-container');
+            if (pinCont) {
+                if (isTeacher) {
+                    pinCont.classList.add('hidden');
+                } else {
+                    pinCont.classList.remove('hidden');
+                    document.getElementById('lb-reset-auth-pin').value = '';
+                }
+            }
+
+            document.getElementById('lb-reset-cycle-title').value = leaderboardConfig.cycleTitle && leaderboardConfig.cycleTitle !== 'Toàn thời gian' ? leaderboardConfig.cycleTitle : '';
+            setLbResetTimeMode('now');
+            document.getElementById('leaderboard-reset-modal').classList.remove('hidden');
+        }
+
+        function closeLeaderboardResetModal() {
+            document.getElementById('leaderboard-reset-modal').classList.add('hidden');
+        }
+
+        async function confirmLeaderboardReset() {
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            if (!isTeacher) {
+                let pin = document.getElementById('lb-reset-auth-pin')?.value.trim();
+                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
+                    return showToast("Mã xác thực Giáo viên không chính xác!", true);
+                }
+            }
+
+            let title = document.getElementById('lb-reset-cycle-title').value.trim() || `Đợt thi ${new Date().toLocaleDateString('vi-VN')}`;
+            let resetDate = new Date();
+
+            if (lbResetTimeMode === 'custom') {
+                let customVal = document.getElementById('lb-reset-custom-time').value;
+                if (customVal) resetDate = new Date(customVal);
+            }
+
+            let newConfig = {
+                resetAt: resetDate.toISOString(),
+                resetDateStr: resetDate.toLocaleDateString('vi-VN') + ' ' + resetDate.toLocaleTimeString('vi-VN'),
+                resetBy: state.currentUser ? state.currentUser.email : 'Giáo viên TBS',
+                cycleTitle: title,
+                updatedAt: new Date().toISOString()
+            };
+
+            let btn = document.getElementById('btn-confirm-lb-reset');
+            let oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thiết lập...';
+            btn.disabled = true;
+
+            try {
+                await db.collection("GameData").doc("LeaderboardConfig").set(newConfig);
+                leaderboardConfig = newConfig;
+                showToast("Đã tạo mới Bảng Vàng thành công!");
+                closeLeaderboardResetModal();
+                updateLeaderboardCycleUI();
+                setLeaderboardFilter('cycle');
+            } catch(e) {
+                showToast("Lỗi lưu cấu hình: " + e.message, true);
+            } finally {
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function clearLeaderboardReset() {
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            if (!isTeacher) {
+                let pin = document.getElementById('lb-reset-auth-pin')?.value.trim();
+                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
+                    return showToast("Cần nhập mã xác thực để khôi phục!", true);
+                }
+            }
+
+            if (!confirm("Khôi phục Bảng Vàng để tính điểm cho toàn bộ lịch sử (bỏ mốc lọc tạo mới)?")) return;
+
+            try {
+                let emptyConfig = {
+                    resetAt: null,
+                    resetDateStr: null,
+                    resetBy: null,
+                    cycleTitle: "Toàn thời gian",
+                    updatedAt: new Date().toISOString()
+                };
+                await db.collection("GameData").doc("LeaderboardConfig").set(emptyConfig);
+                leaderboardConfig = emptyConfig;
+                showToast("Đã khôi phục tính điểm toàn thời gian!");
+                closeLeaderboardResetModal();
+                updateLeaderboardCycleUI();
+                setLeaderboardFilter('all');
+            } catch(e) {
+                showToast("Lỗi khôi phục: " + e.message, true);
             }
         }
 

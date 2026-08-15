@@ -330,6 +330,58 @@
         </div>
     </div>
 
+    <!-- Modal Xóa Danh Sách Học Sinh (Xóa Nhiều) -->
+    <div id="bulk-delete-students-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 md:p-8 rounded-3xl w-full max-w-lg relative shadow-2xl border-4 border-rose-200 zoom-in flex flex-col">
+            <button onclick="closeBulkDeleteStudentsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 text-center uppercase tracking-wide mb-1">Xóa Danh Sách Học Sinh</h3>
+            <p class="text-xs text-slate-500 text-center font-bold mb-4">Chọn phương thức xóa học sinh khỏi hệ thống</p>
+
+            <div class="space-y-3 mb-6">
+                <!-- Option 1: Delete Selected -->
+                <button onclick="confirmDeleteSelectedFromModal()" id="btn-modal-del-selected" class="w-full p-4 bg-white border-2 border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-2xl text-left transition flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-black shrink-0"><i class="fa-solid fa-list-check"></i></div>
+                        <div>
+                            <div class="font-black text-slate-800 text-sm group-hover:text-rose-700">1. Xóa các học sinh đã tích chọn</div>
+                            <div class="text-xs text-slate-500 mt-0.5">Đang chọn: <b id="modal-selected-count" class="text-rose-600 font-bold">0</b> học sinh</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-rose-500"></i>
+                </button>
+
+                <!-- Option 2: Delete Filtered (by search or class) -->
+                <button onclick="confirmDeleteFilteredFromModal()" id="btn-modal-del-filtered" class="w-full p-4 bg-white border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-2xl text-left transition flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg font-black shrink-0"><i class="fa-solid fa-filter"></i></div>
+                        <div>
+                            <div class="font-black text-slate-800 text-sm group-hover:text-amber-700">2. Xóa danh sách đang lọc</div>
+                            <div class="text-xs text-slate-500 mt-0.5">Xóa <b id="modal-filtered-count" class="text-amber-600 font-bold">0</b> học sinh đang hiển thị trong bảng</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-amber-500"></i>
+                </button>
+
+                <!-- Option 3: Delete All in Database -->
+                <button onclick="confirmDeleteAllFromModal()" class="w-full p-4 bg-white border-2 border-rose-200 hover:border-rose-500 hover:bg-rose-50 rounded-2xl text-left transition flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg font-black shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div>
+                            <div class="font-black text-rose-700 text-sm">3. Xóa TOÀN BỘ học sinh trong CSDL</div>
+                            <div class="text-xs text-rose-500 mt-0.5 font-medium">Xóa sạch toàn bộ <b id="modal-total-count" class="font-bold">0</b> học sinh trong hệ thống</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-rose-400"></i>
+                </button>
+            </div>
+
+            <button onclick="closeBulkDeleteStudentsModal()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs">Đóng</button>
+        </div>
+    </div>
+
     <div id="generic-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full shadow-2xl"><h3 id="generic-confirm-title" class="text-2xl font-black text-slate-800 mb-2">Xác Nhận</h3><p id="generic-confirm-message" class="text-slate-600 mb-6 font-medium text-lg"></p><div class="flex gap-4"><button onclick="closeGenericConfirm()" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold btn-3d hover:bg-slate-300 transition text-base">Hủy</button><button onclick="executeGenericConfirm()" class="flex-1 py-3 bg-sky-600 text-white rounded-xl font-bold btn-3d hover:bg-sky-700 transition text-base">Đồng ý</button></div></div></div>
     <div id="edit-info-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full relative shadow-2xl border-4 border-sky-100"><h3 class="text-2xl font-black text-slate-800 mb-2">Sửa thông tin đề thi</h3><p class="text-slate-500 font-bold mb-4">Mã: <span id="edit-info-target-code" class="text-sky-600"></span></p><div class="space-y-4 mb-6 text-left"><input type="text" id="edit-info-name" placeholder="Tên đề thi mới..." class="w-full p-3 border-2 border-sky-200 rounded-xl outline-none focus:border-sky-500 font-bold shadow-inner"><input type="text" id="edit-info-folder" placeholder="Thư mục/Khối..." class="w-full p-3 border-2 border-sky-200 rounded-xl outline-none focus:border-sky-500 font-bold shadow-inner"></div><div class="flex gap-4"><button onclick="closeEditInfoModal()" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold btn-3d hover:bg-slate-300">Hủy</button><button onclick="confirmEditInfo()" class="flex-1 py-3 bg-sky-500 text-white rounded-xl font-bold btn-3d hover:bg-sky-600">Lưu</button></div></div></div>
     <div id="delete-code-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4"><div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full border-4 border-red-100 shadow-2xl"><div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm"><i class="fa-solid fa-trash"></i></div><h3 class="text-xl font-black text-slate-800 mb-2">Xác Nhận Xóa Đề</h3><p class="text-slate-600 font-bold mb-6">Mã: <span id="delete-target-code" class="text-red-500"></span></p><div class="flex gap-4"><button onclick="closeDeleteCodeModal()" class="flex-1 py-2.5 bg-slate-200 rounded-xl font-bold btn-3d hover:bg-slate-300">Hủy</button><button onclick="confirmDeleteCode()" class="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold btn-3d hover:bg-red-600">Xóa Vĩnh Viễn</button></div></div></div>
@@ -368,6 +420,48 @@
                 <button id="btn-do-crop" onclick="executeCropAndAttach()" disabled class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 opacity-50 cursor-not-allowed text-white font-black rounded-xl text-sm shadow-md transition btn-3d flex items-center gap-2">
                     <i class="fa-solid fa-scissors"></i> Cắt & Gắn Vào Câu Đang Chọn
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tạo Mới / Reset Bảng Vàng Cho Giáo Viên -->
+    <div id="admin-lb-reset-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 md:p-8 rounded-3xl w-full max-w-lg relative shadow-2xl border-4 border-amber-200 zoom-in flex flex-col">
+            <button onclick="closeAdminLeaderboardResetModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 text-center uppercase tracking-wide mb-1">Tạo Mới Bảng Vàng</h3>
+            <p class="text-xs text-slate-500 text-center font-bold mb-4">Bắt đầu một đợt thi đua / vinh danh mới toàn trường</p>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs text-amber-900 mb-4 leading-relaxed font-medium">
+                <i class="fa-solid fa-circle-info text-amber-600 mr-1.5"></i> Khi <b>Tạo mới (Reset)</b>, bảng vàng vinh dự trên trang chủ sẽ chỉ tính điểm các bài thi nộp từ mốc thời gian này trở đi. Toàn bộ lịch sử thi trong Google Sheets vẫn được lưu giữ an toàn.
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Tên đợt vinh danh / Kỳ thi:</label>
+                    <input type="text" id="admin-lb-reset-title" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700 text-sm shadow-inner" placeholder="VD: Đợt thi thử Tháng 8 / Khảo sát tuần 3...">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mốc thời gian bắt đầu tính điểm:</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button type="button" onclick="setAdminLbResetTimeMode('now')" id="btn-admin-reset-now" class="py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow transition-all">Ngay bây giờ</button>
+                        <button type="button" onclick="setAdminLbResetTimeMode('custom')" id="btn-admin-reset-custom" class="py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tùy chọn ngày giờ</button>
+                    </div>
+                    <div id="admin-lb-custom-time-cont" class="hidden mt-2">
+                        <input type="datetime-local" id="admin-lb-reset-time" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700 text-sm shadow-inner">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button id="btn-confirm-admin-lb-reset" onclick="confirmAdminLeaderboardReset()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-xl shadow-lg hover:from-amber-600 hover:to-orange-600 transition text-base btn-3d"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> XÁC NHẬN TẠO MỚI</button>
+                <div class="flex gap-2 mt-1">
+                    <button type="button" onclick="clearAdminLeaderboardReset()" class="flex-1 py-2.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold rounded-xl transition text-xs border border-slate-200" title="Khôi phục tính điểm toàn bộ lịch sử"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục Toàn Thời Gian</button>
+                    <button type="button" onclick="closeAdminLeaderboardResetModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs">Đóng</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1398,34 +1492,83 @@
         function resetToDefaultData() { showConfirmModal("Khôi phục", "Xóa toàn bộ đề hiện tại để về mẫu trắng?", () => { adminState.loadedCode = null; GAME_DATA = sanitizeGameData(JSON.parse(JSON.stringify(DEFAULT_GAME_DATA))); adminState.data = JSON.parse(JSON.stringify(GAME_DATA)); adminSetTab('round1'); showToast("Đã làm sạch bản nháp!"); }); }
 
         let adminStudentList = [];
+        let selectedStudentIds = new Set();
+        let currentStudentClassFilter = 'ALL';
+
         async function loadAdminStudents() {
             try {
                 let snap = await db.collection("Students").get();
                 adminStudentList = [];
                 snap.forEach(doc => adminStudentList.push(doc.data()));
-                renderAdminStudentsTable();
+                
+                // Remove any selected ids that no longer exist
+                let existingIds = new Set(adminStudentList.map(s => s.id));
+                selectedStudentIds = new Set([...selectedStudentIds].filter(id => existingIds.has(id)));
+                
+                renderStudentManagement(document.getElementById('admin-content-area'), true);
             } catch(e) {
                 showToast("Lỗi tải danh sách Học sinh", true);
             }
         }
-        function renderStudentManagement(contentArea) {
+
+        function getFilteredStudents() {
+            let kw = (document.getElementById('search-student')?.value || '').toLowerCase().trim();
+            let clsFilter = currentStudentClassFilter;
+            return adminStudentList.filter(s => {
+                let matchKw = !kw || String(s.id).toLowerCase().includes(kw) || String(s.name).toLowerCase().includes(kw) || String(s.cls).toLowerCase().includes(kw);
+                let matchCls = clsFilter === 'ALL' || String(s.cls).trim() === clsFilter;
+                return matchKw && matchCls;
+            });
+        }
+
+        function renderStudentManagement(contentArea, skipFetch = false) {
+            if (!contentArea) contentArea = document.getElementById('admin-content-area');
+            
+            // Extract unique class list for filter
+            let classes = [...new Set(adminStudentList.map(s => s.cls).filter(Boolean))].sort();
+            let classOptions = `<option value="ALL">Tất cả Lớp (${adminStudentList.length})</option>` + classes.map(c => {
+                let count = adminStudentList.filter(s => s.cls === c).length;
+                return `<option value="${c}" ${currentStudentClassFilter === c ? 'selected' : ''}>Lớp ${c} (${count})</option>`;
+            }).join('');
+
             contentArea.innerHTML = `<div class="h-full flex flex-col p-6 lg:p-8 bg-slate-50 relative">
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b-2 border-slate-200 pb-5 mb-5 gap-4">
                     <div>
-                        <h3 class="text-2xl font-black text-mainDark uppercase tracking-widest"><i class="fa-solid fa-user-graduate mr-2"></i>Quản Lý Học Sinh</h3>
-                        <p class="text-base font-bold text-slate-500 mt-1">Cấp tài khoản & mật khẩu tham gia thi</p>
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-2xl font-black text-mainDark uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-user-graduate mr-1"></i>Quản Lý Học Sinh</h3>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs font-black px-3 py-1 rounded-full border border-indigo-200">${adminStudentList.length} Học sinh</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-500 mt-1">Cấp tài khoản, mật khẩu và quản trị danh sách dự thi</p>
                     </div>
-                    <div class="flex gap-3 flex-wrap">
-                        <input type="text" id="search-student" oninput="renderAdminStudentsTable()" placeholder="Tìm ID, Tên..." class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold text-sm shadow-inner min-w-[200px]">
-                        <button onclick="document.getElementById('import-students-modal').classList.remove('hidden')" class="px-5 py-3 bg-mainLight text-mainDark hover:bg-main hover:text-white rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Import Nhanh</button>
-                        <button onclick="openAddStudentModal()" class="px-5 py-3 bg-mainDark text-white hover:bg-indigo-700 rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-plus mr-1"></i> Thêm HS</button>
+                    <div class="flex gap-2.5 flex-wrap items-center">
+                        <input type="text" id="search-student" oninput="renderAdminStudentsTable()" placeholder="Tìm ID, Tên, Lớp..." class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold text-sm shadow-inner min-w-[180px]">
+                        <select id="filter-student-class" onchange="currentStudentClassFilter=this.value; renderAdminStudentsTable();" class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-main font-bold text-sm bg-white shadow-inner">
+                            ${classOptions}
+                        </select>
+                        <button onclick="document.getElementById('import-students-modal').classList.remove('hidden')" class="px-4 py-3 bg-mainLight text-mainDark hover:bg-main hover:text-white rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-file-import mr-1"></i> Import Nhanh</button>
+                        <button onclick="openAddStudentModal()" class="px-4 py-3 bg-mainDark text-white hover:bg-indigo-700 rounded-xl font-black text-sm transition shadow-sm btn-3d"><i class="fa-solid fa-plus mr-1"></i> Thêm HS</button>
+                        <button onclick="openBulkDeleteStudentsModal()" class="px-4 py-3 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-2 border-rose-200 rounded-xl font-black text-sm transition shadow-sm btn-3d flex items-center gap-1.5" title="Mở tùy chọn xóa danh sách"><i class="fa-solid fa-trash-arrow-up"></i> Xóa Danh Sách</button>
                     </div>
                 </div>
+
+                <!-- Selection Action Bar (Appears when items are selected) -->
+                <div id="student-selection-bar" class="hidden mb-4 p-3.5 bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-sm zoom-in">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center text-sm font-black"><i class="fa-solid fa-check-double"></i></span>
+                        <span class="text-sm font-bold text-rose-900">Đang chọn: <b id="selected-students-count" class="text-rose-600 font-black text-base">0</b> / ${adminStudentList.length} học sinh</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="deleteSelectedStudents()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition shadow-md btn-3d flex items-center gap-1.5"><i class="fa-solid fa-trash-can"></i> Xóa Đã Chọn</button>
+                        <button onclick="clearStudentSelection()" class="px-3.5 py-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl font-bold text-xs transition shadow-sm">Bỏ chọn</button>
+                    </div>
+                </div>
+
                 <div class="flex-grow overflow-auto bg-white rounded-3xl shadow-inner border-2 border-slate-100 p-2">
                     <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 sticky top-0 shadow-sm rounded-xl z-10">
+                        <thead class="bg-slate-50 sticky top-0 shadow-sm rounded-xl z-10 border-b border-slate-200">
                             <tr>
-                                <th class="p-4 text-slate-600 font-black uppercase">STT</th>
+                                <th class="p-3.5 text-center w-12"><input type="checkbox" id="check-all-students" onchange="toggleSelectAllStudents(this)" class="w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer" title="Chọn tất cả danh sách đang hiển thị"></th>
+                                <th class="p-4 text-slate-600 font-black uppercase text-center w-16">STT</th>
                                 <th class="p-4 text-slate-600 font-black uppercase">Mã ID</th>
                                 <th class="p-4 text-slate-600 font-black uppercase">Họ Tên</th>
                                 <th class="p-4 text-slate-600 font-black uppercase text-center">Lớp</th>
@@ -1434,39 +1577,217 @@
                             </tr>
                         </thead>
                         <tbody id="admin-students-body">
-                            <tr><td colspan="6" class="text-center p-8 text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                            <tr><td colspan="7" class="text-center p-8 text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>`;
-            loadAdminStudents();
+            
+            if (!skipFetch) {
+                loadAdminStudents();
+            } else {
+                renderAdminStudentsTable();
+            }
         }
+
         function renderAdminStudentsTable() {
             let tbody = document.getElementById('admin-students-body');
             if(!tbody) return;
-            let kw = (document.getElementById('search-student')?.value || '').toLowerCase();
-            let filtered = adminStudentList.filter(s => String(s.id).toLowerCase().includes(kw) || String(s.name).toLowerCase().includes(kw) || String(s.cls).toLowerCase().includes(kw));
+            let filtered = getFilteredStudents();
+            
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-400 font-bold"><i class="fa-solid fa-box-open text-3xl mb-2 block"></i> Không tìm thấy học sinh nào</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-12 text-slate-400 font-bold"><i class="fa-solid fa-box-open text-4xl mb-3 block text-slate-300"></i> Không tìm thấy học sinh nào phù hợp</td></tr>`;
+                updateSelectionBarUI();
                 return;
             }
-            tbody.innerHTML = filtered.map((s, i) => `<tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                <td class="p-3 text-center font-bold text-slate-500">${i+1}</td>
-                <td class="p-3 font-black text-mainDark tracking-wider">${s.id}</td>
-                <td class="p-3 font-bold text-slate-700">${s.name}</td>
-                <td class="p-3 text-center"><span class="bg-slate-200 text-slate-600 px-2 py-1 rounded-lg font-bold text-xs">${s.cls}</span></td>
-                <td class="p-3 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="font-mono bg-amber-50 text-amber-700 px-2 py-1 rounded border border-amber-200">${s.password}</span>
-                        ${s.password === '123456' ? '<i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs" title="Chưa đổi MK mặc định"></i>' : '<i class="fa-solid fa-shield-check text-emerald-500 text-xs" title="Đã đổi MK"></i>'}
-                    </div>
-                </td>
-                <td class="p-3 text-center flex justify-center gap-2">
-                    <button onclick="resetStudentPassword('${s.id}')" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition shadow-sm btn-3d" title="Đặt lại MK (123456)"><i class="fa-solid fa-key"></i></button>
-                    <button onclick="editStudentInfo('${s.id}')" class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-sm btn-3d" title="Sửa thông tin"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="deleteStudent('${s.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d" title="Xóa"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>`).join('');
+
+            // Check if all filtered are selected
+            let allFilteredSelected = filtered.length > 0 && filtered.every(s => selectedStudentIds.has(s.id));
+            let checkAllBox = document.getElementById('check-all-students');
+            if (checkAllBox) checkAllBox.checked = allFilteredSelected;
+
+            tbody.innerHTML = filtered.map((s, i) => {
+                let isSelected = selectedStudentIds.has(s.id);
+                return `<tr class="border-b border-slate-100 hover:bg-amber-50/50 transition ${isSelected ? 'bg-rose-50/50' : ''}">
+                    <td class="p-3 text-center"><input type="checkbox" class="student-checkbox w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer" value="${s.id}" ${isSelected ? 'checked' : ''} onchange="toggleSelectStudent('${s.id}', this)"></td>
+                    <td class="p-3 text-center font-bold text-slate-400">${i+1}</td>
+                    <td class="p-3 font-black text-mainDark tracking-wider">${s.id}</td>
+                    <td class="p-3 font-bold text-slate-700">${s.name}</td>
+                    <td class="p-3 text-center"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-bold text-xs border border-slate-200">${s.cls}</span></td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <span class="font-mono bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200 text-xs">${s.password}</span>
+                            ${s.password === '123456' ? '<i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs" title="Chưa đổi MK mặc định"></i>' : '<i class="fa-solid fa-shield-check text-emerald-500 text-xs" title="Đã đổi MK"></i>'}
+                        </div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="resetStudentPassword('${s.id}')" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition shadow-sm btn-3d" title="Đặt lại MK (123456)"><i class="fa-solid fa-key"></i></button>
+                            <button onclick="editStudentInfo('${s.id}')" class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-sm btn-3d" title="Sửa thông tin"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteStudent('${s.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition shadow-sm btn-3d" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            updateSelectionBarUI();
+        }
+
+        function toggleSelectAllStudents(checkbox) {
+            let filtered = getFilteredStudents();
+            if (checkbox.checked) {
+                filtered.forEach(s => selectedStudentIds.add(s.id));
+            } else {
+                filtered.forEach(s => selectedStudentIds.delete(s.id));
+            }
+            renderAdminStudentsTable();
+        }
+
+        function toggleSelectStudent(id, checkbox) {
+            if (checkbox.checked) {
+                selectedStudentIds.add(id);
+            } else {
+                selectedStudentIds.delete(id);
+            }
+            updateSelectionBarUI();
+            
+            let tr = checkbox.closest('tr');
+            if (tr) {
+                if (checkbox.checked) tr.classList.add('bg-rose-50/50');
+                else tr.classList.remove('bg-rose-50/50');
+            }
+
+            let filtered = getFilteredStudents();
+            let checkAllBox = document.getElementById('check-all-students');
+            if (checkAllBox) {
+                checkAllBox.checked = filtered.length > 0 && filtered.every(s => selectedStudentIds.has(s.id));
+            }
+        }
+
+        function clearStudentSelection() {
+            selectedStudentIds.clear();
+            renderAdminStudentsTable();
+        }
+
+        function updateSelectionBarUI() {
+            let bar = document.getElementById('student-selection-bar');
+            let countEl = document.getElementById('selected-students-count');
+            if (!bar) return;
+            if (selectedStudentIds.size > 0) {
+                bar.classList.remove('hidden');
+                if (countEl) countEl.innerText = selectedStudentIds.size;
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        // ======================= BULK DELETE STUDENTS LOGIC =======================
+        function openBulkDeleteStudentsModal() {
+            let modal = document.getElementById('bulk-delete-students-modal');
+            if (!modal) return;
+
+            let filtered = getFilteredStudents();
+            let selectedCount = selectedStudentIds.size;
+            let filteredCount = filtered.length;
+            let totalCount = adminStudentList.length;
+
+            document.getElementById('modal-selected-count').innerText = selectedCount;
+            document.getElementById('modal-filtered-count').innerText = filteredCount;
+            document.getElementById('modal-total-count').innerText = totalCount;
+
+            let btnSel = document.getElementById('btn-modal-del-selected');
+            if (btnSel) {
+                if (selectedCount === 0) {
+                    btnSel.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btnSel.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeBulkDeleteStudentsModal() {
+            let modal = document.getElementById('bulk-delete-students-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function executeBatchDeleteStudents(idsToDelete, confirmTitle, confirmMsg) {
+            if (!idsToDelete || idsToDelete.length === 0) {
+                return showToast("Không có học sinh nào được chọn để xóa!", true);
+            }
+
+            showConfirmModal(confirmTitle, confirmMsg, async () => {
+                showToast(`Đang xóa ${idsToDelete.length} học sinh khỏi CSDL...`);
+                try {
+                    let batch = db.batch();
+                    let count = 0;
+                    for (let id of idsToDelete) {
+                        let ref = db.collection("Students").doc(id);
+                        batch.delete(ref);
+                        count++;
+                        if (count % 400 === 0) {
+                            await batch.commit();
+                            batch = db.batch();
+                        }
+                    }
+                    if (count % 400 !== 0) {
+                        await batch.commit();
+                    }
+
+                    selectedStudentIds.clear();
+                    showToast(`Đã xóa thành công ${count} học sinh!`);
+                    closeBulkDeleteStudentsModal();
+                    loadAdminStudents();
+                } catch(e) {
+                    showToast("Lỗi khi xóa học sinh: " + e.message, true);
+                }
+            });
+        }
+
+        function deleteSelectedStudents() {
+            if (selectedStudentIds.size === 0) {
+                return showToast("Vui lòng tích chọn học sinh cần xóa!", true);
+            }
+            let ids = Array.from(selectedStudentIds);
+            executeBatchDeleteStudents(
+                ids,
+                "Xác nhận xóa học sinh đã chọn",
+                `Bạn có chắc chắn muốn xóa vĩnh viễn ${ids.length} học sinh đã tích chọn khỏi hệ thống?`
+            );
+        }
+
+        function confirmDeleteSelectedFromModal() {
+            if (selectedStudentIds.size === 0) {
+                return showToast("Chưa có học sinh nào được tích chọn trong bảng!", true);
+            }
+            deleteSelectedStudents();
+        }
+
+        function confirmDeleteFilteredFromModal() {
+            let filtered = getFilteredStudents();
+            if (filtered.length === 0) {
+                return showToast("Không có học sinh nào trong danh sách đang lọc!", true);
+            }
+            let ids = filtered.map(s => s.id);
+            let filterDesc = currentStudentClassFilter !== 'ALL' ? `Lớp ${currentStudentClassFilter}` : "đang lọc";
+            executeBatchDeleteStudents(
+                ids,
+                "Xóa danh sách học sinh đang lọc",
+                `Bạn có chắc chắn muốn xóa toàn bộ ${ids.length} học sinh thuộc danh sách ${filterDesc}?`
+            );
+        }
+
+        function confirmDeleteAllFromModal() {
+            if (adminStudentList.length === 0) {
+                return showToast("Hệ thống chưa có học sinh nào để xóa!", true);
+            }
+            let ids = adminStudentList.map(s => s.id);
+            executeBatchDeleteStudents(
+                ids,
+                "CẢNH BÁO: XÓA TOÀN BỘ HỌC SINH",
+                `CẢNH BÁO NGUY HIỂM: Bạn có chắc chắn muốn xóa TOÀN BỘ ${ids.length} học sinh trong hệ thống? Thao tác này sẽ làm sạch cơ sở dữ liệu học sinh và không thể hoàn tác!`
+            );
         }
         function openAddStudentModal(studentId = null) {
             let s = studentId ? adminStudentList.find(x => x.id === studentId) : null;
@@ -1515,6 +1836,7 @@
             showConfirmModal("Xóa Học sinh", `Xóa vĩnh viễn học sinh ${id} khỏi hệ thống?`, async () => {
                 try {
                     await db.collection("Students").doc(id).delete();
+                    selectedStudentIds.delete(id);
                     showToast("Đã xóa học sinh!");
                     loadAdminStudents();
                 } catch(e) { showToast("Lỗi xóa", true); }
@@ -1599,6 +1921,113 @@
         async function addAuthorizedTeacher() { let e = document.getElementById('new-teacher-email').value.trim().toLowerCase(); if(!e || !e.includes('@')) return showToast("Email không hợp lệ!", true); if(state.authorizedEmails.includes(e)) return showToast("Email này đã có quyền!", true); state.authorizedEmails.push(e); try { await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails }); showToast("Đã cấp quyền truy cập!"); renderTeacherManagement(document.getElementById('admin-content-area')); } catch(err) { state.authorizedEmails.pop(); showToast("Lỗi hệ thống lưu trữ", true); } }
         async function removeAuthorizedTeacher(e) { if(e.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) return; showConfirmModal("Hủy quyền", "Chắc chắn muốn hủy quyền của: " + e + "?", async () => { let prev = [...state.authorizedEmails]; state.authorizedEmails = state.authorizedEmails.filter(x => x !== e); try { await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails }); showToast("Đã xóa quyền tài khoản!"); renderTeacherManagement(document.getElementById('admin-content-area')); } catch(err) { state.authorizedEmails = prev; } }); }
 
+        // Teacher Leaderboard Config Logic
+        let teacherLbConfig = { resetAt: null, resetDateStr: null, resetBy: null, cycleTitle: "Toàn thời gian" };
+        async function loadTeacherLeaderboardConfig() {
+            try {
+                let doc = await db.collection("GameData").doc("LeaderboardConfig").get();
+                if (doc.exists) teacherLbConfig = doc.data() || {};
+                else teacherLbConfig = { resetAt: null, resetDateStr: null, resetBy: null, cycleTitle: "Toàn thời gian" };
+            } catch(e) {
+                console.warn("Lỗi load config bảng vàng teacher:", e);
+            }
+        }
+
+        let adminLbResetTimeMode = 'now';
+        function setAdminLbResetTimeMode(mode) {
+            adminLbResetTimeMode = mode;
+            let btnNow = document.getElementById('btn-admin-reset-now');
+            let btnCustom = document.getElementById('btn-admin-reset-custom');
+            let contCustom = document.getElementById('admin-lb-custom-time-cont');
+            if (!btnNow || !btnCustom) return;
+            if (mode === 'now') {
+                btnNow.classList.add('bg-amber-500', 'text-white', 'shadow');
+                btnNow.classList.remove('bg-slate-100', 'text-slate-600');
+                btnCustom.classList.remove('bg-amber-500', 'text-white', 'shadow');
+                btnCustom.classList.add('bg-slate-100', 'text-slate-600');
+                if (contCustom) contCustom.classList.add('hidden');
+            } else {
+                btnCustom.classList.add('bg-amber-500', 'text-white', 'shadow');
+                btnCustom.classList.remove('bg-slate-100', 'text-slate-600');
+                btnNow.classList.remove('bg-amber-500', 'text-white', 'shadow');
+                btnNow.classList.add('bg-slate-100', 'text-slate-600');
+                if (contCustom) {
+                    contCustom.classList.remove('hidden');
+                    let now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    document.getElementById('admin-lb-reset-time').value = now.toISOString().slice(0, 16);
+                }
+            }
+        }
+
+        async function openAdminLeaderboardResetModal() {
+            await loadTeacherLeaderboardConfig();
+            document.getElementById('admin-lb-reset-title').value = teacherLbConfig.cycleTitle && teacherLbConfig.cycleTitle !== 'Toàn thời gian' ? teacherLbConfig.cycleTitle : '';
+            setAdminLbResetTimeMode('now');
+            document.getElementById('admin-lb-reset-modal').classList.remove('hidden');
+        }
+
+        function closeAdminLeaderboardResetModal() {
+            document.getElementById('admin-lb-reset-modal').classList.add('hidden');
+        }
+
+        async function confirmAdminLeaderboardReset() {
+            let title = document.getElementById('admin-lb-reset-title').value.trim() || `Đợt thi ${new Date().toLocaleDateString('vi-VN')}`;
+            let resetDate = new Date();
+            if (adminLbResetTimeMode === 'custom') {
+                let customVal = document.getElementById('admin-lb-reset-time').value;
+                if (customVal) resetDate = new Date(customVal);
+            }
+
+            let newConfig = {
+                resetAt: resetDate.toISOString(),
+                resetDateStr: resetDate.toLocaleDateString('vi-VN') + ' ' + resetDate.toLocaleTimeString('vi-VN'),
+                resetBy: state.currentUser ? state.currentUser.email : 'Giáo viên TBS',
+                cycleTitle: title,
+                updatedAt: new Date().toISOString()
+            };
+
+            let btn = document.getElementById('btn-confirm-admin-lb-reset');
+            let oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thiết lập...';
+            btn.disabled = true;
+
+            try {
+                await db.collection("GameData").doc("LeaderboardConfig").set(newConfig);
+                teacherLbConfig = newConfig;
+                showToast("Đã tạo mới Bảng Vàng toàn trường thành công!");
+                closeAdminLeaderboardResetModal();
+                updateStudentResultsUI();
+            } catch(e) {
+                showToast("Lỗi lưu cấu hình: " + e.message, true);
+            } finally {
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function clearAdminLeaderboardReset() {
+            if (!confirm("Khôi phục Bảng Vàng về chế độ Toàn Thời Gian (tính điểm cho toàn bộ bài thi)?")) return;
+            try {
+                let emptyConfig = {
+                    resetAt: null,
+                    resetDateStr: null,
+                    resetBy: null,
+                    cycleTitle: "Toàn thời gian",
+                    updatedAt: new Date().toISOString()
+                };
+                await db.collection("GameData").doc("LeaderboardConfig").set(emptyConfig);
+                teacherLbConfig = emptyConfig;
+                showToast("Đã khôi phục tính điểm toàn thời gian!");
+                if (document.getElementById('admin-lb-reset-modal') && !document.getElementById('admin-lb-reset-modal').classList.contains('hidden')) {
+                    closeAdminLeaderboardResetModal();
+                }
+                updateStudentResultsUI();
+            } catch(e) {
+                showToast("Lỗi khôi phục: " + e.message, true);
+            }
+        }
+
         let currentAdminResults = [];
         let currentClassFilter = 'ALL';
         let currentGradeFilter = 'ALL';
@@ -1606,6 +2035,7 @@
         async function renderStudentResults(contentArea) {
             if (!contentArea) contentArea = document.getElementById('admin-content-area');
             contentArea.innerHTML = `<div class="flex justify-center items-center h-full"><i class="fa-solid fa-spinner fa-spin text-5xl text-amber-500"></i></div>`;
+            await loadTeacherLeaderboardConfig();
             try { 
                 let r = await fetch(GOOGLE_WEB_APP_URL + "?action=getResults&t=" + Date.now()); 
                 let rawResults = JSON.parse(await r.text()); 
@@ -1695,8 +2125,27 @@
 
             let rows = filteredResults.map((x, i) => `<tr class="border-b-2 border-slate-100 hover:bg-amber-50 transition"><td class="p-3 text-center font-bold text-slate-500">${i+1}</td><td class="p-3 font-black text-slate-700">${x.name || '-'} <span class="text-[10px] bg-slate-200 px-1.5 rounded ml-1">${x.cls || '-'}</span></td><td class="p-3 text-center"><span class="bg-sky-100 text-sky-700 px-2 py-1 rounded-lg font-black text-xs tracking-widest">${x.code}</span></td><td class="p-3 text-center font-black text-rose-500">${x.attempts}</td><td class="p-3 text-center font-bold text-sky-600">${(x.scoreR1 !== undefined ? x.scoreR1 : '-')}</td><td class="p-3 text-center font-bold text-amber-600">${(x.scoreR2 !== undefined ? x.scoreR2 : '-')}</td><td class="p-3 text-center font-bold text-red-600">${(x.scoreR3 !== undefined ? x.scoreR3 : '-')}</td><td class="p-3 text-center font-black text-emerald-600 text-lg">${x.maxScore}</td></tr>`).join(''); 
             
+            let cycleStatusHtml = (teacherLbConfig && teacherLbConfig.resetAt)
+                ? `<span class="text-amber-800 font-bold">Đang hiển thị đợt: "${teacherLbConfig.cycleTitle || 'Đợt mới'}" (Bắt đầu: ${teacherLbConfig.resetDateStr || teacherLbConfig.resetAt})</span>`
+                : `<span class="text-slate-500 font-medium">Toàn thời gian (Chưa đặt mốc tạo mới Bảng Vàng)</span>`;
+
             contentArea.innerHTML = `
                 <div class="p-6 h-full flex flex-col">
+                    <!-- Leaderboard Management Card -->
+                    <div class="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100 p-4 rounded-2xl border-2 border-amber-200 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xl shadow-md shrink-0"><i class="fa-solid fa-trophy"></i></div>
+                            <div>
+                                <div class="font-black text-amber-900 text-sm uppercase tracking-wide flex items-center gap-2">Bảng Vàng Vinh Dự (Trang Chủ)</div>
+                                <div class="text-xs mt-0.5">${cycleStatusHtml}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="openAdminLeaderboardResetModal()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-xs font-black shadow-md hover:from-amber-600 hover:to-orange-600 transition btn-3d"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tạo Mới (Reset) Bảng Vàng</button>
+                            <button onclick="clearAdminLeaderboardReset()" class="px-3 py-2 bg-white border border-amber-300 text-amber-900 hover:bg-amber-50 rounded-xl text-xs font-bold transition shadow-sm" title="Khôi phục tính điểm toàn bộ lịch sử"><i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục</button>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                         <h3 class="font-black text-2xl text-amber-600 uppercase tracking-widest"><i class="fa-solid fa-ranking-star mr-2"></i> Bảng Điểm Học Sinh</h3>
                         <div class="flex items-center gap-3">
