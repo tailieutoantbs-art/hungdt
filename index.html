@@ -240,6 +240,115 @@
         </div>
     </div>
 
+    <!-- Modal Quản Lý & Cập Nhật Danh Bạ Liên Kết -->
+    <div id="links-edit-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[9999] hidden items-center justify-center fade-in p-2 md:p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-4 md:p-6 w-full max-w-4xl relative zoom-in flex flex-col max-h-[92vh] border-2 border-slate-100 overflow-hidden">
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3 mb-3 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-xl shadow-sm">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wide">Cập Nhật Danh Bạ Liên Kết</h2>
+                        <p class="text-xs font-semibold text-slate-500">Thêm mới, chỉnh sửa, đổi thứ tự và quản lý liên kết trên toàn hệ thống</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLinksEditorModal()" class="text-slate-400 hover:text-rose-500 text-2xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto admin-scroll flex-grow space-y-4 pr-1">
+                <!-- Auth PIN container if not logged in -->
+                <div id="links-auth-pin-container" class="hidden bg-amber-50 border border-amber-200 p-3.5 rounded-2xl">
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <div class="flex items-center gap-2 text-amber-800 text-xs font-bold shrink-0">
+                            <i class="fa-solid fa-key text-amber-600"></i> Mã xác thực Giáo viên / Admin:
+                        </div>
+                        <input type="password" id="links-reset-auth-pin" class="flex-grow p-2 border-2 border-amber-300 rounded-xl outline-none focus:border-amber-500 font-bold text-center text-slate-800 text-sm bg-white shadow-inner" placeholder="Nhập PIN giáo viên (123456...)">
+                    </div>
+                </div>
+
+                <!-- Add / Edit Link Form -->
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 shadow-xs">
+                    <h3 id="link-form-heading" class="text-sm font-black text-sky-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i id="link-form-heading-icon" class="fa-solid fa-circle-plus text-sky-500"></i> <span id="link-form-title-text">Thêm Liên Kết Mới</span>
+                    </h3>
+                    <input type="hidden" id="link-edit-index" value="-1">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3">
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Tên liên kết / Tiêu đề: <span class="text-red-500">*</span></label>
+                            <input type="text" id="link-input-title" placeholder="VD: Máy tính Desmos" class="w-full p-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:border-sky-500 font-bold text-sm text-slate-700 shadow-inner">
+                        </div>
+                        <div class="md:col-span-5">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Địa chỉ URL: <span class="text-red-500">*</span></label>
+                            <input type="url" id="link-input-url" placeholder="https://..." class="w-full p-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:border-sky-500 font-medium text-sm text-slate-700 shadow-inner">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Biểu tượng (Icon):</label>
+                            <div class="flex items-center gap-2">
+                                <div id="link-icon-preview" class="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-lg shrink-0 border border-sky-200 shadow-2xs">
+                                    <i class="fa-solid fa-link"></i>
+                                </div>
+                                <select id="link-input-icon" onchange="updateLinkIconPreview(this.value)" class="flex-grow p-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:border-sky-500 font-bold text-xs text-slate-700 shadow-inner cursor-pointer">
+                                    <option value="fa-solid fa-link">🔗 Mặc định (Link)</option>
+                                    <option value="fa-solid fa-calculator">🧮 Máy tính Desmos</option>
+                                    <option value="fa-solid fa-file-pdf">📄 Tài liệu PDF</option>
+                                    <option value="fa-solid fa-hard-drive">💾 Google Drive / Cloud</option>
+                                    <option value="fa-solid fa-robot">🤖 AI / Giải toán</option>
+                                    <option value="fa-solid fa-folder-plus">📂 Ngân hàng đề thi</option>
+                                    <option value="fa-solid fa-pen-to-square">📝 Làm bài kiểm tra</option>
+                                    <option value="fa-solid fa-file-code">💻 Markdown / Code</option>
+                                    <option value="fa-solid fa-wand-magic-sparkles">✨ Trợ lý giáo án</option>
+                                    <option value="fa-solid fa-graduation-cap">🎓 Luyện thi THPT</option>
+                                    <option value="fa-solid fa-book-open">📖 Sách / Lý thuyết</option>
+                                    <option value="fa-solid fa-chart-pie">📊 Đồ thị / Thống kê</option>
+                                    <option value="fa-solid fa-video">🎬 Video bài giảng</option>
+                                    <option value="fa-solid fa-globe">🌐 Website ngoài</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" id="btn-cancel-link-edit" onclick="cancelEditLinkItem()" class="hidden px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">Hủy sửa</button>
+                        <button type="button" id="btn-submit-link-item" onclick="submitLinkItem()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-xl text-xs shadow-md transition flex items-center gap-1.5 btn-3d">
+                            <i id="btn-submit-link-icon" class="fa-solid fa-plus"></i> <span id="btn-submit-link-text">Thêm Vào Danh Sách</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Links Table / List -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-sky-500"></i> Danh Sách Liên Kết Hiện Có (<span id="links-count-badge">0</span>)
+                        </h3>
+                        <button type="button" onclick="resetDefaultLinks()" class="text-xs text-sky-600 hover:text-sky-800 font-bold hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> Khôi phục mẫu 9 liên kết
+                        </button>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-inner bg-white">
+                        <div id="links-editor-list" class="divide-y divide-slate-100 max-h-[260px] overflow-y-auto admin-scroll">
+                            <!-- Rendered list items -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action Buttons -->
+            <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 shrink-0 mt-2">
+                <button type="button" onclick="closeLinksEditorModal()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-sm">Đóng</button>
+                <button type="button" id="btn-save-global-links" onclick="saveAllGlobalLinks()" class="flex-grow sm:flex-grow-0 sm:px-8 py-3 bg-gradient-to-r from-sky-500 to-mainDark text-white font-black rounded-xl shadow-md hover:from-sky-600 hover:to-mainDark transition-all text-sm btn-3d flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> LƯU & ĐỒNG BỘ LIÊN KẾT
+                </button>
+            </div>
+        </div>
+    </div>
+
     <header id="main-header" class="glass sticky top-0 z-50 px-6 py-2 flex flex-col md:flex-row justify-between items-center rounded-b-3xl mx-4 mt-0 gap-4 md:gap-0 shadow-sm transition-all duration-300 relative">
         <div class="flex items-center gap-3">
             <button onclick="togglePracticeMenu(event)" class="w-10 h-10 rounded-full bg-white text-slate-600 shadow hover:text-main hover:bg-slate-50 flex items-center justify-center transition-all shrink-0 z-10 mr-1 tooltip-container" title="Danh sách Đề Luyện Tập">
@@ -518,6 +627,18 @@
             }
         }
 
+        const DEFAULT_GLOBAL_LINKS = [
+            { title: "Máy tính Desmos", url: "https://www.desmos.com/calculator", icon: "fa-solid fa-calculator" },
+            { title: "PDF convert", url: "https://hotrohoctap.com/1ai/40pdf", icon: "fa-solid fa-file-pdf" },
+            { title: "GDRhungtbs", url: "https://drive.google.com/drive/home", icon: "fa-solid fa-hard-drive" },
+            { title: "GIẢI TOÁN", url: "https://gemini.google.com/gem/6d15b22593eb", icon: "fa-solid fa-robot" },
+            { title: "TẠO NGÂN HÀNG", url: "https://mathtbsai.netlify.app/teacher", icon: "fa-solid fa-folder-plus" },
+            { title: "LÀM KIỂM TRA", url: "https://mathtbsai.netlify.app/student", icon: "fa-solid fa-pen-to-square" },
+            { title: "Chuyển đổi Markdown", url: "https://dayhoc.id.vn/1chd/4markdown.html", icon: "fa-solid fa-file-code" },
+            { title: "TRỢ LÍ GA THPT", url: "https://gemini.google.com/gem/4bb8fbceb873", icon: "fa-solid fa-wand-magic-sparkles" },
+            { title: "GIẢI ĐỀ THPT", url: "https://gemini.google.com/gem/12vf68g60eb", icon: "fa-solid fa-graduation-cap" }
+        ];
+
         let state = {
             currentUser: null,
             authorizedEmails: [SUPER_ADMIN_EMAIL],
@@ -528,8 +649,16 @@
         window.onload = async function() {
             try { 
                 let d = await db.collection("GameData").doc("GlobalLinks").get(); 
-                savedLinks = d.exists ? d.data().list : (JSON.parse(localStorage.getItem('tbs_links')) || []); 
-            } catch(e) { savedLinks = JSON.parse(localStorage.getItem('tbs_links')) || []; }
+                if (d.exists && Array.isArray(d.data().list) && d.data().list.length > 0) {
+                    savedLinks = d.data().list;
+                } else {
+                    let local = JSON.parse(localStorage.getItem('tbs_links'));
+                    savedLinks = (Array.isArray(local) && local.length > 0) ? local : DEFAULT_GLOBAL_LINKS;
+                }
+            } catch(e) { 
+                let local = JSON.parse(localStorage.getItem('tbs_links'));
+                savedLinks = (Array.isArray(local) && local.length > 0) ? local : DEFAULT_GLOBAL_LINKS; 
+            }
             
             try { 
                 let authDoc = await db.collection("GameData").doc("AuthorizedTeachers").get(); 
@@ -546,7 +675,18 @@
                 } else {
                     if(userInfo) { userInfo.classList.add('hidden'); userInfo.classList.remove('flex'); }
                 }
-                renderHomeScreen(); // Refresh giao diện nút quản trị
+                
+                // Refresh active navigation screen
+                let activeNav = document.querySelector('nav button.tab-active');
+                if (activeNav) {
+                    let navId = activeNav.id.replace('nav-', '');
+                    if (navId === 'links') renderLinks();
+                    else if (navId === 'board') renderBoard();
+                    else if (navId === 'guide') renderGuide();
+                    else renderHomeScreen();
+                } else {
+                    renderHomeScreen();
+                }
             });
         };
 
@@ -1505,8 +1645,318 @@
 
         // ======================= LIÊN KẾT & HƯỚNG DẪN =======================
         function renderLinks() {
-            let linksHtml = savedLinks.length ? savedLinks.map(l => `<a href="${l.url}" target="_blank" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:border-main transition group"><div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition"><i class="fa-solid fa-link"></i></div><div class="truncate"><h4 class="font-bold text-slate-800 group-hover:text-main">${l.title}</h4><p class="text-xs text-slate-500">${l.url}</p></div></a>`).join('') : '<div class="col-span-full text-center py-10 text-slate-400 font-medium">Chưa có liên kết nào.</div>';
-            document.getElementById('app-content').innerHTML = `<div class="glass-panel p-8 md:p-12 rounded-3xl w-full max-w-5xl text-center fade-in border-t-4 border-sky-500"><h2 class="text-3xl font-black text-sky-900 mb-8 uppercase tracking-wider"><i class="fa-solid fa-link text-sky-500 mr-3"></i>Danh Bạ Liên Kết</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">${linksHtml}</div></div>`;
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            let linksHtml = savedLinks.length ? savedLinks.map((l, index) => {
+                let iconClass = l.icon || 'fa-solid fa-link';
+                return `
+                    <div class="relative group">
+                        <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:border-main hover:shadow-md transition-all h-full">
+                            <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition shrink-0 shadow-2xs">
+                                <i class="${iconClass}"></i>
+                            </div>
+                            <div class="truncate flex-grow">
+                                <h4 class="font-bold text-slate-800 group-hover:text-main leading-tight mb-1 truncate">${l.title}</h4>
+                                <p class="text-xs text-slate-400 truncate">${l.url}</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-300 group-hover:text-sky-500 transition shrink-0"></i>
+                        </a>
+                        ${isTeacher ? `
+                            <button onclick="openLinksEditorModal(${index})" class="opacity-0 group-hover:opacity-100 absolute top-2 right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs shadow-md transition flex items-center justify-center btn-3d" title="Sửa liên kết này">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('') : '<div class="col-span-full text-center py-12 text-slate-400 font-medium bg-white/50 rounded-2xl border border-dashed border-slate-200"><i class="fa-solid fa-link-slash text-4xl mb-3 text-slate-300"></i><br>Chưa có liên kết nào. Bấm nút <b>Cập Nhật Liên Kết</b> để thêm.</div>';
+
+            let actionBtn = isTeacher ? `
+                <button onclick="openLinksEditorModal()" class="bg-gradient-to-r from-sky-500 to-mainDark text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-md hover:from-sky-600 hover:to-mainDark hover:scale-105 transition-all btn-3d flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Cập Nhật Liên Kết
+                </button>
+            ` : `
+                <button onclick="openLinksEditorModal()" class="bg-white hover:bg-sky-50 text-slate-600 hover:text-sky-700 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 border border-slate-200 hover:border-sky-300">
+                    <i class="fa-solid fa-lock text-amber-500"></i> Quản Lý Liên Kết
+                </button>
+            `;
+
+            document.getElementById('app-content').innerHTML = `
+                <div class="glass-panel p-6 md:p-10 rounded-3xl w-full max-w-5xl text-center fade-in border-t-4 border-sky-500">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 border-b-2 border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl shadow-sm">
+                                <i class="fa-solid fa-link"></i>
+                            </div>
+                            <div class="text-left">
+                                <h2 class="text-2xl md:text-3xl font-black text-sky-900 uppercase tracking-wider leading-tight">Danh Bạ Liên Kết</h2>
+                                <p class="text-xs text-slate-500 font-medium">Truy cập nhanh các công cụ và tiện ích học tập trực tuyến</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${actionBtn}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                        ${linksHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openLinksEditorModal(targetIndex = -1) {
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            let pinCont = document.getElementById('links-auth-pin-container');
+            if (pinCont) {
+                if (isTeacher) {
+                    pinCont.classList.add('hidden');
+                } else {
+                    pinCont.classList.remove('hidden');
+                    let pinInput = document.getElementById('links-reset-auth-pin');
+                    if (pinInput) pinInput.value = '';
+                }
+            }
+
+            cancelEditLinkItem();
+            renderLinksEditorList();
+
+            if (targetIndex >= 0 && targetIndex < savedLinks.length) {
+                editLinkItem(targetIndex);
+            }
+
+            let modal = document.getElementById('links-edit-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeLinksEditorModal() {
+            let modal = document.getElementById('links-edit-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            cancelEditLinkItem();
+        }
+
+        function updateLinkIconPreview(iconClass) {
+            let prev = document.getElementById('link-icon-preview');
+            if (prev) {
+                prev.innerHTML = `<i class="${iconClass}"></i>`;
+            }
+        }
+
+        function submitLinkItem() {
+            let title = document.getElementById('link-input-title')?.value.trim();
+            let url = document.getElementById('link-input-url')?.value.trim();
+            let icon = document.getElementById('link-input-icon')?.value || 'fa-solid fa-link';
+            let editIdx = parseInt(document.getElementById('link-edit-index')?.value || '-1', 10);
+
+            if (!title) {
+                return showToast("Vui lòng nhập Tên liên kết / Tiêu đề!", true);
+            }
+            if (!url) {
+                return showToast("Vui lòng nhập Đường dẫn URL!", true);
+            }
+
+            // Auto prepend https:// if missing protocol
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            let item = { title, url, icon };
+
+            if (editIdx >= 0 && editIdx < savedLinks.length) {
+                savedLinks[editIdx] = item;
+                showToast(`Đã sửa liên kết "${title}"!`);
+            } else {
+                savedLinks.push(item);
+                showToast(`Đã thêm liên kết "${title}" vào danh sách!`);
+            }
+
+            cancelEditLinkItem();
+            renderLinksEditorList();
+        }
+
+        function editLinkItem(index) {
+            if (index < 0 || index >= savedLinks.length) return;
+            let item = savedLinks[index];
+
+            document.getElementById('link-edit-index').value = index;
+            document.getElementById('link-input-title').value = item.title || '';
+            document.getElementById('link-input-url').value = item.url || '';
+            
+            let iconSelect = document.getElementById('link-input-icon');
+            if (iconSelect) {
+                iconSelect.value = item.icon || 'fa-solid fa-link';
+                updateLinkIconPreview(iconSelect.value);
+            }
+
+            let formHeading = document.getElementById('link-form-title-text');
+            if (formHeading) formHeading.innerText = `Chỉnh Sửa Liên Kết #${index + 1}`;
+
+            let headingIcon = document.getElementById('link-form-heading-icon');
+            if (headingIcon) {
+                headingIcon.className = 'fa-solid fa-pen-to-square text-amber-500';
+            }
+
+            let submitBtnText = document.getElementById('btn-submit-link-text');
+            if (submitBtnText) submitBtnText.innerText = 'Cập Nhật Mục Này';
+
+            let submitBtnIcon = document.getElementById('btn-submit-link-icon');
+            if (submitBtnIcon) submitBtnIcon.className = 'fa-solid fa-check';
+
+            let cancelBtn = document.getElementById('btn-cancel-link-edit');
+            if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+            document.getElementById('link-input-title')?.focus();
+        }
+
+        function cancelEditLinkItem() {
+            let editIdx = document.getElementById('link-edit-index');
+            if (editIdx) editIdx.value = '-1';
+
+            let titleInput = document.getElementById('link-input-title');
+            if (titleInput) titleInput.value = '';
+
+            let urlInput = document.getElementById('link-input-url');
+            if (urlInput) urlInput.value = '';
+
+            let iconSelect = document.getElementById('link-input-icon');
+            if (iconSelect) {
+                iconSelect.value = 'fa-solid fa-link';
+                updateLinkIconPreview('fa-solid fa-link');
+            }
+
+            let formHeading = document.getElementById('link-form-title-text');
+            if (formHeading) formHeading.innerText = 'Thêm Liên Kết Mới';
+
+            let headingIcon = document.getElementById('link-form-heading-icon');
+            if (headingIcon) {
+                headingIcon.className = 'fa-solid fa-circle-plus text-sky-500';
+            }
+
+            let submitBtnText = document.getElementById('btn-submit-link-text');
+            if (submitBtnText) submitBtnText.innerText = 'Thêm Vào Danh Sách';
+
+            let submitBtnIcon = document.getElementById('btn-submit-link-icon');
+            if (submitBtnIcon) submitBtnIcon.className = 'fa-solid fa-plus';
+
+            let cancelBtn = document.getElementById('btn-cancel-link-edit');
+            if (cancelBtn) cancelBtn.classList.add('hidden');
+        }
+
+        function deleteLinkItem(index) {
+            if (index < 0 || index >= savedLinks.length) return;
+            let item = savedLinks[index];
+            if (confirm(`Bạn có chắc muốn xóa liên kết "${item.title}" khỏi danh sách?`)) {
+                savedLinks.splice(index, 1);
+                if (parseInt(document.getElementById('link-edit-index')?.value || '-1', 10) === index) {
+                    cancelEditLinkItem();
+                }
+                renderLinksEditorList();
+                showToast(`Đã xóa liên kết "${item.title}"`);
+            }
+        }
+
+        function moveLinkItem(index, direction) {
+            if (direction === 'up' && index > 0) {
+                let temp = savedLinks[index];
+                savedLinks[index] = savedLinks[index - 1];
+                savedLinks[index - 1] = temp;
+            } else if (direction === 'down' && index < savedLinks.length - 1) {
+                let temp = savedLinks[index];
+                savedLinks[index] = savedLinks[index + 1];
+                savedLinks[index + 1] = temp;
+            }
+            renderLinksEditorList();
+        }
+
+        function resetDefaultLinks() {
+            if (confirm("Khôi phục danh sách về 9 liên kết mặc định của hệ thống? Các mục chưa lưu sẽ được thay thế.")) {
+                savedLinks = JSON.parse(JSON.stringify(DEFAULT_GLOBAL_LINKS));
+                cancelEditLinkItem();
+                renderLinksEditorList();
+                showToast("Đã nạp 9 liên kết mặc định. Nhấn 'LƯU & ĐỒNG BỘ' để hoàn tất!");
+            }
+        }
+
+        function renderLinksEditorList() {
+            let container = document.getElementById('links-editor-list');
+            let countBadge = document.getElementById('links-count-badge');
+            if (countBadge) countBadge.innerText = savedLinks.length;
+
+            if (!container) return;
+
+            if (!savedLinks || savedLinks.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium text-sm">Chưa có liên kết nào. Hãy thêm liên kết đầu tiên ở form phía trên hoặc khôi phục mẫu.</div>`;
+                return;
+            }
+
+            container.innerHTML = savedLinks.map((l, i) => {
+                let iconClass = l.icon || 'fa-solid fa-link';
+                return `
+                    <div class="p-3 hover:bg-slate-50 flex items-center justify-between gap-3 transition">
+                        <div class="flex items-center gap-3 min-w-0 flex-grow">
+                            <span class="w-6 text-center text-xs font-black text-slate-400 shrink-0">${i + 1}</span>
+                            <div class="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base shrink-0">
+                                <i class="${iconClass}"></i>
+                            </div>
+                            <div class="min-w-0 flex-grow">
+                                <div class="font-bold text-slate-800 text-sm truncate">${l.title}</div>
+                                <a href="${l.url}" target="_blank" class="text-xs text-sky-600 hover:underline truncate block">${l.url}</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button type="button" onclick="moveLinkItem(${i}, 'up')" ${i === 0 ? 'disabled class="w-7 h-7 rounded-lg bg-slate-100 text-slate-300 text-xs flex items-center justify-center cursor-not-allowed"' : 'class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs flex items-center justify-center transition"'} title="Chuyển lên"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveLinkItem(${i}, 'down')" ${i === savedLinks.length - 1 ? 'disabled class="w-7 h-7 rounded-lg bg-slate-100 text-slate-300 text-xs flex items-center justify-center cursor-not-allowed"' : 'class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs flex items-center justify-center transition"'} title="Chuyển xuống"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" onclick="editLinkItem(${i})" class="w-7 h-7 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs flex items-center justify-center transition" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+                            <button type="button" onclick="deleteLinkItem(${i})" class="w-7 h-7 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs flex items-center justify-center transition" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function saveAllGlobalLinks() {
+            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
+
+            if (!isTeacher) {
+                let pin = document.getElementById('links-reset-auth-pin')?.value.trim();
+                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
+                    return showToast("Mã xác thực Giáo viên không chính xác!", true);
+                }
+            }
+
+            let btn = document.getElementById('btn-save-global-links');
+            let oldHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang lưu...';
+                btn.disabled = true;
+            }
+
+            try {
+                await db.collection("GameData").doc("GlobalLinks").set({
+                    list: savedLinks,
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: state.currentUser ? state.currentUser.email : 'Giáo viên TBS'
+                });
+                localStorage.setItem('tbs_links', JSON.stringify(savedLinks));
+                showToast("Đã lưu và đồng bộ danh bạ liên kết thành công!");
+                closeLinksEditorModal();
+                renderLinks();
+            } catch(e) {
+                showToast("Lỗi lưu liên kết: " + e.message, true);
+            } finally {
+                if (btn) {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                }
+            }
         }
 
         function renderGuide() {
