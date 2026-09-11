@@ -938,20 +938,48 @@
         function exportGroupCSV() {
             if(currentGroupResultsData.length === 0) return;
             let isPersonal = (currentLookupScope === 'personal');
-            let csvContent = "";
+
+            let totalCount = currentGroupResultsData.length;
+            let scores = currentGroupResultsData.map(r => Number(r.maxScore || 0)).filter(s => !isNaN(s));
+            let avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : 0;
+            let maxScore = scores.length > 0 ? Math.max(...scores) : 0;
+            let minScore = scores.length > 0 ? Math.min(...scores) : 0;
+
+            let csvContent = "\uFEFF";
+            csvContent += `=== BÁO CÁO THỐNG KÊ TRA CỨU (${currentGroupTitle}) ===\n`;
+            csvContent += `Ngày xuất báo cáo: "${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')}"\n`;
+            csvContent += `Tổng số lượt thi: ${totalCount}\n`;
+            csvContent += `Điểm trung bình: ${avgScore}\n`;
+            csvContent += `Điểm cao nhất: ${maxScore}\n`;
+            csvContent += `Điểm thấp nhất: ${minScore}\n\n`;
+
             if(isPersonal) {
-                csvContent = "\uFEFFNgày Thi,Mã Đề,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\n";
-                currentGroupResultsData.forEach(r => {
+                csvContent += "STT,Ngày Thi,Mã Đề,Lần Thi,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
+                currentGroupResultsData.forEach((r, idx) => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
-                    csvContent += `"${r.date || '-'}","${r.code}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\n`;
+                    let s = Number(r.maxScore || 0);
+                    let rank = "Yếu";
+                    if (s >= 9.0) rank = "Xuất sắc";
+                    else if (s >= 8.0) rank = "Giỏi";
+                    else if (s >= 6.5) rank = "Khá";
+                    else if (s >= 5.0) rank = "Trung bình";
+
+                    csvContent += `"${idx + 1}","${r.date || '-'}","${r.code}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
                 });
             } else {
-                csvContent = "\uFEFFHọ Tên,Lớp,Mã Đề,Ngày Thi,Lần,Phần 1,Phần 2,Phần 3,Tổng Điểm\n";
-                currentGroupResultsData.forEach(r => {
+                csvContent += "STT,Họ Tên,Lớp,Mã Đề,Ngày Thi,Lần Thi,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
+                currentGroupResultsData.forEach((r, idx) => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
                     let escName = (r.name || r.id || '').replace(/"/g, '""');
                     let escCls = (r.cls || r.class || '-').replace(/"/g, '""');
-                    csvContent += `"${escName}","${escCls}","${r.code}","${r.date || '-'}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}"\n`;
+                    let s = Number(r.maxScore || 0);
+                    let rank = "Yếu";
+                    if (s >= 9.0) rank = "Xuất sắc";
+                    else if (s >= 8.0) rank = "Giỏi";
+                    else if (s >= 6.5) rank = "Khá";
+                    else if (s >= 5.0) rank = "Trung bình";
+
+                    csvContent += `"${idx + 1}","${escName}","${escCls}","${r.code}","${r.date || '-'}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
                 });
             }
             
@@ -960,11 +988,12 @@
             if (link.download !== undefined) {
                 let url = URL.createObjectURL(blob);
                 link.setAttribute("href", url);
-                link.setAttribute("download", `BangDiem_${currentGroupTitle.replace(/\\s+/g, '_')}.csv`);
+                link.setAttribute("download", `BaoCaoThongKe_${currentGroupTitle.replace(/\s+/g, '_')}.csv`);
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                showToast("Đã xuất file thống kê thành công!");
             }
         }
 
@@ -1085,12 +1114,21 @@
                     });
                 }
                 
-                // Group by ID to only show best score per student
+                // Group by ID or Name+Class to only show best score per student
                 let grouped = {};
                 filteredData.forEach(r => {
                     let sId = String(r.id || '').trim().toLowerCase();
-                    if (!sId && r.name) sId = String(r.name).trim().toLowerCase();
-                    let currentScore = Number(r.score) || 0;
+                    let nameStr = String(r.name || '').trim();
+                    let clsStr = String(r.cls || r.class || '').trim();
+                    if (!sId || sId === 'khách' || sId === 'guest') {
+                        if (nameStr && nameStr.toLowerCase() !== 'khách') {
+                            sId = clsStr ? `${clsStr.toLowerCase()}_${nameStr.toLowerCase()}` : nameStr.toLowerCase();
+                        } else {
+                            sId = `guest_${r.date || ''}_${r.code || ''}_${Math.random()}`;
+                        }
+                    }
+                    let currentScore = Number(r.score ?? r.maxScore ?? r.Score ?? r.TongDiem ?? 0);
+                    if (isNaN(currentScore)) currentScore = 0;
                     if (!grouped[sId] || currentScore > grouped[sId].score) {
                         grouped[sId] = { ...r, score: currentScore };
                     }

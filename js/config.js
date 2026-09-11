@@ -104,6 +104,13 @@ function sanitizeMathText(text) {
     if (!text || typeof text !== 'string') return '';
     let s = text.trim();
 
+    // Protect SVG blocks from math sanitization
+    let svgBlocks = [];
+    s = s.replace(/<svg[\s\S]*?<\/svg>/gi, (match) => {
+        svgBlocks.push(match);
+        return `___SVG_BLOCK_${svgBlocks.length - 1}___`;
+    });
+
     // 1. Unescape literal \n into real linebreaks
     s = s.replace(/\\n/g, '\n');
 
@@ -146,6 +153,11 @@ function sanitizeMathText(text) {
         return mathBlocks[parseInt(idx, 10)];
     });
 
+    // Unhide SVG blocks
+    hidden = hidden.replace(/___SVG_BLOCK_(\d+)___/g, (match, idx) => {
+        return svgBlocks[parseInt(idx, 10)];
+    });
+
     return hidden;
 }
 
@@ -176,9 +188,9 @@ function parseMarkdownSafe(text, isInline = false) {
 
     let cleaned = sanitizeMathText(text);
 
-    // Protect all math delimiters before passing to marked
+    // Protect all SVG blocks and math delimiters before passing to marked
     let mathBlocks = [];
-    let placeholderText = cleaned.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/g, (match) => {
+    let placeholderText = cleaned.replace(/(<svg[\s\S]*?<\/svg>|\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/gi, (match) => {
         mathBlocks.push(match);
         return `@@@MATH_BLOCK_${mathBlocks.length - 1}@@@`;
     });
@@ -227,5 +239,72 @@ function formatExplanation(text) {
     let mdText = lines.join('\n\n');
 
     return parseMarkdownSafe(mdText, false);
+}
+
+/**
+ * Safely parse date strings in Vietnamese format (dd/MM/yyyy HH:mm:ss or dd/MM/yyyy) or ISO formats
+ * @param {string|number|Date} str 
+ * @returns {Date|null}
+ */
+function parseVietnameseDateTime(str) {
+    if (!str) return null;
+    if (str instanceof Date) return isNaN(str.getTime()) ? null : str;
+    if (typeof str === 'number') {
+        let d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    let s = String(str).trim();
+    if (!s) return null;
+
+    // Check if ISO format or standard YYYY-MM-DD
+    if (s.includes('T') || (s.includes('-') && s.indexOf('-') === 4)) {
+        let d = new Date(s.replace(' ', 'T'));
+        if (!isNaN(d.getTime())) return d;
+        let d2 = new Date(s);
+        if (!isNaN(d2.getTime())) return d2;
+    }
+
+    // Handle dd/MM/yyyy or MM/dd/yyyy with optional time
+    let clean = s.replace(',', ' ').replace(/\s+/g, ' ');
+    let parts = clean.split(' ');
+    let datePart = parts[0];
+    let timePart = parts[1] || '00:00:00';
+
+    let timeSub = timePart.split(':');
+    let hours = parseInt(timeSub[0] || '0', 10);
+    let minutes = parseInt(timeSub[1] || '0', 10);
+    let seconds = parseInt(timeSub[2] || '0', 10);
+
+    let dateSub = datePart.split('/');
+    if (dateSub.length === 3) {
+        let p1 = parseInt(dateSub[0], 10);
+        let p2 = parseInt(dateSub[1], 10);
+        let year = parseInt(dateSub[2], 10);
+        if (year < 100) year += 2000;
+
+        let day = p1;
+        let month = p2 - 1;
+        if (p2 > 12 && p1 <= 12) {
+            day = p2;
+            month = p1 - 1;
+        }
+
+        let d = new Date(year, month, day, hours, minutes, seconds);
+        if (!isNaN(d.getTime())) return d;
+    } else {
+        let dashSub = datePart.split('-');
+        if (dashSub.length === 3) {
+            if (dashSub[0].length === 4) {
+                let d = new Date(parseInt(dashSub[0], 10), parseInt(dashSub[1], 10) - 1, parseInt(dashSub[2], 10), hours, minutes, seconds);
+                if (!isNaN(d.getTime())) return d;
+            } else {
+                let d = new Date(parseInt(dashSub[2], 10), parseInt(dashSub[1], 10) - 1, parseInt(dashSub[0], 10), hours, minutes, seconds);
+                if (!isNaN(d.getTime())) return d;
+            }
+        }
+    }
+
+    let fallback = new Date(s);
+    return isNaN(fallback.getTime()) ? null : fallback;
 }
 
