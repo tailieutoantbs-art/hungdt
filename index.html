@@ -65,8 +65,8 @@
         });
     </script>
     
-    <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-lg pointer-events-none">
-        <i class="fa-solid fa-circle-check text-3xl"></i><span id="toast-msg">Thành công!</span>
+    <div id="toast-success" class="fixed top-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-full shadow-2xl font-bold flex items-center gap-3 z-[10000] transform transition-all duration-500 -translate-y-32 opacity-0 text-base md:text-lg pointer-events-none font-sans max-w-[90vw] md:max-w-2xl">
+        <i class="fa-solid fa-circle-check text-2xl md:text-3xl shrink-0"></i><span id="toast-msg" class="leading-snug">Thành công!</span>
     </div>
 
     <!-- Modal Chỉnh Sửa Bảng Tin TBS Chuyên Nghiệp -->
@@ -149,6 +149,19 @@
                                 <option value="24px">24px (Rất lớn)</option>
                                 <option value="28px">28px (Cực lớn)</option>
                                 <option value="34px">34px (Khổng lồ)</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Family Selector -->
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                            <i class="fa-solid fa-font text-slate-400 text-xs ml-1"></i>
+                            <select id="board-font-family" onchange="changeFontFamily(this.value)" class="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="'Be Vietnam Pro', sans-serif" selected>Font: Be Vietnam Pro</option>
+                                <option value="'Montserrat', sans-serif">Font: Montserrat</option>
+                                <option value="'Dancing Script', cursive">Font: Dancing Script</option>
+                                <option value="Arial, sans-serif">Font: Arial</option>
+                                <option value="'Times New Roman', serif">Font: Times New Roman</option>
+                                <option value="'Courier New', monospace">Font: Courier New</option>
                             </select>
                         </div>
 
@@ -266,7 +279,7 @@
                         <div class="flex items-center gap-2 text-amber-800 text-xs font-bold shrink-0">
                             <i class="fa-solid fa-key text-amber-600"></i> Mã xác thực Giáo viên / Admin:
                         </div>
-                        <input type="password" id="links-reset-auth-pin" class="flex-grow p-2 border-2 border-amber-300 rounded-xl outline-none focus:border-amber-500 font-bold text-center text-slate-800 text-sm bg-white shadow-inner" placeholder="Nhập PIN giáo viên (123456...)">
+                        <input type="password" id="links-reset-auth-pin" class="flex-grow p-2 border-2 border-amber-300 rounded-xl outline-none focus:border-amber-500 font-bold text-center text-slate-800 text-sm bg-white shadow-inner" placeholder="Nhập PIN giáo viên">
                     </div>
                 </div>
 
@@ -351,7 +364,7 @@
 
     <header id="main-header" class="glass sticky top-0 z-50 px-6 py-2 flex flex-col md:flex-row justify-between items-center rounded-b-3xl mx-4 mt-0 gap-4 md:gap-0 shadow-sm transition-all duration-300 relative">
         <div class="flex items-center gap-3">
-            <button onclick="togglePracticeMenu(event)" class="w-10 h-10 rounded-full bg-white text-slate-600 shadow hover:text-main hover:bg-slate-50 flex items-center justify-center transition-all shrink-0 z-10 mr-1 tooltip-container" title="Danh sách Đề Luyện Tập">
+            <button onclick="togglePracticeMenu(event)" id="btn-hamburger-menu" class="w-10 h-10 rounded-full bg-white text-slate-600 shadow hover:text-main hover:bg-slate-50 flex items-center justify-center transition-all shrink-0 z-10 mr-1 tooltip-container" title="Danh sách Đề Luyện Tập">
                 <i class="fa-solid fa-bars text-xl"></i>
             </button>
             <div class="cursor-pointer flex items-center gap-3" onclick="navTo('home')">
@@ -385,7 +398,87 @@
         </div>
     </header>
 
-    <main id="app-content" class="flex-grow p-6 flex flex-col items-center justify-center w-full max-w-6xl mx-auto relative z-10"></main>
+    <main id="app-content" class="flex-grow p-6 flex flex-col items-center justify-center w-full max-w-6xl mx-auto relative z-10">
+        <div class="glass-panel p-8 md:p-12 rounded-3xl w-full max-w-5xl text-center fade-in border-t-4 border-main">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-display font-black text-main mb-6 uppercase tracking-wider leading-tight">TRƯỜNG TH, THCS VÀ THPT THANH BÌNH</h1>
+            <div class="flex justify-center mb-6">
+                <img src="logo.png" alt="Logo TBS" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMGVhNWU5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNXMtMS0yLjUtMS01LS40LTUtMS01eiIvPjwvc3ZnPg==';" class="w-32 h-32 rounded-full shadow-xl object-contain bg-white p-2 border-4 border-white">
+            </div>
+            <p class="text-slate-600 font-bold mb-10 text-lg md:text-xl">Nền tảng Ôn tập & Kiểm tra trực tuyến</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-100 p-6 rounded-2xl shadow-md border border-emerald-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+                    <div class="absolute -right-4 -top-4 text-emerald-500/10 text-8xl transition-transform group-hover:scale-110"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <h2 class="text-xl font-black text-emerald-800 mb-2 relative z-10">KHU VỰC HỌC SINH</h2>
+                    <p class="text-emerald-600 font-medium mb-4 relative z-10 text-xs">Nhập mã bài thi để làm bài cá nhân</p>
+                    <input type="text" id="play-code-input" class="w-full p-3 border-2 border-emerald-300 rounded-xl focus:border-main outline-none font-black text-center text-2xl tracking-widest text-emerald-700 uppercase mb-4 shadow-inner relative z-10 bg-white" placeholder="MÃ ĐỀ THI" maxlength="6" onkeypress="if(event.key === 'Enter') handlePlayCode()">
+                    <button id="btn-play-code" onclick="handlePlayCode()" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark hover:scale-105 transition relative z-10 text-base"><i class="fa-solid fa-play mr-2"></i> VÀO THI NGAY</button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-amber-50 to-orange-100 p-6 rounded-2xl shadow-md border border-amber-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col">
+                    <div class="absolute -right-4 -top-4 text-amber-500/10 text-8xl transition-transform group-hover:scale-110"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <h2 class="text-xl font-black text-amber-800 mb-2 relative z-10">TRA CỨU KẾT QUẢ</h2>
+                    <p class="text-amber-600 font-medium mb-4 relative z-10 text-xs">Xem điểm & Vinh danh toàn trường</p>
+                    <div class="flex-grow"></div>
+                    <div class="flex flex-col gap-2 relative z-10">
+                        <button onclick="openLookupModal()" class="w-full py-3 bg-white border border-main text-main rounded-xl font-black shadow-sm hover:bg-mainLight transition text-sm"><i class="fa-solid fa-magnifying-glass mr-2"></i> CÁ NHÂN</button>
+                        <button onclick="openLeaderboardModal()" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark hover:scale-105 transition text-base"><i class="fa-solid fa-trophy mr-2"></i> BẢNG VÀNG</button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-sky-50 to-blue-100 p-6 rounded-2xl shadow-md border border-sky-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col">
+                    <div class="absolute -right-4 -top-4 text-sky-500/10 text-8xl transition-transform group-hover:scale-110"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    <h2 class="text-xl font-black text-sky-800 mb-2 relative z-10">DÀNH CHO GIÁO VIÊN</h2>
+                    <p class="text-sky-600 font-medium mb-4 relative z-10 text-xs">Quản trị bài thi & Ngân hàng câu hỏi</p>
+                    <div class="flex-grow"></div>
+                    <div class="relative z-10" id="home-teacher-login-container">
+                        <button onclick="openTeacherLoginModal()" class="w-full py-3 bg-white border border-slate-300 rounded-xl font-black shadow-md flex justify-center items-center gap-2 hover:bg-slate-50 transition"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> ĐĂNG NHẬP (GIÁO VIÊN)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Đăng Nhập Giáo Viên / Admin -->
+    <div id="teacher-login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4 fade-in">
+        <div class="bg-white p-6 md:p-8 rounded-3xl w-full max-w-md relative shadow-2xl zoom-in border-4 border-sky-200">
+            <button onclick="closeTeacherLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-rose-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 transition z-10"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 uppercase tracking-wide">ĐĂNG NHẬP GIÁO VIÊN</h3>
+                <p class="text-xs text-slate-500 font-bold mt-1">Hệ thống Quản trị & Ngân hàng câu hỏi TBS</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Option 1: Teacher PIN -->
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-key text-amber-500 mr-1"></i> Mã PIN Giáo viên / Admin:</label>
+                    <input type="password" id="teacher-login-pin" class="w-full p-3.5 border-2 border-slate-200 rounded-2xl focus:border-sky-500 outline-none font-black text-center text-xl tracking-widest text-slate-800 shadow-inner bg-slate-50" placeholder="••••••" onkeypress="if(event.key==='Enter') loginWithPin()">
+                    <p class="text-[11px] text-slate-400 mt-1 italic text-center">Vui lòng nhập mã PIN Giáo viên đã được cấp</p>
+                </div>
+
+                <button onclick="loginWithPin()" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-2xl shadow-md transition text-base btn-3d uppercase">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> ĐĂNG NHẬP BẰNG PIN
+                </button>
+
+                <div class="flex items-center my-3">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="px-3 text-[11px] font-bold text-slate-400 uppercase">Hoặc</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <!-- Option 2: Google OAuth -->
+                <div>
+                    <button onclick="loginWithGoogle()" class="w-full py-3 bg-white border-2 border-slate-200 hover:border-sky-400 rounded-2xl font-black text-slate-700 shadow-sm flex items-center justify-center gap-3 transition hover:bg-sky-50 text-xs">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4"> Đăng Nhập Google (OAuth)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="lookup-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-3xl text-center zoom-in max-w-md w-full relative shadow-2xl border-4 border-amber-100">
@@ -456,7 +549,10 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-center flex-wrap gap-2">
+                    <div class="flex justify-center flex-wrap gap-2 items-center">
+                        <select id="leaderboard-code-filter" onchange="fetchLeaderboard()" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 border-2 border-amber-300 outline-none shadow-sm cursor-pointer hover:border-amber-400 transition">
+                            <option value="ALL">🎯 Tất cả Mã Đề</option>
+                        </select>
                         <button id="btn-lb-cycle" onclick="setLeaderboardFilter('cycle')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-md transition-all"><i class="fa-solid fa-fire mr-1"></i>Đợt này</button>
                         <button id="btn-lb-week" onclick="setLeaderboardFilter('week')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tuần này</button>
                         <button id="btn-lb-month" onclick="setLeaderboardFilter('month')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Tháng này</button>
@@ -644,70 +740,137 @@
             authorizedEmails: [SUPER_ADMIN_EMAIL],
             allResultsData: []
         };
-        let savedLinks = [];
+        let savedLinks = [...DEFAULT_GLOBAL_LINKS];
 
-        window.onload = async function() {
-            try { 
-                let d = await db.collection("GameData").doc("GlobalLinks").get(); 
-                if (d.exists && Array.isArray(d.data().list) && d.data().list.length > 0) {
-                    savedLinks = d.data().list;
-                } else {
-                    let local = JSON.parse(localStorage.getItem('tbs_links'));
-                    savedLinks = (Array.isArray(local) && local.length > 0) ? local : DEFAULT_GLOBAL_LINKS;
-                }
-            } catch(e) { 
-                let local = JSON.parse(localStorage.getItem('tbs_links'));
-                savedLinks = (Array.isArray(local) && local.length > 0) ? local : DEFAULT_GLOBAL_LINKS; 
+        function applyHamburgerMenuVisibility() {
+            let show = localStorage.getItem('showHamburgerMenu') !== 'false';
+            let btn = document.getElementById('btn-hamburger-menu');
+            if (btn) {
+                btn.style.display = show ? '' : 'none';
             }
-            
-            try { 
-                let authDoc = await db.collection("GameData").doc("AuthorizedTeachers").get(); 
-                if(authDoc.exists) state.authorizedEmails = authDoc.data().list; 
-            } catch(e) {}
+        }
 
-            renderHomeScreen();
+        function initApp() {
+            applyHamburgerMenuVisibility();
+            navTo('home'); // Render giao diện ngay lập tức (0ms delay)
 
-            firebase.auth().onAuthStateChanged((user) => {
-                state.currentUser = user;
-                let userInfo = document.getElementById('user-info-display');
-                if (user) {
-                    if(userInfo) { document.getElementById('user-avatar').src = user.photoURL; document.getElementById('user-email').innerText = user.email; userInfo.classList.remove('hidden'); userInfo.classList.add('flex'); }
-                } else {
-                    if(userInfo) { userInfo.classList.add('hidden'); userInfo.classList.remove('flex'); }
+            // Tải dữ liệu Firebase bất đồng bộ không làm nghẽn UI
+            try {
+                if (window.db) {
+                    db.collection("GameData").doc("SystemSettings").onSnapshot(doc => {
+                        if (doc.exists && doc.data().showHamburgerMenu !== undefined) {
+                            let isShow = doc.data().showHamburgerMenu;
+                            localStorage.setItem('showHamburgerMenu', isShow ? 'true' : 'false');
+                            applyHamburgerMenuVisibility();
+                        }
+                    }, err => {});
+
+                    db.collection("GameData").doc("GlobalLinks").get().then(d => {
+                        if (d.exists && Array.isArray(d.data().list) && d.data().list.length > 0) {
+                            savedLinks = d.data().list;
+                            let activeNav = document.querySelector('nav button.tab-active');
+                            if (activeNav && activeNav.id === 'nav-links') renderLinks();
+                        }
+                    }).catch(e => {});
+
+                    db.collection("GameData").doc("AuthorizedTeachers").get().then(authDoc => {
+                        if(authDoc.exists) state.authorizedEmails = authDoc.data().list;
+                    }).catch(e => {});
                 }
-                
-                // Refresh active navigation screen
-                let activeNav = document.querySelector('nav button.tab-active');
-                if (activeNav) {
-                    let navId = activeNav.id.replace('nav-', '');
-                    if (navId === 'links') renderLinks();
-                    else if (navId === 'board') renderBoard();
-                    else if (navId === 'guide') renderGuide();
-                    else renderHomeScreen();
-                } else {
-                    renderHomeScreen();
-                }
-            });
-        };
+            } catch(e){}
+
+            if (window.firebase && firebase.auth) {
+                firebase.auth().onAuthStateChanged((user) => {
+                    state.currentUser = user;
+                    let userInfo = document.getElementById('user-info-display');
+                    if (user) {
+                        if(userInfo) { 
+                            let avatar = document.getElementById('user-avatar');
+                            let userEmail = document.getElementById('user-email');
+                            if (avatar && user.photoURL) avatar.src = user.photoURL; 
+                            if (userEmail) userEmail.innerText = user.email; 
+                            userInfo.classList.remove('hidden'); 
+                            userInfo.classList.add('flex'); 
+                        }
+                    } else {
+                        if(userInfo) { userInfo.classList.add('hidden'); userInfo.classList.remove('flex'); }
+                    }
+                    
+                    let activeNav = document.querySelector('nav button.tab-active');
+                    if (activeNav) {
+                        let navId = activeNav.id.replace('nav-', '');
+                        if (navId === 'links') renderLinks();
+                        else if (navId === 'board') renderBoard();
+                        else if (navId === 'guide') renderGuide();
+                        else renderHomeScreen();
+                    } else {
+                        renderHomeScreen();
+                    }
+                });
+            }
+        }
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initApp();
+        } else {
+            document.addEventListener('DOMContentLoaded', initApp);
+            window.addEventListener('load', initApp);
+        }
 
         // showToast is moved to config.js
 
-        async function loginWithGoogle() { 
-            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                showToast("Đăng nhập Local (Bypass) thành công!");
-                localStorage.setItem('devModeBypass', 'true');
-                window.location.href = 'teacher.html';
-                return;
+        function openTeacherLoginModal() {
+            let modal = document.getElementById('teacher-login-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                let input = document.getElementById('teacher-login-pin');
+                if (input) { input.value = ''; input.focus(); }
             }
-            try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); showToast("Đăng nhập thành công!"); } 
-            catch(e) { showToast("Lỗi đăng nhập: " + e.message, true); } 
+        }
+
+        function closeTeacherLoginModal() {
+            let modal = document.getElementById('teacher-login-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        async function loginWithPin() {
+            let pin = document.getElementById('teacher-login-pin')?.value.trim();
+            if (!pin) {
+                return showToast("Vui lòng nhập mã PIN Giáo viên!", true);
+            }
+            if (await verifyTeacherPinHash(pin)) {
+                localStorage.setItem('devModeBypass', 'true');
+                showToast("Đăng nhập Giáo viên thành công!");
+                closeTeacherLoginModal();
+                setTimeout(() => {
+                    window.location.href = 'teacher.html';
+                }, 400);
+            } else {
+                showToast("Mã PIN không đúng!", true);
+            }
+        }
+
+        async function loginWithGoogle() { 
+            try { 
+                if (!window.firebase || !firebase.auth) throw new Error("Firebase Auth chưa sẵn sàng");
+                let provider = new firebase.auth.GoogleAuthProvider();
+                await firebase.auth().signInWithPopup(provider); 
+                showToast("Đăng nhập Google thành công!"); 
+            } catch(e) { 
+                showToast("Google Auth chưa duyệt domain. Đang mở nhập PIN Giáo viên...", true); 
+                openTeacherLoginModal();
+            } 
         }
 
         async function logoutGoogle() { 
             if (localStorage.getItem('devModeBypass') === 'true') {
                 localStorage.removeItem('devModeBypass');
-                showToast("Đã đăng xuất Local!");
-                setTimeout(() => window.location.reload(), 500);
+                showToast("Đã đăng xuất!");
+                setTimeout(() => window.location.reload(), 400);
                 return;
             }
             try { await firebase.auth().signOut(); showToast("Đã đăng xuất!"); } 
@@ -727,11 +890,11 @@
 
         // ======================= VIEW RENDERERS =======================
         function renderHomeScreen() {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let teacherBlock = (state.currentUser || isDev)
                 ? `<button onclick="window.location.href='teacher.html'" class="w-full py-3 bg-main text-white rounded-xl font-black shadow-md hover:bg-mainDark transition">VÀO PHÂN HỆ GIÁO VIÊN</button>
                    <button onclick="logoutGoogle()" class="w-full mt-3 py-2 bg-slate-200 rounded-xl font-bold hover:bg-slate-300 transition text-sm">Đăng xuất</button>`
-                : `<button onclick="loginWithGoogle()" class="w-full py-3 bg-white border border-slate-300 rounded-xl font-black shadow-md flex justify-center items-center gap-2 hover:bg-slate-50 transition"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> ĐĂNG NHẬP (GIÁO VIÊN)</button>`;
+                : `<button onclick="openTeacherLoginModal()" class="w-full py-3 bg-white border border-slate-300 rounded-xl font-black shadow-md flex justify-center items-center gap-2 hover:bg-slate-50 transition"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> ĐĂNG NHẬP (GIÁO VIÊN)</button>`;
 
             document.getElementById('app-content').innerHTML = `
                 <div class="glass-panel p-8 md:p-12 rounded-3xl w-full max-w-5xl text-center fade-in border-t-4 border-main">
@@ -777,28 +940,42 @@
             if(!code) return showToast("Nhập mã đề thi!", true);
             
             let btn = document.getElementById('btn-play-code');
-            btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> ĐANG KIỂM TRA...'; 
-            btn.disabled=true;
+            if (btn) {
+                btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG KIỂM TRA...'; 
+                btn.disabled=true;
+            }
             
             try {
-                // Chỉ kiểm tra mã có tồn tại không trước khi redirect
-                let snap = await db.collection("SharedGames").doc(code).get(); 
+                let getPromise = db.collection("SharedGames").doc(code).get();
+                let timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Kết nối quá thời gian. Đang chuyển thẳng sang bài thi...")), 5000)
+                );
+                
+                let snap = await Promise.race([getPromise, timeoutPromise]); 
                 if(!snap.exists) throw new Error("Mã đề thi sai hoặc đã bị xóa!");
                 
                 let settings = snap.data().settings || {};
                 if(settings.openTime && new Date() < new Date(settings.openTime)) throw new Error("Chưa đến giờ mở đề thi này!");
                 if(settings.closeTime && new Date() > new Date(settings.closeTime)) throw new Error("Đề thi này đã đóng!");
                 
-                // Mã hợp lệ, chuyển hướng sang phân hệ học sinh kèm parameter
                 showToast("Mã hợp lệ, đang chuyển hướng...");
                 setTimeout(() => {
                     window.location.href = `student.html?code=${code}`;
-                }, 800);
+                }, 500);
 
             } catch(e) { 
-                showToast(e.message, true); 
-                btn.innerHTML='<i class="fa-solid fa-play mr-2"></i> VÀO THI NGAY'; 
-                btn.disabled=false; 
+                if (e.message && e.message.includes("quá thời gian")) {
+                    showToast("Đang chuyển sang bài thi...", false);
+                    setTimeout(() => {
+                        window.location.href = `student.html?code=${code}`;
+                    }, 500);
+                } else {
+                    showToast(e.message, true); 
+                    if (btn) {
+                        btn.innerHTML='<i class="fa-solid fa-play mr-2"></i> VÀO THI NGAY'; 
+                        btn.disabled=false; 
+                    }
+                }
             }
         }
 
@@ -827,20 +1004,37 @@
         async function performLookup() {
             let val = document.getElementById('lookup-input').value.trim();
             if(currentLookupScope !== 'school' && !val) return showToast("Vui lòng nhập thông tin tra cứu!", true);
-            let btn = document.getElementById('btn-lookup'); let oldHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tìm...'; btn.disabled = true;
+            let btn = document.getElementById('btn-lookup'); 
+            let oldHtml = btn ? btn.innerHTML : ''; 
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tìm...'; 
+                btn.disabled = true;
+            }
             try {
-                let res = await fetch(GOOGLE_WEB_APP_URL + "?action=getResults&t=" + Date.now()); 
-                let allResults = JSON.parse(await res.text()); 
+                let fetchPromise = fetch(GOOGLE_WEB_APP_URL + "?action=getResults&t=" + Date.now());
+                let timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Kết nối máy chủ tra cứu quá thời gian (Timeout). Vui lòng thử lại!")), 8000)
+                );
+                let res = await Promise.race([fetchPromise, timeoutPromise]); 
+                if (!res.ok) throw new Error("Lỗi phản hồi máy chủ Google Sheets (" + res.status + ")");
+                let textData = await res.text();
+                let allResults = JSON.parse(textData); 
                 let filtered = [];
-                if(currentLookupScope === 'personal') { filtered = allResults.filter(r => String(r.id).trim().toLowerCase() === val.toLowerCase()); }
-                else if(currentLookupScope === 'class') { filtered = allResults.filter(r => String(r.cls || r.class).trim().toLowerCase() === val.toLowerCase()); }
-                else if(currentLookupScope === 'grade') { filtered = allResults.filter(r => String(r.khoi || r.grade).trim() === val); }
+                if(currentLookupScope === 'personal') { filtered = allResults.filter(r => String(r.id || '').trim().toLowerCase() === val.toLowerCase()); }
+                else if(currentLookupScope === 'class') { filtered = allResults.filter(r => String(r.cls || r.class || '').trim().toLowerCase() === val.toLowerCase()); }
+                else if(currentLookupScope === 'grade') { filtered = allResults.filter(r => String(r.khoi || r.grade || '').trim() === val); }
                 else if(currentLookupScope === 'school') { filtered = allResults; }
                 
                 if (filtered.length === 0) { showToast("Không tìm thấy kết quả nào!", true); } 
                 else { closeLookupModal(); renderGroupResultsModal(filtered, currentLookupScope, val); }
-            } catch(e) { showToast("Lỗi tải dữ liệu", true); } 
-            finally { btn.innerHTML = oldHtml; btn.disabled = false; }
+            } catch(e) { 
+                showToast("Lỗi tra cứu: " + e.message, true); 
+            } finally { 
+                if (btn) {
+                    btn.innerHTML = oldHtml; 
+                    btn.disabled = false; 
+                }
+            }
         }
 
         function extractPartScore(r, partNum) {
@@ -884,19 +1078,21 @@
                 let sR1 = extractPartScore(r, 1);
                 let sR2 = extractPartScore(r, 2);
                 let sR3 = extractPartScore(r, 3);
-                let rAttempt = Number(r.attempt) || Number(r.attempts) || 1;
+                let rViolations = Number(r.violations) || 0;
 
                 if (!groupedData[key]) { 
                     groupedData[key] = { 
                         ...r, 
-                        attempts: rAttempt, 
+                        attempts: 1, 
                         maxScore: currentScore,
+                        violations: rViolations,
                         scoreR1: sR1,
                         scoreR2: sR2,
                         scoreR3: sR3
                     }; 
                 } else { 
-                    groupedData[key].attempts = Math.max(groupedData[key].attempts + 1, rAttempt); 
+                    groupedData[key].attempts += 1; 
+                    groupedData[key].violations = Math.max(groupedData[key].violations || 0, rViolations);
                     if (currentScore >= groupedData[key].maxScore) { 
                         groupedData[key].maxScore = currentScore; 
                         groupedData[key].scoreR1 = sR1; 
@@ -916,9 +1112,9 @@
             
             let thHtml = '';
             if(isPersonal) {
-                thHtml = `<th class="p-4 text-center">Ngày Thi</th><th class="p-4 text-center">Mã Đề</th><th class="p-4 text-center">Lần</th>`;
+                thHtml = `<th class="p-4 text-center">Ngày Thi</th><th class="p-4 text-center">Mã Đề</th><th class="p-4 text-center">Số Lần Làm</th><th class="p-4 text-center text-rose-300">Vi Phạm</th>`;
             } else {
-                thHtml = `<th class="p-4 text-left">Họ Tên</th><th class="p-4 text-center">Lớp</th><th class="p-4 text-center">Mã Đề</th>`;
+                thHtml = `<th class="p-4 text-left">Họ Tên</th><th class="p-4 text-center">Lớp</th><th class="p-4 text-center">Mã Đề</th><th class="p-4 text-center">Số Lần Làm</th><th class="p-4 text-center text-rose-300">Vi Phạm</th>`;
             }
             
             document.getElementById('personal-results-thead').innerHTML = `<tr class="bg-gradient-to-r from-slate-800 to-slate-700 text-white font-bold text-[10px] md:text-xs uppercase tracking-wider sticky top-0 shadow-md z-10">${thHtml}<th class="p-4 text-center text-sky-300">Phần 1</th><th class="p-4 text-center text-amber-300">Phần 2</th><th class="p-4 text-center text-red-300">Phần 3</th><th class="p-4 text-center text-emerald-300">Tổng</th></tr>`;
@@ -926,9 +1122,9 @@
             document.getElementById('personal-results-tbody').innerHTML = finalResults.map((r) => {
                 let tdHtml = '';
                 if(isPersonal) {
-                    tdHtml = `<td class="p-3 text-center text-slate-600">${r.date || '-'}</td><td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${r.code}</td><td class="p-3 text-center font-bold text-rose-500">${r.attempts} lần</td>`;
+                    tdHtml = `<td class="p-3 text-center text-slate-600">${r.date || '-'}</td><td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${r.code}</td><td class="p-3 text-center font-bold text-rose-500">${r.attempts} lần</td><td class="p-3 text-center font-bold ${r.violations > 0 ? 'text-rose-600 font-black' : 'text-slate-400'}">${r.violations > 0 ? r.violations + ' lần' : '0'}</td>`;
                 } else {
-                    tdHtml = `<td class="p-3 text-left font-bold text-slate-700 whitespace-nowrap">${r.name || r.id}</td><td class="p-3 text-center font-bold text-slate-500">${r.cls || r.class || '-'}</td><td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${r.code}</td>`;
+                    tdHtml = `<td class="p-3 text-left font-bold text-slate-700 whitespace-nowrap">${r.name || r.id}</td><td class="p-3 text-center font-bold text-slate-500">${r.cls || r.class || '-'}</td><td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${r.code}</td><td class="p-3 text-center font-bold text-rose-500">${r.attempts} lần</td><td class="p-3 text-center font-bold ${r.violations > 0 ? 'text-rose-600 font-black' : 'text-slate-400'}">${r.violations > 0 ? r.violations + ' lần' : '0'}</td>`;
                 }
                 return `<tr class="text-sm border-t hover:bg-slate-50 transition">${tdHtml}<td class="p-3 text-center text-sky-600 font-bold">${r.scoreR1}</td><td class="p-3 text-center text-amber-600 font-bold">${r.scoreR2}</td><td class="p-3 text-center text-red-600 font-bold">${r.scoreR3}</td><td class="p-3 text-center font-black text-xl text-emerald-600 bg-emerald-50/50">${r.maxScore}</td></tr>`;
             }).join(''); 
@@ -954,7 +1150,7 @@
             csvContent += `Điểm thấp nhất: ${minScore}\n\n`;
 
             if(isPersonal) {
-                csvContent += "STT,Ngày Thi,Mã Đề,Lần Thi,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
+                csvContent += "STT,Ngày Thi,Mã Đề,Số Lần Làm,Số Lần Vi Phạm,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
                 currentGroupResultsData.forEach((r, idx) => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
                     let s = Number(r.maxScore || 0);
@@ -964,10 +1160,10 @@
                     else if (s >= 6.5) rank = "Khá";
                     else if (s >= 5.0) rank = "Trung bình";
 
-                    csvContent += `"${idx + 1}","${r.date || '-'}","${r.code}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
+                    csvContent += `"${idx + 1}","${r.date || '-'}","${r.code}","${r.attempts}","${r.violations || 0}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
                 });
             } else {
-                csvContent += "STT,Họ Tên,Lớp,Mã Đề,Ngày Thi,Lần Thi,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
+                csvContent += "STT,Họ Tên,Lớp,Mã Đề,Ngày Thi,Số Lần Làm,Số Lần Vi Phạm,Phần 1,Phần 2,Phần 3,Tổng Điểm,Xếp Loại\n";
                 currentGroupResultsData.forEach((r, idx) => {
                     let r1 = r.scoreR1 !== undefined ? r.scoreR1 : '-'; let r2 = r.scoreR2 !== undefined ? r.scoreR2 : '-'; let r3 = r.scoreR3 !== undefined ? r.scoreR3 : '-';
                     let escName = (r.name || r.id || '').replace(/"/g, '""');
@@ -979,7 +1175,7 @@
                     else if (s >= 6.5) rank = "Khá";
                     else if (s >= 5.0) rank = "Trung bình";
 
-                    csvContent += `"${idx + 1}","${escName}","${escCls}","${r.code}","${r.date || '-'}","${r.attempts}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
+                    csvContent += `"${idx + 1}","${escName}","${escCls}","${r.code}","${r.date || '-'}","${r.attempts}","${r.violations || 0}","${r1}","${r2}","${r3}","${r.maxScore}","${rank}"\n`;
                 });
             }
             
@@ -1089,7 +1285,23 @@
                 }
                 if (loading) loading.classList.add('hidden');
                 
+                // Update Code Filter Dropdown
+                let allCodes = [...new Set((state.allResultsData || []).map(r => String(r.code || '').trim().toUpperCase()).filter(Boolean))].sort();
+                let codeSelect = document.getElementById('leaderboard-code-filter');
+                let selectedCodeFilter = 'ALL';
+                if (codeSelect) {
+                    selectedCodeFilter = codeSelect.value || 'ALL';
+                    let opts = `<option value="ALL">🎯 Tất cả Mã Đề (${allCodes.length})</option>` + allCodes.map(c => `<option value="${c}" ${c === selectedCodeFilter ? 'selected' : ''}>📌 Mã Đề: ${c}</option>`).join('');
+                    if (codeSelect.innerHTML !== opts) codeSelect.innerHTML = opts;
+                    selectedCodeFilter = codeSelect.value || 'ALL';
+                }
+
                 let filteredData = state.allResultsData || [];
+
+                if (selectedCodeFilter && selectedCodeFilter !== 'ALL') {
+                    filteredData = filteredData.filter(r => String(r.code || '').trim().toUpperCase() === selectedCodeFilter);
+                }
+
                 let now = new Date();
 
                 if (currentLbFilter === 'cycle' && leaderboardConfig && leaderboardConfig.resetAt) {
@@ -1218,7 +1430,7 @@
         }
 
         function openLeaderboardResetModal() {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
 
             let pinCont = document.getElementById('lb-auth-pin-container');
@@ -1241,12 +1453,12 @@
         }
 
         async function confirmLeaderboardReset() {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
 
             if (!isTeacher) {
                 let pin = document.getElementById('lb-reset-auth-pin')?.value.trim();
-                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
+                if (!(await verifyTeacherPinHash(pin))) {
                     return showToast("Mã xác thực Giáo viên không chính xác!", true);
                 }
             }
@@ -1288,13 +1500,13 @@
         }
 
         async function clearLeaderboardReset() {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
 
             if (!isTeacher) {
                 let pin = document.getElementById('lb-reset-auth-pin')?.value.trim();
-                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
-                    return showToast("Cần nhập mã xác thực để khôi phục!", true);
+                if (!(await verifyTeacherPinHash(pin))) {
+                    return showToast("Cần nhập mã xác thực chính xác để khôi phục!", true);
                 }
             }
 
@@ -1340,8 +1552,8 @@
                 let colors = ['bg-emerald-500', 'bg-main', 'bg-rose-500', 'bg-amber-500', 'bg-violet-500'];
                 let eventsHtml = eventsArr.length ? eventsArr.map((e, i) => `<li class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full ${colors[i % colors.length]} shrink-0"></div><span class="text-sm font-semibold text-slate-700">${e.trim()}</span></li>`).join('') : '<li class="text-sm font-medium text-slate-500">Chưa có sự kiện nào.</li>';
 
-                let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
-                let isAdmin = (state.currentUser && (state.currentUser.email === 'tailieutoantbs@gmail.com' || state.currentUser.email === 'tailieutoantbs.@gmail.com')) || isDev;
+                let isDev = localStorage.getItem('devModeBypass') === 'true';
+                let isAdmin = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
                 let editBtnHtml = isAdmin ? `<button onclick="openBoardEditor()" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-black text-sm shadow-md hover:from-amber-600 hover:to-orange-600 hover:scale-105 transition-all ml-4 btn-3d flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Sửa Bảng Tin</button>` : '';
 
                 appContent.innerHTML = `
@@ -1508,6 +1720,12 @@
                 f.style.fontSize = size;
                 f.style.lineHeight = '1.6';
             });
+        }
+
+        function changeFontFamily(font) {
+            let richEditor = document.getElementById('board-rich-editor');
+            richEditor.focus();
+            document.execCommand('fontName', false, font);
         }
 
         function changeTextColor(color) {
@@ -1743,7 +1961,7 @@
         }
 
         function openLinksEditorModal(targetIndex = -1) {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
 
             let pinCont = document.getElementById('links-auth-pin-container');
@@ -1960,12 +2178,12 @@
         }
 
         async function saveAllGlobalLinks() {
-            let isDev = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && localStorage.getItem('devModeBypass') === 'true';
+            let isDev = localStorage.getItem('devModeBypass') === 'true';
             let isTeacher = (state.currentUser && (state.authorizedEmails.includes(state.currentUser.email) || state.currentUser.email === SUPER_ADMIN_EMAIL)) || isDev;
 
             if (!isTeacher) {
                 let pin = document.getElementById('links-reset-auth-pin')?.value.trim();
-                if (pin !== '123456' && pin !== 'tbs2025' && pin !== 'admin' && pin !== 'tbsmath') {
+                if (!(await verifyTeacherPinHash(pin))) {
                     return showToast("Mã xác thực Giáo viên không chính xác!", true);
                 }
             }
@@ -2031,7 +2249,7 @@
                         <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-emerald-400">
                             <h4 class="font-bold text-lg text-slate-800 mb-2"><i class="fa-solid fa-right-to-bracket text-emerald-500 mr-2"></i>1. Đăng nhập và Bắt đầu thi</h4>
                             <p class="text-slate-600 mb-2">Để bắt đầu làm bài, bạn cần có <b>Mã Đề Thi</b> do giáo viên cung cấp. Nhập mã này tại trang chủ và nhấn <b>VÀO THI NGAY</b>.</p>
-                            <p class="text-slate-600">Tiếp theo, nhập <b>Mã ID Học sinh</b> và <b>Mật khẩu</b> cá nhân. Nếu là lần đầu tiên đăng nhập với mật khẩu mặc định (123456), hệ thống sẽ yêu cầu bạn đổi mật khẩu mới để bảo mật bài thi.</p>
+                            <p class="text-slate-600">Tiếp theo, nhập <b>Mã ID Học sinh</b> và <b>Mật khẩu</b> cá nhân. Nếu là lần đầu tiên đăng nhập với mật khẩu mặc định (hungtbs), hệ thống sẽ gợi ý bạn đổi mật khẩu mới để bảo mật bài thi.</p>
                         </div>
                         
                         <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-400">
@@ -2079,7 +2297,7 @@
 
                         <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-violet-400">
                             <h4 class="font-bold text-lg text-slate-800 mb-2"><i class="fa-solid fa-users text-violet-500 mr-2"></i>2. Quản lý Học sinh</h4>
-                            <p class="text-slate-600">Tại tab <b>Học Sinh</b>, quản trị viên có thể quản lý danh sách thí sinh dự thi. Tính năng <b>Import Nhanh</b> cho phép sao chép dữ liệu từ Excel (ID, Họ Tên, Lớp) và dán trực tiếp để tạo hàng loạt tài khoản. Mật khẩu khởi tạo sẽ mặc định là 123456.</p>
+                            <p class="text-slate-600">Tại tab <b>Học Sinh</b>, quản trị viên có thể quản lý danh sách thí sinh dự thi. Tính năng <b>Import Nhanh</b> cho phép sao chép dữ liệu từ Excel (ID, Họ Tên, Lớp) và dán trực tiếp để tạo hàng loạt tài khoản. Mật khẩu khởi tạo sẽ mặc định là hungtbs.</p>
                         </div>
                     </div>
                 `;

@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bảng Trắng (Whiteboard)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   /* ---- HỆ THỐNG BIẾN MÀU SẮC (THEME) ---- */
@@ -76,7 +79,7 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; background:var(--bg); color:var(--text); transition: background 0.3s; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); transition: background 0.3s; }
   #app { display:flex; flex-direction:column; height:100vh; }
   
   /* Thanh công cụ (Top bar) */
@@ -160,7 +163,7 @@
   .time-inputs label { font-size:11px; color:#aaa; display:block; margin-bottom:4px; }
   
   /* Thông báo (Toast) */
-  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel-light); border:1px solid var(--border-light); color:var(--text); padding:10px 20px; border-radius:8px; z-index:200; font-size:13px; opacity:0; transition:opacity .3s; pointer-events:none; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel-light); border:1px solid var(--border-light); color:var(--text); padding:12px 24px; border-radius:12px; z-index:200; font-size:14px; font-weight:600; font-family:'Be Vietnam Pro', system-ui, sans-serif; opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; box-shadow: 0 8px 24px rgba(0,0,0,.5); max-width:90vw; word-break:break-word; }
   #toast.show { opacity:1; }
   
   /* Nút trợ giúp (Help btn) */

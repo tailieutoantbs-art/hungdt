@@ -17,11 +17,20 @@ const firebaseConfig = {
     appId: "1:14840398924:web:eccc6942166181d6c8e0e9" 
 };
 
-// Initialize Firebase if not already initialized
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+// Initialize Firebase safely if loaded
+let db = null;
+try {
+    if (typeof firebase !== 'undefined') {
+        if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        if (firebase.firestore) {
+            db = firebase.firestore();
+        }
+    }
+} catch(e) {
+    console.warn("Firebase init warning:", e);
 }
-const db = firebase.firestore();
 
 // ======================= UTILITIES =======================
 /**
@@ -30,27 +39,23 @@ const db = firebase.firestore();
  * @param {boolean} isError - True if it's an error message
  */
 function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast-success'); 
+    const toast = document.getElementById('toast-success') || document.getElementById('toast'); 
     if (toast) {
         // Remove previous color classes
-        toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-emerald-500', 'bg-rose-500');
+        toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-emerald-500', 'bg-rose-500', 'bg-main');
         
         // Add new color class
-        const bgClass = isError ? 'bg-red-500' : 'bg-emerald-500';
+        const bgClass = isError ? 'bg-rose-500' : 'bg-emerald-500';
         toast.classList.add(bgClass);
         
         // Setup icon
         const iconClass = isError ? 'fa-circle-xmark' : 'fa-circle-check';
         
-        // Check if there is a span element
-        const msgSpan = document.getElementById('toast-msg');
-        if (msgSpan) {
-            toast.innerHTML = `<i class="fa-solid ${iconClass} text-3xl"></i><span id="toast-msg" class="ml-3 font-bold">${msg}</span>`;
-        } else {
-            toast.innerHTML = `<i class="fa-solid ${iconClass} text-3xl"></i><span class="ml-3 font-bold">${msg}</span>`;
-        }
+        // Render content with crisp font-sans and proper gap
+        toast.innerHTML = `<i class="fa-solid ${iconClass} text-2xl md:text-3xl shrink-0"></i><span id="toast-msg" class="ml-2 md:ml-3 font-bold font-sans text-sm md:text-base leading-snug">${msg}</span>`;
 
         toast.classList.remove('-translate-y-32', 'opacity-0'); 
+        if (toast.classList.contains('show') !== undefined) toast.classList.add('show');
         
         // Clear any existing timeout
         if (window.toastTimeout) {
@@ -59,11 +64,39 @@ function showToast(msg, isError = false) {
         
         window.toastTimeout = setTimeout(() => {
             toast.classList.add('-translate-y-32', 'opacity-0');
-        }, 3000);
+            toast.classList.remove('show');
+        }, 3200);
     } else {
-        // Fallback if toast element doesn't exist
         console.log(isError ? "Error: " : "Success: ", msg);
     }
+}
+
+/**
+ * Verify Teacher PIN securely using SHA-256 Hash
+ * @param {string} pin
+ * @returns {Promise<boolean>}
+ */
+async function verifyTeacherPinHash(pin) {
+    if (!pin) return false;
+    const cleanPin = String(pin).trim();
+    const validHashes = [
+        "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", // 123456
+        "e0f9ffa369f5897f39a10f336b3e42bc226b699df5c2fcab834f4041f43cbcd2", // tbs2025
+        "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", // admin
+        "b7cc33dbf58be3931d5ae58744ab687df235018a3b8d213e3c645d4c154569b7"  // tbsmath
+    ];
+    try {
+        if (window.crypto && crypto.subtle && typeof TextEncoder !== 'undefined') {
+            const msgUint8 = new TextEncoder().encode(cleanPin);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return validHashes.includes(hashHex);
+        }
+    } catch(e) {
+        console.warn("Crypto hash check error:", e);
+    }
+    return false;
 }
 
 /**
@@ -71,11 +104,71 @@ function showToast(msg, isError = false) {
  * @param {string} type - 'correct', 'wrong', or 'powerup'
  */
 function playSound(type) { 
-    const audio = document.getElementById('audio-' + type); 
-    if (audio) { 
-        audio.currentTime = 0; 
-        audio.play().catch(e => { console.warn("Cannot play sound:", e); }); 
-    } 
+    try {
+        const audio = document.getElementById('audio-' + type); 
+        if (audio && audio.src && !audio.src.includes('mixkit.co')) { 
+            audio.currentTime = 0; 
+            let p = audio.play();
+            if (p) {
+                p.catch(() => playSynthSound(type));
+                return;
+            }
+        }
+    } catch(e) {}
+    playSynthSound(type);
+}
+
+function playSynthSound(type) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!window._audioCtx) window._audioCtx = new AudioCtx();
+        const ctx = window._audioCtx;
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+        const now = ctx.currentTime;
+        if (type === 'correct') {
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, now);
+            osc1.frequency.setValueAtTime(783.99, now + 0.1);
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.4);
+        } else if (type === 'wrong') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'powerup') {
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.2, now + idx * 0.07);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.2);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now + idx * 0.07);
+                osc.stop(now + idx * 0.07 + 0.2);
+            });
+        }
+    } catch(e) {
+        console.warn("Synth audio error:", e);
+    }
 }
 
 /**
@@ -104,6 +197,20 @@ function sanitizeMathText(text) {
     if (!text || typeof text !== 'string') return '';
     let s = text.trim();
 
+    // Remove AI citation tags like [cite: 1], [cite: 1, 2], [1], [doc: 2]
+    s = s.replace(/\[\s*(?:cite|doc)\s*:[^\]]*\]/gi, '');
+    s = s.replace(/\[\s*\d+\s*\]/g, (m, offset, str) => {
+        if (offset > 0 && /[a-zA-Z0-9_]/.test(str[offset - 1])) return '';
+        return m;
+    });
+
+    // Fix double backslashes in math delimiters: \\( -> \(, \\) -> \), \\n -> \n
+    s = s.replace(/\\\\([()\[\]$])/g, '\\$1');
+    // ONLY replace literal \n with newline if NOT followed by a letter (prevents breaking \nearrow, \notin, \neq, \nu, etc.)
+    s = s.replace(/\\n(?![a-zA-Z])/g, '\n');
+    // Clean excessive backslashes (e.g. \\\\\\neq -> \neq)
+    s = s.replace(/\\{3,}(?=[a-zA-Z])/g, '\\');
+
     // Protect SVG blocks from math sanitization
     let svgBlocks = [];
     s = s.replace(/<svg[\s\S]*?<\/svg>/gi, (match) => {
@@ -111,42 +218,63 @@ function sanitizeMathText(text) {
         return `___SVG_BLOCK_${svgBlocks.length - 1}___`;
     });
 
-    // 1. Unescape literal \n into real linebreaks
-    s = s.replace(/\\n/g, '\n');
-
-    // 2. Fix dollar signs spanning across Vietnamese text / paragraphs
-    // A single inline math $...$ shouldn't contain long Vietnamese words or sentence stops
-    const vnWordsRegex = /(?:hoặc|và|đồng biến|nghịch biến|Cho|Ta có|Suy ra|Khi đó|Tập xác định|Bảng xét dấu|Bảng biến thiên|hàm số|mệnh đề|kết luận|thỏa mãn|giá trị|phương trình|bất phương trình|hệ phương trình|điều kiện|khoảng|đoạn|nửa khoảng|bằng|là|khi|thuộc|với|tại)/i;
-
-    // Check $...$ blocks
-    s = s.replace(/(?<!\\)\$([^$\n]+?)(?<!\\)\$/g, (match, inner) => {
-        // If inner content has Vietnamese text without \text{}, it's a mismatched dollar!
-        if (vnWordsRegex.test(inner) && !inner.includes('\\text')) {
-            return inner; // strip the outer dollars
-        }
-        return match;
-    });
-
-    // Strip remaining isolated single $ signs if odd count
-    let dollarCount = (s.match(/(?<!\\)\$/g) || []).length;
-    if (dollarCount % 2 !== 0) {
-        s = s.replace(/(?<!\\)\$/g, '');
-    }
-
-    // 3. Auto-wrap raw LaTeX commands that are NOT inside $...$ or \(...\) or \[...\]
+    // Protect existing valid math blocks: $$...$$, \[...\], \(...\), $...$
     let mathBlocks = [];
-    let hidden = s.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/g, (match) => {
+    const hideMath = (match) => {
         mathBlocks.push(match);
         return `___MATH_SAFE_${mathBlocks.length - 1}___`;
-    });
+    };
 
-    // Auto-wrap TeX expressions (e.g., \mathbb{R}, \setminus, \frac{...}{...}, \infty, \Leftrightarrow, (-\infty; -5), etc.)
-    hidden = hidden.replace(/((?:[a-zA-Z0-9_'^=+\-*/\s,.:();{}[\]\-]*?\\(?:mathbb|frac|sqrt|setminus|infty|Leftrightarrow|Rightarrow|rightarrow|Leftarrow|leftarrow|angle|triangle|in|notin|subset|cap|cup|int|lim|sum|alpha|beta|pi|theta|vec|overline|underline|text|mathrm|mathbf)[a-zA-Z0-9_'^=+\-*/\s,.:();{}[\]\-]*)|(?:\([^)]*\\infty[^)]*\))|(?:\([-+]?\d+\s*;\s*[-+]?\d+\)))/gi, (match) => {
-        let m = match.trim();
-        if (!m) return match;
-        if (vnWordsRegex.test(m) && !m.includes('\\text')) return match;
-        return `\\(${m}\\)`;
-    });
+    // 1. Protect $$...$$ and \[...\]
+    s = s.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, hideMath);
+    // 2. Protect \(...\)
+    s = s.replace(/\\\([\s\S]*?\\\)/g, hideMath);
+    // 3. Protect inline $...$ (ensure no newline inside single $)
+    s = s.replace(/(?<!\\)\$([^$\n]+?)(?<!\\)\$/g, hideMath);
+
+    // Auto-fix missing backslashes for common TeX math symbols (excluding words like 'in', 'to', 'cap', 'cup', 'lim', 'sum' to avoid corrupting text)
+    s = s.replace(/(?<![\w\u00C0-\u024F\u1EA0-\u1EFF\\])(cdot|frac|sqrt|infty|mathbb|setminus|nearrow|searrow|neq|perp|parallel|Leftrightarrow|Rightarrow|rightarrow|Leftarrow|leftarrow|angle|triangle|notin|subset|alpha|beta|gamma|delta|pi|theta|phi|omega|vec|overline|underline)(?![a-zA-Z])/g, '\\$1');
+
+    // Tokenize remaining text by Vietnamese Unicode words (excluding backslashed TeX commands)
+    const wordPattern = /(?<![\p{L}\u00C0-\u024F\u1EA0-\u1EFF\\])[\p{L}\u00C0-\u024F\u1EA0-\u1EFF]{2,}(?![\p{L}\u00C0-\u024F\u1EA0-\u1EFF])/gu;
+
+    let parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = wordPattern.exec(s)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push({ type: 'math_candidate', text: s.slice(lastIndex, match.index) });
+        }
+        parts.push({ type: 'word', text: match[0] });
+        lastIndex = wordPattern.lastIndex;
+    }
+    if (lastIndex < s.length) {
+        parts.push({ type: 'math_candidate', text: s.slice(lastIndex) });
+    }
+
+    let hidden = parts.map(p => {
+        if (p.type === 'math_candidate') {
+            let chunk = p.text;
+            if (/\\(?:frac|sqrt|cdot|infty|mathbb|setminus|nearrow|searrow|neq|ge|le|perp|parallel|Leftrightarrow|Rightarrow|rightarrow|Leftarrow|leftarrow|angle|triangle|notin|subset|cap|cup|int|lim|sum|alpha|beta|gamma|delta|pi|theta|phi|omega|vec|overline|underline|text|mathrm|mathbf|in)\b/.test(chunk)) {
+                let trimmed = chunk.trim();
+                if (trimmed.startsWith('\\(') && trimmed.endsWith('\\)')) return chunk;
+                
+                let leadSpace = chunk.match(/^\s*/)[0];
+                let trailSpace = chunk.match(/\s*$/)[0];
+
+                let leadPunct = '';
+                let trailPunct = '';
+                trimmed = trimmed.replace(/^([,.:;!)]+)/, (m, p) => { leadPunct = p; return ''; });
+                trimmed = trimmed.replace(/([,.:;!)]+)$/, (m, p) => { trailPunct = p; return ''; });
+
+                if (trimmed) {
+                    return `${leadSpace}${leadPunct}\\(${trimmed}\\)${trailPunct}${trailSpace}`;
+                }
+            }
+        }
+        return p.text;
+    }).join('');
 
     // Unhide math blocks
     hidden = hidden.replace(/___MATH_SAFE_(\d+)___/g, (match, idx) => {
