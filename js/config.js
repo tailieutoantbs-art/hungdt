@@ -215,14 +215,14 @@ function sanitizeMathText(text) {
     let svgBlocks = [];
     s = s.replace(/<svg[\s\S]*?<\/svg>/gi, (match) => {
         svgBlocks.push(match);
-        return `___SVG_BLOCK_${svgBlocks.length - 1}___`;
+        return `@@@SVG_BLOCK_${svgBlocks.length - 1}@@@`;
     });
 
     // Protect existing valid math blocks: $$...$$, \[...\], \(...\), $...$
     let mathBlocks = [];
     const hideMath = (match) => {
         mathBlocks.push(match);
-        return `___MATH_SAFE_${mathBlocks.length - 1}___`;
+        return `@@@MATH_SAFE_${mathBlocks.length - 1}@@@`;
     };
 
     // 1. Protect $$...$$ and \[...\]
@@ -277,12 +277,12 @@ function sanitizeMathText(text) {
     }).join('');
 
     // Unhide math blocks
-    hidden = hidden.replace(/___MATH_SAFE_(\d+)___/g, (match, idx) => {
+    hidden = hidden.replace(/@@@MATH_SAFE_(\d+)@@@/g, (match, idx) => {
         return mathBlocks[parseInt(idx, 10)];
     });
 
     // Unhide SVG blocks
-    hidden = hidden.replace(/___SVG_BLOCK_(\d+)___/g, (match, idx) => {
+    hidden = hidden.replace(/@@@SVG_BLOCK_(\d+)@@@/g, (match, idx) => {
         return svgBlocks[parseInt(idx, 10)];
     });
 
@@ -350,20 +350,35 @@ function formatExplanation(text) {
 
     let formatted = sanitizeMathText(text);
 
+    // 1. Protect math blocks and SVG blocks before smart line-breaking to avoid breaking inside LaTeX formulas
+    let protectedBlocks = [];
+    const hideBlock = (match) => {
+        protectedBlocks.push(match);
+        return `@@@EXPL_BLOCK_${protectedBlocks.length - 1}@@@`;
+    };
+
+    let safeFormatted = formatted.replace(/(<svg[\s\S]*?<\/svg>|\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$\n]+?(?<!\\)\$)/gi, hideBlock);
+
     // 2. If explanation is a single block without double newlines, insert smart line breaks
-    if (!formatted.includes('\n\n')) {
+    if (!safeFormatted.includes('\n\n')) {
         // Break before question parts: Ý a), Ý b), a), b), c), d), Mệnh đề a...
-        formatted = formatted.replace(/([.;?!]|\b)\s*([+*•]|\bÝ\s*[a-d1-4][):.]|\bMệnh đề\s*[a-d1-4][):.]|\([a-d]\)|^[a-d]\))/gi, '\n\n$2');
+        // Note: [+*•] must be preceded by sentence punctuation or start of string, not word boundary \b
+        safeFormatted = safeFormatted.replace(/([.;?!]|^)\s*([+*•]|\bÝ\s*[a-d1-4][):.]|\bMệnh đề\s*[a-d1-4][):.]|\([a-d]\)|^[a-d]\))/gi, '\n\n$2');
 
         // Break before logical steps or transitions when preceded by punctuation (.;?!), or when starting key phrases
-        formatted = formatted.replace(/([.;?!])\s*(Ta có|Tại|Thay|Vận tốc|Gia tốc|Quãng đường|Khi đó|Do đó|Suy ra|Bảng biến thiên|Xét hàm|Tập xác định|Điều kiện|Kết luận|Lời giải|Phương trình|Hệ phương trình|Bất phương trình)\b/g, '$1\n\n$2');
+        safeFormatted = safeFormatted.replace(/([.;?!])\s*(Ta có|Tại|Thay|Vận tốc|Gia tốc|Quãng đường|Khi đó|Do đó|Suy ra|Bảng biến thiên|Xét hàm|Tập xác định|Điều kiện|Kết luận|Lời giải|Phương trình|Hệ phương trình|Bất phương trình)\b/g, '$1\n\n$2');
         
         // Break before "Xét ý a", "Xét ý b", "Ý a", "Ý b"
-        formatted = formatted.replace(/([.;?!])\s*(Xét\s+ý\s+[a-d])/gi, '$1\n\n$2');
+        safeFormatted = safeFormatted.replace(/([.;?!])\s*(Xét\s+ý\s+[a-d])/gi, '$1\n\n$2');
     }
 
+    // Restore protected blocks
+    safeFormatted = safeFormatted.replace(/@@@EXPL_BLOCK_(\d+)@@@/g, (match, idx) => {
+        return protectedBlocks[parseInt(idx, 10)];
+    });
+
     // 3. Ensure single newlines become double newlines for Marked paragraph separation
-    let lines = formatted.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    let lines = safeFormatted.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     let mdText = lines.join('\n\n');
 
     return parseMarkdownSafe(mdText, false);
