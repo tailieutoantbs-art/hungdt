@@ -764,28 +764,120 @@
             openQuestion(q.id);
         }
 
+        function compareR3Answer(userAns, correctAns) {
+            if (userAns === undefined || userAns === null || correctAns === undefined || correctAns === null) return false;
+
+            const cleanStr = (s) => String(s).replace(/[\u2012\u2013\u2014\u2212\uFE63\uFF0D]/g, '-').trim();
+
+            const latexToMath = (str) => {
+                let s = cleanStr(str);
+                let prev;
+                do {
+                    prev = s;
+                    s = s.replace(/\\(?:d|t)?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/gi, "($1)/($2)");
+                } while (s !== prev);
+
+                s = s
+                    .replace(/\\left\s*\(|\\right\s*\)/gi, '(')
+                    .replace(/\\left\s*\[|\\right\s*\]/gi, '[')
+                    .replace(/\\cdot|\\times/gi, '*')
+                    .replace(/\\displaystyle|\\text\{[^}]*\}|\\mathrm\{[^}]*\}/gi, '')
+                    .replace(/\\/g, '')
+                    .trim();
+                return s;
+            };
+
+            const stripPrefix = (str) => {
+                let s = cleanStr(str);
+                if (s.includes('=')) {
+                    let parts = s.split('=');
+                    if (parts.length === 2 && parts[0].trim().length <= 5) {
+                        s = parts[1].trim();
+                    }
+                }
+                return s;
+            };
+
+            const parseNum = (str) => {
+                if (!str) return NaN;
+                let s = cleanStr(str).toLowerCase().replace(/\s/g, '');
+                s = s.replace(/(\d+),(\d+)/g, "$1.$2");
+
+                if (s.endsWith('%')) {
+                    let n = Number(s.slice(0, -1));
+                    return isNaN(n) ? NaN : n / 100;
+                }
+
+                if (s.includes('/')) {
+                    let cleanFrac = s.replace(/[()]/g, '');
+                    let p = cleanFrac.split('/');
+                    if (p.length === 2) {
+                        let n1 = Number(p[0]), n2 = Number(p[1]);
+                        if (!isNaN(n1) && !isNaN(n2) && n2 !== 0) return n1 / n2;
+                    }
+                }
+
+                let n = Number(s);
+                return isNaN(n) ? NaN : n;
+            };
+
+            const numEquals = (n1, n2) => {
+                if (isNaN(n1) || isNaN(n2)) return false;
+                if (Math.abs(n1 - n2) < 1e-4) return true;
+                if (n1.toFixed(2) === n2.toFixed(2)) return true;
+                if (n1.toFixed(3) === n2.toFixed(3)) return true;
+                return false;
+            };
+
+            let uRaw = stripPrefix(cleanStr(userAns));
+            let cRaw = cleanStr(correctAns);
+            if (uRaw.toLowerCase() === cRaw.toLowerCase()) return true;
+
+            let correctCandidates = cRaw.split(/;|\||\bhoặc\b|\bor\b/gi).map(s => s.trim()).filter(Boolean);
+
+            let uMathStr = stripPrefix(latexToMath(userAns));
+            let uVal = parseNum(uMathStr);
+
+            for (let candidate of correctCandidates) {
+                let cCandRaw = stripPrefix(cleanStr(candidate));
+                if (uRaw.toLowerCase() === cCandRaw.toLowerCase()) return true;
+                if (uMathStr.toLowerCase() === cCandRaw.toLowerCase()) return true;
+
+                let cMathStr = stripPrefix(latexToMath(candidate));
+                if (uMathStr.toLowerCase() === cMathStr.toLowerCase()) return true;
+
+                let cVal = parseNum(cMathStr);
+                if (!isNaN(uVal) && !isNaN(cVal)) {
+                    if (numEquals(uVal, cVal)) return true;
+                }
+            }
+
+            if (uRaw.includes(';') || uRaw.includes(',') || cRaw.includes(';') || cRaw.includes(',')) {
+                const parseList = (str) => {
+                    let s = stripPrefix(latexToMath(str)).replace(/[()[\]{}]/g, '');
+                    s = s.replace(/(\d+),(\d+)/g, "$1.$2");
+                    let items = s.split(/;|,/).map(item => parseNum(item)).filter(n => !isNaN(n));
+                    return items.sort((a, b) => a - b);
+                };
+
+                let uList = parseList(userAns);
+                let cList = parseList(correctAns);
+
+                if (uList.length > 0 && uList.length === cList.length) {
+                    let allMatch = uList.every((val, idx) => numEquals(val, cList[idx]));
+                    if (allMatch) return true;
+                }
+            }
+
+            return false;
+        }
+
         function checkR3Answer(uA) {
             if(!uA || !uA.trim()) return;
             let q = state.currentQuestion; let qK = `round3_${q.id}`; if(state.answeredQuestions.includes(qK)) return;
             state.answeredQuestions.push(qK);
             
-            const normLatex = (s) => String(s).replace(/\\frac{([^{}]+)}{([^{}]+)}/g, "$1/$2").replace(/\\cdot/g, "*").replace(/\\times/g, "*").replace(/\\/g, "").trim();
-            
-            let rawUser = normLatex(uA); let rawCorrect = String(q.answer).trim();
-            let isC = (rawUser.toLowerCase() === rawCorrect.toLowerCase());
-            
-            if(!isC) {
-                const norm = (s) => String(s).toLowerCase().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g, '-');
-                let uMath = norm(rawUser), cMath = norm(rawCorrect);
-                if(uMath === cMath) { isC = true; } else {
-                    const parseFrac = (s) => { if(s.includes('/')) { let p = s.split('/'); return Number(p[0])/Number(p[1]); } return Number(s); };
-                    let nU = parseFrac(uMath), nC = parseFrac(cMath);
-                    if(!isNaN(nU) && !isNaN(nC)) {
-                        if(Math.abs(nU - nC) < 0.001) isC = true;
-                        else if(nU.toFixed(2) === nC.toFixed(2)) isC = true;
-                    }
-                }
-            }
+            let isC = compareR3Answer(uA, q.answer);
             state.userChoices[qK] = { userVal: uA, isCorrect: isC };
             let isExam = (state.currentSettings && state.currentSettings.examMode === 'exam');
             if(!isExam) {
