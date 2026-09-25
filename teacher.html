@@ -77,35 +77,109 @@
     </header>
 
     <main id="app-content" class="flex-grow p-6 flex flex-col items-center justify-center w-full max-w-6xl mx-auto relative z-10">
-        <div class="glass-panel p-8 md:p-10 max-w-md w-full mx-auto rounded-3xl shadow-2xl border-t-4 border-sky-500 text-center relative zoom-in my-8">
-            <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-wide mb-1">Xác Thực Quản Trị Viên</h2>
-            <p class="text-xs font-bold text-slate-500 mb-6">Nhập mã PIN Admin hoặc Đăng nhập Google Admin (tailieutoantbs@gmail.com).</p>
-            
-            <form onsubmit="event.preventDefault(); loginTeacherWithPinDirect();" class="space-y-4">
-                <div class="text-left">
-                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Admin:</label>
-                    <input type="password" id="teacher-direct-pin" placeholder="Nhập mã PIN Admin" autofocus class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-slate-800 transition shadow-sm text-center tracking-widest text-lg">
+        <div class="relative w-full max-w-md mx-auto my-8 zoom-in">
+            <!-- Ambient Blur Background Effect -->
+            <div class="absolute -top-6 -left-6 w-40 h-40 bg-sky-400/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="glass-panel relative p-6 md:p-8 w-full rounded-3xl shadow-2xl border border-white/80 overflow-hidden text-center backdrop-blur-xl">
+                <!-- Top Gradient Bar -->
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-blue-600"></div>
+
+                <!-- Security Status Badge -->
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-extrabold border border-emerald-200/80 mb-4 shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Cổng An Toàn • SSL 256-bit
                 </div>
-                
-                <button type="submit" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-xl shadow-md transition btn-3d uppercase tracking-wider text-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-key"></i> Xác Nhận PIN Admin
-                </button>
-            </form>
 
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-3 font-bold text-slate-400">hoặc</span></div>
-            </div>
+                <!-- Shield Icon with Glow -->
+                <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-100 via-blue-50 to-indigo-100 border border-sky-200/60 shadow-inner group">
+                    <i class="fa-solid fa-user-shield text-sky-600 text-3xl transition-transform duration-300 group-hover:scale-110"></i>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs shadow">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
 
-            <div class="space-y-2">
-                <button onclick="loginWithGoogleTeacherDirect()" class="w-full py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-2">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4"> Đăng nhập Google Admin
-                </button>
-                <button onclick="window.location.href='index.html'" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-house"></i> Về Trang chủ Portal
+                <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight mb-1">Xác Thực Quản Trị Viên</h2>
+                <p class="text-xs font-bold text-slate-500 mb-6 leading-relaxed">
+                    Vui lòng xác thực mã PIN Admin hoặc tài khoản Google được ủy quyền.
+                </p>
+
+                <!-- Auth Mode Switcher Tabs -->
+                <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/80 shadow-inner text-xs font-extrabold">
+                    <button id="auth-tab-pin" onclick="switchAuthTab('pin')" type="button" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/50 font-black">
+                        <i class="fa-solid fa-key text-sky-500"></i> Mã PIN Admin
+                    </button>
+                    <button id="auth-tab-google" onclick="switchAuthTab('google')" type="button" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 font-extrabold">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google"> Google Admin
+                    </button>
+                </div>
+
+                <!-- Section 1: PIN Form -->
+                <div id="auth-section-pin" class="space-y-4">
+                    <form onsubmit="event.preventDefault(); loginTeacherWithPinDirect();" class="space-y-4">
+                        <div class="text-left">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider">Mã PIN Quản Trị:</label>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="fillDefaultPin('hungtbs')" class="text-[11px] font-extrabold text-sky-600 hover:text-sky-700 underline flex items-center gap-1 transition" title="Nhập PIN mặc định hệ thống">
+                                        <i class="fa-regular fa-lightbulb"></i> PIN: hungtbs
+                                    </button>
+                                    <button type="button" onclick="openResetPinModal()" class="text-[11px] font-extrabold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 transition" title="Đặt lại PIN Quản trị">
+                                        <i class="fa-solid fa-key"></i> Quên PIN?
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="relative">
+                                <input type="password" id="teacher-direct-pin" placeholder="Nhập mã PIN Admin..." autofocus autocomplete="current-password" class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 font-bold text-slate-800 transition shadow-sm text-center tracking-widest text-lg bg-slate-50/50 focus:bg-white">
+                                <button type="button" onclick="togglePasswordVisibility('teacher-direct-pin', 'toggle-prompt-pin-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-base transition rounded-lg" title="Hiện/Ẩn mã PIN">
+                                    <i id="toggle-prompt-pin-icon" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Remember Me Checkbox -->
+                        <div class="flex items-center justify-between px-1 text-left">
+                            <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                                <input type="checkbox" id="remember-admin-login" checked class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300">
+                                <span>Ghi nhớ đăng nhập trên máy này</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="btn-pin-submit" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-black rounded-xl shadow-md hover:shadow-lg transition-all btn-3d uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-key"></i> Xác Nhận PIN Admin
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Section 2: Google Auth -->
+                <div id="auth-section-google" class="hidden space-y-4">
+                    <div class="p-3.5 bg-sky-50/80 rounded-2xl border border-sky-100 text-left space-y-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-sky-800 uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-check text-sky-600"></i> Quản trị viên cấp cao (Super Admin):
+                            </div>
+                            <div class="text-xs font-black text-slate-800 font-mono break-all">tailieutoantbs@gmail.com</div>
+                        </div>
+                        <div class="text-[11px] font-semibold text-slate-600 pt-2 border-t border-sky-200/60 flex items-start gap-1.5 leading-relaxed">
+                            <i class="fa-solid fa-shield-halved text-sky-600 text-xs shrink-0 mt-0.5"></i>
+                            <span><b>Chính sách bảo mật:</b> Chỉ các Giáo viên được Thầy Hùng (<b>tailieutoantbs@gmail.com</b>) trực tiếp phân quyền mới có thể đăng nhập bằng tài khoản Google.</span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="loginWithGoogleTeacherDirect()" id="btn-google-submit" class="w-full py-3.5 bg-white border-2 border-slate-200 hover:border-sky-400 hover:bg-slate-50 text-slate-700 font-black rounded-xl shadow-sm hover:shadow transition-all text-xs flex items-center justify-center gap-2.5">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google"> Đăng Nhập Với Google Admin
+                    </button>
+                </div>
+
+                <!-- Footer / Return Link -->
+                <div class="relative my-5">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200/80"></div></div>
+                    <div class="relative flex justify-center text-[10px] uppercase font-extrabold tracking-wider"><span class="bg-white px-3 text-slate-400 rounded-full border border-slate-100">TBS Admin Portal</span></div>
+                </div>
+
+                <button onclick="window.location.href='index.html'" type="button" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house text-slate-400"></i> Trở Về Trang Chủ Portal
                 </button>
             </div>
         </div>
@@ -1311,7 +1385,7 @@
             }
 
             // 1. Check if user previously authenticated with PIN (Admin bypass)
-            if (localStorage.getItem('devModeBypass') === 'true') {
+            if (localStorage.getItem('devModeBypass') === 'true' || sessionStorage.getItem('devModeBypass') === 'true') {
                 authChecked = true;
                 state.currentUser = { email: SUPER_ADMIN_EMAIL, photoURL: '' };
                 state.isTeacher = true;
@@ -1359,15 +1433,17 @@
                         if (typeof db !== 'undefined' && db) {
                             try {
                                 let fetchAuthDoc = db.collection("GameData").doc("AuthorizedTeachers").get();
-                                let timeoutDoc = new Promise(resolve => setTimeout(() => resolve(null), 1200));
+                                let timeoutDoc = new Promise(resolve => setTimeout(() => resolve(null), 1500));
                                 let authDoc = await Promise.race([fetchAuthDoc, timeoutDoc]);
                                 if (authDoc && authDoc.exists && Array.isArray(authDoc.data().list)) {
                                     state.authorizedEmails = authDoc.data().list;
-                                    if (!state.authorizedEmails.map(e => (e || '').toLowerCase().trim()).includes(superAdminClean)) {
-                                        state.authorizedEmails.push(SUPER_ADMIN_EMAIL);
-                                    }
                                 }
                             } catch(e) {}
+                        }
+
+                        let superAdminClean = (SUPER_ADMIN_EMAIL || 'tailieutoantbs@gmail.com').toLowerCase().trim();
+                        if (!state.authorizedEmails.map(e => (e || '').toLowerCase().trim()).includes(superAdminClean)) {
+                            state.authorizedEmails.push(SUPER_ADMIN_EMAIL);
                         }
 
                         let cleanEmail = user.email.toLowerCase().trim();
@@ -1375,21 +1451,52 @@
 
                         if (isAuth) {
                             state.isTeacher = true;
+                            if (typeof showToast === 'function') showToast("Đã xác thực quyền Giáo viên cho: " + user.email);
                             renderTeacherSetupScreen();
                         } else {
+                            // Immediately sign out unauthorized email
+                            try { firebase.auth().signOut(); } catch(e) {}
+                            state.isTeacher = false;
+                            state.currentUser = null;
+
+                            let avatar = document.getElementById('user-avatar');
+                            if (avatar) avatar.classList.add('hidden');
+
                             let contentEl = document.getElementById('app-content');
                             if (contentEl) {
+                                contentEl.classList.remove('hidden');
+                                let adminModal = document.getElementById('admin-modal');
+                                if (adminModal) {
+                                    adminModal.classList.add('hidden');
+                                    adminModal.classList.remove('flex');
+                                }
+
                                 contentEl.innerHTML = `
-                                    <div class="text-center mt-20 p-6 glass-panel max-w-md mx-auto rounded-3xl shadow-lg border border-red-200">
-                                        <i class="fa-solid fa-lock text-5xl text-rose-500 mb-4"></i>
-                                        <h2 class="text-2xl font-black text-rose-600">Từ Chối Quyền Truy Cập</h2>
-                                        <p class="text-slate-500 font-bold mt-2 text-sm">Email <b>${user.email}</b> chưa được cấp quyền Quản trị viên.<br>(Admin mặc định: ${SUPER_ADMIN_EMAIL})</p>
-                                        <div class="mt-4 flex flex-col gap-2">
-                                            <button onclick="showTeacherLoginPrompt()" class="px-4 py-2.5 bg-sky-600 text-white font-bold rounded-xl text-sm btn-3d shadow-md">
-                                                <i class="fa-solid fa-key mr-1"></i> Nhập Mã PIN Admin
+                                    <div class="glass-panel p-8 md:p-10 max-w-lg w-full mx-auto rounded-3xl shadow-2xl border-2 border-rose-200 text-center relative zoom-in my-8">
+                                        <div class="w-20 h-20 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner border border-rose-200">
+                                            <i class="fa-solid fa-user-xmark"></i>
+                                        </div>
+                                        <span class="inline-block px-3.5 py-1 bg-rose-100 text-rose-700 text-xs font-black uppercase tracking-wider rounded-full mb-3 border border-rose-200">Từ Chối Quyền Truy Cập</span>
+                                        
+                                        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">Tài Khoản Chưa Được Phân Quyền</h2>
+                                        
+                                        <div class="p-4 bg-rose-50/80 rounded-2xl border border-rose-200 text-left my-4 space-y-2">
+                                            <div class="text-xs font-bold text-rose-800 uppercase tracking-wider"><i class="fa-solid fa-envelope mr-1"></i> Email vừa chọn:</div>
+                                            <div class="text-sm font-black text-slate-800 font-mono break-all">${user.email}</div>
+                                            <div class="text-xs font-bold text-slate-600 pt-2 border-t border-rose-200/80 leading-relaxed">
+                                                <i class="fa-solid fa-shield-halved text-rose-500 mr-1"></i> <b>Lưu ý quan trọng:</b> Chỉ các Giáo viên được Super Admin <b>${SUPER_ADMIN_EMAIL}</b> trực tiếp cấp quyền trong danh sách quản trị mới có thể đăng nhập bằng Google.
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-6 flex flex-col gap-2.5">
+                                            <button onclick="showTeacherLoginPrompt()" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-black rounded-xl text-sm btn-3d shadow-md uppercase tracking-wider flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-key"></i> Đăng Nhập Bằng Mã PIN Admin
                                             </button>
-                                            <button onclick="firebase.auth().signOut().then(() => location.reload())" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-300 transition">
-                                                Đăng xuất tài khoản này
+                                            <button onclick="loginWithGoogleTeacherDirect()" class="w-full py-3 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-2">
+                                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google"> Thử Đăng Nhập Tài Khoản Google Khác
+                                            </button>
+                                            <button onclick="window.location.href='index.html'" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition">
+                                                <i class="fa-solid fa-house mr-1"></i> Trở về Trang chủ Portal
                                             </button>
                                         </div>
                                     </div>`;
@@ -1403,6 +1510,150 @@
                 authChecked = true;
                 clearTimeout(authTimeout);
                 showTeacherLoginPrompt();
+            }
+        }
+
+        function getTeacherLoginHTML(msg) {
+            let superEmail = typeof SUPER_ADMIN_EMAIL !== 'undefined' ? SUPER_ADMIN_EMAIL : 'tailieutoantbs@gmail.com';
+            return `
+                <div class="relative w-full max-w-md mx-auto my-8 zoom-in">
+                    <!-- Ambient Blur Background Effect -->
+                    <div class="absolute -top-6 -left-6 w-40 h-40 bg-sky-400/20 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="glass-panel relative p-6 md:p-8 w-full rounded-3xl shadow-2xl border border-white/80 overflow-hidden text-center backdrop-blur-xl">
+                        <!-- Top Gradient Bar -->
+                        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-blue-600"></div>
+
+                        <!-- Security Status Badge -->
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-extrabold border border-emerald-200/80 mb-4 shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Cổng An Toàn • SSL 256-bit
+                        </div>
+
+                        <!-- Shield Icon with Glow -->
+                        <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-100 via-blue-50 to-indigo-100 border border-sky-200/60 shadow-inner group">
+                            <i class="fa-solid fa-user-shield text-sky-600 text-3xl transition-transform duration-300 group-hover:scale-110"></i>
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs shadow">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight mb-1">Xác Thực Quản Trị Viên</h2>
+                        <p class="text-xs font-bold text-slate-500 mb-6 leading-relaxed">
+                            ${msg || `Vui lòng xác thực mã PIN Admin hoặc tài khoản Google được ủy quyền.`}
+                        </p>
+
+                        <!-- Auth Mode Switcher Tabs -->
+                        <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/80 shadow-inner text-xs font-extrabold">
+                            <button id="auth-tab-pin" onclick="switchAuthTab('pin')" type="button" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/50 font-black">
+                                <i class="fa-solid fa-key text-sky-500"></i> Mã PIN Admin
+                            </button>
+                            <button id="auth-tab-google" onclick="switchAuthTab('google')" type="button" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 font-extrabold">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google"> Google Admin
+                            </button>
+                        </div>
+
+                        <!-- Section 1: PIN Form -->
+                        <div id="auth-section-pin" class="space-y-4">
+                            <form onsubmit="event.preventDefault(); loginTeacherWithPinDirect();" class="space-y-4">
+                                <div class="text-left">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-black text-slate-700 uppercase tracking-wider">Mã PIN Quản Trị:</label>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" onclick="fillDefaultPin('hungtbs')" class="text-[11px] font-extrabold text-sky-600 hover:text-sky-700 underline flex items-center gap-1 transition" title="Nhập PIN mặc định hệ thống">
+                                                <i class="fa-regular fa-lightbulb"></i> PIN: hungtbs
+                                            </button>
+                                            <button type="button" onclick="openResetPinModal()" class="text-[11px] font-extrabold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 transition" title="Đặt lại PIN Quản trị">
+                                                <i class="fa-solid fa-key"></i> Quên PIN?
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="relative">
+                                        <input type="password" id="teacher-direct-pin" placeholder="Nhập mã PIN Admin..." autofocus autocomplete="current-password" class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 font-bold text-slate-800 transition shadow-sm text-center tracking-widest text-lg bg-slate-50/50 focus:bg-white">
+                                        <button type="button" onclick="togglePasswordVisibility('teacher-direct-pin', 'toggle-prompt-pin-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-base transition rounded-lg" title="Hiện/Ẩn mã PIN">
+                                            <i id="toggle-prompt-pin-icon" class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Remember Me Checkbox -->
+                                <div class="flex items-center justify-between px-1 text-left">
+                                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                                        <input type="checkbox" id="remember-admin-login" checked class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300">
+                                        <span>Ghi nhớ đăng nhập trên máy này</span>
+                                    </label>
+                                </div>
+
+                                <button type="submit" id="btn-pin-submit" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-black rounded-xl shadow-md hover:shadow-lg transition-all btn-3d uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-key"></i> Xác Nhận PIN Admin
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Section 2: Google Auth -->
+                        <div id="auth-section-google" class="hidden space-y-4">
+                            <div class="p-3.5 bg-sky-50/80 rounded-2xl border border-sky-100 text-left space-y-2">
+                                <div>
+                                    <div class="text-[11px] font-bold text-sky-800 uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-check text-sky-600"></i> Quản trị viên cấp cao (Super Admin):
+                                    </div>
+                                    <div class="text-xs font-black text-slate-800 font-mono break-all">${superEmail}</div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-slate-600 pt-2 border-t border-sky-200/60 flex items-start gap-1.5 leading-relaxed">
+                                    <i class="fa-solid fa-shield-halved text-sky-600 text-xs shrink-0 mt-0.5"></i>
+                                    <span><b>Chính sách bảo mật:</b> Chỉ các Giáo viên được Thầy Hùng (<b>${superEmail}</b>) trực tiếp phân quyền mới có thể đăng nhập bằng tài khoản Google.</span>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="loginWithGoogleTeacherDirect()" id="btn-google-submit" class="w-full py-3.5 bg-white border-2 border-slate-200 hover:border-sky-400 hover:bg-slate-50 text-slate-700 font-black rounded-xl shadow-sm hover:shadow transition-all text-xs flex items-center justify-center gap-2.5">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google"> Đăng Nhập Với Google Admin
+                            </button>
+                        </div>
+
+                        <!-- Footer / Return Link -->
+                        <div class="relative my-5">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200/80"></div></div>
+                            <div class="relative flex justify-center text-[10px] uppercase font-extrabold tracking-wider"><span class="bg-white px-3 text-slate-400 rounded-full border border-slate-100">TBS Admin Portal</span></div>
+                        </div>
+
+                        <button onclick="window.location.href='index.html'" type="button" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-house text-slate-400"></i> Trở Về Trang Chủ Portal
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchAuthTab(tab) {
+            let pinTab = document.getElementById('auth-tab-pin');
+            let googleTab = document.getElementById('auth-tab-google');
+            let pinSec = document.getElementById('auth-section-pin');
+            let googleSec = document.getElementById('auth-section-google');
+
+            if (!pinTab || !googleTab || !pinSec || !googleSec) return;
+
+            if (tab === 'pin') {
+                pinTab.className = 'py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/50 font-black';
+                googleTab.className = 'py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 font-extrabold';
+                pinSec.classList.remove('hidden');
+                googleSec.classList.add('hidden');
+                let pinInput = document.getElementById('teacher-direct-pin');
+                if (pinInput) pinInput.focus();
+            } else {
+                googleTab.className = 'py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/50 font-black';
+                pinTab.className = 'py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 font-extrabold';
+                googleSec.classList.remove('hidden');
+                pinSec.classList.add('hidden');
+            }
+        }
+
+        function fillDefaultPin(pin) {
+            let pinInput = document.getElementById('teacher-direct-pin');
+            if (pinInput) {
+                pinInput.value = pin;
+                pinInput.focus();
+                showToast("Đã điền gợi ý mã PIN (" + pin + ")");
             }
         }
 
@@ -1422,82 +1673,102 @@
             let uEmail = document.getElementById('user-email');
             if (uEmail) uEmail.innerText = 'Chưa xác thực Admin';
 
-            contentEl.innerHTML = `
-                <div class="glass-panel p-8 md:p-10 max-w-md w-full mx-auto rounded-3xl shadow-2xl border-t-4 border-sky-500 text-center relative zoom-in my-8">
-                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
-                        <i class="fa-solid fa-user-shield"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-wide mb-1">Xác Thực Quản Trị Viên</h2>
-                    <p class="text-xs font-bold text-slate-500 mb-6">${msg || `Nhập mã PIN Admin hoặc Đăng nhập Google Admin (${SUPER_ADMIN_EMAIL}).`}</p>
-                    
-                    <form onsubmit="event.preventDefault(); loginTeacherWithPinDirect();" class="space-y-4">
-                        <div class="text-left">
-                            <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Admin:</label>
-                            <input type="password" id="teacher-direct-pin" placeholder="Nhập mã PIN Admin" autofocus class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-slate-800 transition shadow-sm text-center tracking-widest text-lg">
-                        </div>
-                        
-                        <button type="submit" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-xl shadow-md transition btn-3d uppercase tracking-wider text-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-key"></i> Xác Nhận PIN Admin
-                        </button>
-                    </form>
-
-                    <div class="relative my-6">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-3 font-bold text-slate-400">hoặc</span></div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <button onclick="loginWithGoogleTeacherDirect()" class="w-full py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-2">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4"> Đăng nhập Google Admin
-                        </button>
-                        <button onclick="window.location.href='index.html'" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-house"></i> Về Trang chủ Portal
-                        </button>
-                    </div>
-                </div>
-            `;
+            contentEl.innerHTML = getTeacherLoginHTML(msg);
             let pinInput = document.getElementById('teacher-direct-pin');
             if (pinInput) pinInput.focus();
         }
 
         async function loginTeacherWithPinDirect() {
             let input = document.getElementById('teacher-direct-pin');
+            let submitBtn = document.getElementById('btn-pin-submit');
             let pin = input ? input.value.trim() : '';
+
             if (!pin) {
+                if (input) {
+                    input.classList.add('shake-wrong', 'border-rose-400', 'ring-2', 'ring-rose-400/20');
+                    setTimeout(() => input.classList.remove('shake-wrong', 'border-rose-400', 'ring-2', 'ring-rose-400/20'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
                 showToast("Vui lòng nhập mã PIN Admin!", true);
                 return;
             }
-            if (await verifyTeacherPinHash(pin)) {
-                localStorage.setItem('devModeBypass', 'true');
-                showToast("Xác thực Admin thành công!");
-                state.currentUser = { email: SUPER_ADMIN_EMAIL, photoURL: '' };
-                state.authorizedEmails = [SUPER_ADMIN_EMAIL];
-                state.isTeacher = true;
-                
-                let avatar = document.getElementById('user-avatar');
-                if (avatar) avatar.classList.remove('hidden');
-                let uEmail = document.getElementById('user-email');
-                if (uEmail) uEmail.innerText = `Quản trị viên (${SUPER_ADMIN_EMAIL})`;
-                
-                renderTeacherSetupScreen();
-            } else {
-                showToast("Mã PIN Admin không đúng!", true);
+
+            let origBtnContent = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...';
+            }
+
+            try {
+                let isValid = await verifyTeacherPinHash(pin);
+                if (isValid) {
+                    let rememberCb = document.getElementById('remember-admin-login');
+                    let isRemember = rememberCb ? rememberCb.checked : true;
+                    if (isRemember) {
+                        localStorage.setItem('devModeBypass', 'true');
+                        sessionStorage.removeItem('devModeBypass');
+                    } else {
+                        sessionStorage.setItem('devModeBypass', 'true');
+                        localStorage.removeItem('devModeBypass');
+                    }
+
+                    if (typeof playSound === 'function') playSound('correct');
+                    showToast("Xác thực Admin thành công!");
+                    state.currentUser = { email: SUPER_ADMIN_EMAIL, photoURL: '' };
+                    if (!state.authorizedEmails.map(e => (e || '').toLowerCase().trim()).includes(SUPER_ADMIN_EMAIL.toLowerCase())) {
+                        state.authorizedEmails.push(SUPER_ADMIN_EMAIL);
+                    }
+                    state.isTeacher = true;
+                    
+                    let avatar = document.getElementById('user-avatar');
+                    if (avatar) avatar.classList.remove('hidden');
+                    let uEmail = document.getElementById('user-email');
+                    if (uEmail) uEmail.innerText = `Quản trị viên (${SUPER_ADMIN_EMAIL})`;
+                    
+                    renderTeacherSetupScreen();
+                } else {
+                    if (input) {
+                        input.classList.add('shake-wrong', 'border-rose-400', 'ring-2', 'ring-rose-400/20');
+                        setTimeout(() => input.classList.remove('shake-wrong', 'border-rose-400', 'ring-2', 'ring-rose-400/20'), 500);
+                    }
+                    if (typeof playSound === 'function') playSound('wrong');
+                    showToast("Mã PIN Admin không đúng!", true);
+                }
+            } catch(e) {
+                showToast("Có lỗi xảy ra khi xác thực PIN!", true);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origBtnContent;
+                }
             }
         }
 
         async function loginWithGoogleTeacherDirect() {
+            let googleBtn = document.getElementById('btn-google-submit');
+            let origContent = googleBtn ? googleBtn.innerHTML : '';
+            if (googleBtn) {
+                googleBtn.disabled = true;
+                googleBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sky-600"></i> Đang mở cổng Google...';
+            }
             try {
                 if (!window.firebase || !firebase.auth) throw new Error("Firebase Auth chưa sẵn sàng");
                 let provider = new firebase.auth.GoogleAuthProvider();
                 await firebase.auth().signInWithPopup(provider);
                 showToast("Đăng nhập Google thành công!");
             } catch(e) {
-                showToast("Google Auth chưa sẵn sàng. Vui lòng nhập mã PIN Admin.", true);
+                showToast("Google Auth chưa sẵn sàng hoặc bị hủy. Vui lòng thử dùng PIN Admin.", true);
+            } finally {
+                if (googleBtn) {
+                    googleBtn.disabled = false;
+                    googleBtn.innerHTML = origContent;
+                }
             }
         }
 
         function logoutTeacher() {
             localStorage.removeItem('devModeBypass');
+            sessionStorage.removeItem('devModeBypass');
             state.isTeacher = false;
             state.currentUser = null;
             
@@ -1516,13 +1787,196 @@
             if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
                 firebase.auth().signOut().then(() => {
                     showToast("Đã đăng xuất Admin!");
-                    showTeacherLoginPrompt("Đã đăng xuất. Vui lòng đăng nhập lại.");
+                    showTeacherLoginPrompt("Đã đăng xuất thành công. Vui lòng đăng nhập lại.");
                 }).catch(() => {
                     showTeacherLoginPrompt();
                 });
             } else {
                 showToast("Đã đăng xuất Admin!");
-                showTeacherLoginPrompt("Đã đăng xuất. Vui lòng đăng nhập lại.");
+                showTeacherLoginPrompt("Đã đăng xuất thành công. Vui lòng đăng nhập lại.");
+            }
+        }
+
+        // ======================= RESET & CHANGE PIN MODAL HANDLERS =======================
+        function openResetPinModal() {
+            let modal = document.getElementById('reset-pin-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                let emailInput = document.getElementById('reset-pin-email');
+                if (emailInput) {
+                    emailInput.value = (state.currentUser && state.currentUser.email) ? state.currentUser.email : (SUPER_ADMIN_EMAIL || 'tailieutoantbs@gmail.com');
+                }
+            }
+        }
+
+        function closeResetPinModal() {
+            let modal = document.getElementById('reset-pin-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function openChangePasswordModal() {
+            let modal = document.getElementById('change-password-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                let currInput = document.getElementById('modal-pin-curr');
+                if (currInput) currInput.focus();
+            }
+        }
+
+        function closeChangePasswordModal() {
+            let modal = document.getElementById('change-password-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        async function restoreDefaultPinDirect() {
+            showConfirmModal("Khôi Phục PIN Mặc Định", "Bạn có chắc chắn muốn khôi phục mã PIN Admin về mặc định ('hungtbs')?", async () => {
+                try {
+                    localStorage.removeItem('customTeacherPinHash');
+                    delete window.customTeacherPinHash;
+                    if (typeof db !== 'undefined' && db) {
+                        let defaultHash = await getSHA256Hash('hungtbs');
+                        await db.collection("GameData").doc("SystemSettings").set({
+                            teacherPinHash: defaultHash,
+                            pinUpdatedAt: Date.now()
+                        }, { merge: true });
+                    }
+                    if (typeof playSound === 'function') playSound('correct');
+                    showToast("Đã khôi phục mã PIN Admin về mặc định (hungtbs)!");
+                    closeResetPinModal();
+                    closeChangePasswordModal();
+                } catch(err) {
+                    showToast("Lỗi khi khôi phục PIN: " + err.message, true);
+                }
+            });
+        }
+
+        async function executeResetPinModal() {
+            let emailInput = document.getElementById('reset-pin-email');
+            let newInput = document.getElementById('reset-pin-new');
+            let submitBtn = document.getElementById('btn-submit-reset-pin');
+
+            let email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+            let newPin = newInput ? newInput.value.trim() : '';
+
+            if (!email) return showToast("Vui lòng nhập Email Admin xác thực!", true);
+            if (!newPin || newPin.length < 4) return showToast("Mã PIN mới phải có ít nhất 4 ký tự!", true);
+
+            let superClean = (SUPER_ADMIN_EMAIL || 'tailieutoantbs@gmail.com').toLowerCase().trim();
+            let isSuper = (email === superClean) || 
+                          state.authorizedEmails.map(e => (e || '').toLowerCase().trim()).includes(email);
+
+            if (!isSuper) {
+                return showToast("Email không có quyền Quản trị viên!", true);
+            }
+
+            let origBtn = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu PIN mới...';
+            }
+
+            try {
+                let newHash = await getSHA256Hash(newPin);
+                if (!newHash) return showToast("Lỗi mã hóa PIN mới!", true);
+
+                localStorage.setItem('customTeacherPinHash', newHash);
+                window.customTeacherPinHash = newHash;
+
+                if (typeof db !== 'undefined' && db) {
+                    await db.collection("GameData").doc("SystemSettings").set({
+                        teacherPinHash: newHash,
+                        pinUpdatedAt: Date.now()
+                    }, { merge: true });
+                }
+
+                if (typeof playSound === 'function') playSound('correct');
+                showToast("Đã đặt lại mã PIN Admin mới thành công!");
+                closeResetPinModal();
+            } catch(e) {
+                showToast("Lỗi đặt lại PIN: " + e.message, true);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origBtn;
+                }
+            }
+        }
+
+        async function submitChangePasswordModal() {
+            let currInput = document.getElementById('modal-pin-curr');
+            let newInput = document.getElementById('modal-pin-new');
+            let confInput = document.getElementById('modal-pin-conf');
+            let submitBtn = document.getElementById('btn-submit-change-pin');
+
+            let currPin = currInput ? currInput.value.trim() : '';
+            let newPin = newInput ? newInput.value.trim() : '';
+            let confPin = confInput ? confInput.value.trim() : '';
+
+            if (!currPin) {
+                if (currInput) currInput.focus();
+                return showToast("Vui lòng nhập mã PIN hiện tại!", true);
+            }
+
+            if (!(await verifyTeacherPinHash(currPin))) {
+                if (currInput) {
+                    currInput.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => currInput.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
+                return showToast("Mã PIN hiện tại không chính xác!", true);
+            }
+
+            if (!newPin || newPin.length < 4) {
+                if (newInput) newInput.focus();
+                return showToast("Mã PIN mới phải có ít nhất 4 ký tự!", true);
+            }
+
+            if (newPin !== confPin) {
+                if (confInput) {
+                    confInput.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => confInput.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                return showToast("Mã PIN xác nhận không khớp!", true);
+            }
+
+            let origBtn = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang cập nhật...';
+            }
+
+            try {
+                let newHash = await getSHA256Hash(newPin);
+                if (!newHash) return showToast("Không thể mã hóa PIN mới!", true);
+
+                localStorage.setItem('customTeacherPinHash', newHash);
+                window.customTeacherPinHash = newHash;
+
+                if (typeof db !== 'undefined' && db) {
+                    await db.collection("GameData").doc("SystemSettings").set({
+                        teacherPinHash: newHash,
+                        pinUpdatedAt: Date.now()
+                    }, { merge: true });
+                }
+
+                if (typeof playSound === 'function') playSound('correct');
+                showToast("Đã cập nhật Mã PIN Admin mới thành công!");
+                closeChangePasswordModal();
+            } catch(err) {
+                showToast("Lỗi lưu PIN mới: " + err.message, true);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origBtn;
+                }
             }
         }
 
@@ -4405,9 +4859,277 @@ ${textEl.value}`;
             }
         }
 
-        function renderTeacherManagement(contentArea) { let isSuperAdmin = state.currentUser && state.currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase(); if (!isSuperAdmin) { contentArea.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-8 bg-slate-50"><i class="fa-solid fa-lock text-6xl text-slate-300 mb-4"></i><h3 class="text-2xl font-black text-slate-700 uppercase">Khu vực hạn chế</h3><p class="text-slate-500 mt-2 font-medium">Chỉ Quản trị viên cấp cao mới có quyền thay đổi thành viên hệ thống.</p></div>`; return; } let listHtml = state.authorizedEmails.map(email => `<div class="flex justify-between items-center bg-white p-5 rounded-2xl border-2 border-slate-100 mb-3 shadow-sm"><span class="font-bold text-slate-700 text-base"><i class="fa-solid fa-user-shield text-sky-500 mr-3 text-lg"></i>${email}</span>${email.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase() ? `<button onclick="removeAuthorizedTeacher('${email}')" class="px-4 py-2 bg-red-100 text-red-500 hover:bg-red-500 hover:text-white rounded-xl font-bold text-sm transition btn-3d"><i class="fa-solid fa-trash"></i></button>` : '<span class="text-xs bg-rose-100 text-rose-600 px-3 py-1 rounded-lg font-black uppercase tracking-widest shadow-sm">Super Admin</span>'}</div>`).join(''); contentArea.innerHTML = `<div class="h-full flex flex-col p-8 bg-slate-50"><h3 class="text-2xl font-black text-slate-800 uppercase tracking-widest mb-6">Phân Quyền Giáo Viên</h3><div class="flex gap-4 mb-8"><input type="email" id="new-teacher-email" placeholder="Nhập Email Google của Giáo viên..." class="flex-grow p-4 border-2 border-slate-200 rounded-2xl outline-none focus:border-sky-500 font-bold text-base shadow-inner"><button onclick="addAuthorizedTeacher()" class="px-8 py-4 bg-sky-600 text-white rounded-2xl font-black text-base btn-3d hover:bg-sky-700 transition shadow-md"><i class="fa-solid fa-user-plus mr-2"></i>Thêm Mới</button></div><div class="flex-grow overflow-y-auto admin-scroll px-2">${listHtml}</div></div>`; }
-        async function addAuthorizedTeacher() { let e = document.getElementById('new-teacher-email').value.trim().toLowerCase(); if(!e || !e.includes('@')) return showToast("Email không hợp lệ!", true); if(state.authorizedEmails.includes(e)) return showToast("Email này đã có quyền!", true); state.authorizedEmails.push(e); try { await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails }); showToast("Đã cấp quyền truy cập!"); renderTeacherManagement(document.getElementById('admin-content-area')); } catch(err) { state.authorizedEmails.pop(); showToast("Lỗi hệ thống lưu trữ", true); } }
-        async function removeAuthorizedTeacher(e) { if(e.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) return; showConfirmModal("Hủy quyền", "Chắc chắn muốn hủy quyền của: " + e + "?", async () => { let prev = [...state.authorizedEmails]; state.authorizedEmails = state.authorizedEmails.filter(x => x !== e); try { await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails }); showToast("Đã xóa quyền tài khoản!"); renderTeacherManagement(document.getElementById('admin-content-area')); } catch(err) { state.authorizedEmails = prev; } }); }
+        let teacherMgmtActiveTab = 'emails';
+
+        function renderTeacherManagement(contentArea) {
+            let isSuperAdmin = state.currentUser && state.currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+            if (!isSuperAdmin) {
+                contentArea.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center p-8 bg-slate-50">
+                        <i class="fa-solid fa-lock text-6xl text-slate-300 mb-4"></i>
+                        <h3 class="text-2xl font-black text-slate-700 uppercase">Khu vực hạn chế</h3>
+                        <p class="text-slate-500 mt-2 font-medium">Chỉ Quản trị viên cấp cao mới có quyền thay đổi thành viên hệ thống.</p>
+                    </div>`;
+                return;
+            }
+
+            contentArea.innerHTML = `
+                <div class="h-full flex flex-col p-6 md:p-8 bg-slate-50 overflow-hidden">
+                    <!-- Header & Navigation Tabs -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200 shrink-0">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wide flex items-center gap-2.5">
+                                <i class="fa-solid fa-shield-halved text-sky-600"></i> BẢO MẬT & PHÂN QUYỀN GIÁO VIÊN
+                            </h3>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Quản lý danh sách email được cấp quyền và thay đổi Mã PIN Admin hệ thống</p>
+                        </div>
+                        
+                        <div class="flex bg-slate-200/80 p-1 rounded-2xl shrink-0 self-start sm:self-auto">
+                            <button id="btn-tab-teacher-emails" onclick="switchTeacherMgmtTab('emails')" class="px-4 py-2 rounded-xl text-xs font-black transition ${teacherMgmtActiveTab === 'emails' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                                <i class="fa-solid fa-user-gear mr-1.5"></i> Phân Quyền Email (${state.authorizedEmails.length})
+                            </button>
+                            <button id="btn-tab-teacher-pin" onclick="switchTeacherMgmtTab('pin')" class="px-4 py-2 rounded-xl text-xs font-black transition ${teacherMgmtActiveTab === 'pin' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                                <i class="fa-solid fa-key mr-1.5"></i> Đổi Mã PIN Admin
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 1: Email Permissions List -->
+                    <div id="section-teacher-emails" class="${teacherMgmtActiveTab === 'emails' ? 'flex' : 'hidden'} flex-col flex-grow overflow-hidden">
+                        <!-- Add New Email Form & Search Bar -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 shrink-0">
+                            <div class="md:col-span-2 flex gap-2">
+                                <input type="email" id="new-teacher-email" onkeypress="if(event.key==='Enter') addAuthorizedTeacher()" placeholder="Nhập Email Google của Giáo viên (vd: giaovien@gmail.com)..." class="flex-grow p-3.5 border-2 border-slate-200 rounded-2xl outline-none focus:border-sky-500 font-bold text-sm bg-white shadow-sm">
+                                <button onclick="addAuthorizedTeacher()" class="px-6 py-3.5 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl font-black text-sm btn-3d transition shadow-md whitespace-nowrap flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user-plus"></i> Thêm Cấp Quyền
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <input type="text" id="search-teacher-email" onkeyup="filterTeacherEmails()" placeholder="Tìm kiếm email..." class="w-full pl-10 pr-4 py-3.5 border-2 border-slate-200 rounded-2xl outline-none focus:border-sky-500 font-bold text-sm bg-white shadow-sm">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Email List Scroll Area -->
+                        <div class="flex-grow overflow-y-auto admin-scroll pr-1" id="teacher-email-list-container">
+                            ${renderTeacherEmailListHtml()}
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Change PIN Admin Form -->
+                    <div id="section-teacher-pin" class="${teacherMgmtActiveTab === 'pin' ? 'flex' : 'hidden'} flex-col flex-grow overflow-y-auto admin-scroll">
+                        <div class="max-w-xl w-full mx-auto bg-white p-6 md:p-8 rounded-3xl border-2 border-amber-200 shadow-md my-auto">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner shrink-0">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-black text-slate-800 uppercase tracking-wide">Đổi Mã PIN Quản Trị Viên</h4>
+                                    <p class="text-xs font-bold text-slate-500">Mã PIN mới sẽ được mã hóa SHA-256 bảo mật và đồng bộ lên hệ thống.</p>
+                                </div>
+                            </div>
+
+                            <form onsubmit="event.preventDefault(); updateAdminPin();" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Hiện Tại (hoặc PIN mặc định):</label>
+                                    <div class="relative">
+                                        <input type="password" id="pin-current" placeholder="Nhập PIN hiện tại" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-amber-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                                        <button type="button" onclick="togglePasswordVisibility('pin-current', 'toggle-pin-curr-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                                            <i id="toggle-pin-curr-icon" class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Mới:</label>
+                                    <div class="relative">
+                                        <input type="password" id="pin-new" placeholder="Nhập PIN mới (tối thiểu 4 ký tự)" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-amber-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                                        <button type="button" onclick="togglePasswordVisibility('pin-new', 'toggle-pin-new-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                                            <i id="toggle-pin-new-icon" class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Xác Nhận Mã PIN Mới:</label>
+                                    <div class="relative">
+                                        <input type="password" id="pin-confirm" placeholder="Nhập lại PIN mới" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-amber-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                                        <button type="button" onclick="togglePasswordVisibility('pin-confirm', 'toggle-pin-conf-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                                            <i id="toggle-pin-conf-icon" class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2">
+                                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-xl shadow-md transition btn-3d uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-floppy-disk"></i> Lưu Mã PIN Mới
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeacherEmailListHtml(filter = '') {
+            let cleanFilter = filter.toLowerCase().trim();
+            let emails = state.authorizedEmails.filter(e => !cleanFilter || e.toLowerCase().includes(cleanFilter));
+            
+            if (!emails.length) {
+                return `<div class="text-center py-12 text-slate-400 font-bold text-sm bg-white rounded-2xl border border-slate-200"><i class="fa-solid fa-user-slash text-3xl mb-2 text-slate-300"></i><p>Không tìm thấy email nào phù hợp.</p></div>`;
+            }
+
+            return emails.map(email => {
+                let isSuperAdmin = email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+                return `
+                    <div class="flex justify-between items-center bg-white p-4 md:p-5 rounded-2xl border-2 border-slate-100 mb-3 shadow-sm hover:border-sky-200 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl ${isSuperAdmin ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'} flex items-center justify-center font-black text-sm shrink-0 shadow-inner">
+                                <i class="fa-solid ${isSuperAdmin ? 'fa-crown' : 'fa-user-tie'}"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-800 text-sm md:text-base">${email}</span>
+                                <span class="text-[11px] font-semibold text-slate-400">${isSuperAdmin ? 'Tài khoản Quản trị cấp cao (Super Admin)' : 'Giáo viên được cấp quyền Quản trị'}</span>
+                            </div>
+                        </div>
+                        ${!isSuperAdmin ? `
+                            <button onclick="removeAuthorizedTeacher('${email}')" class="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl font-bold text-xs md:text-sm transition btn-3d border border-rose-200 flex items-center gap-1.5" title="Thu hồi quyền">
+                                <i class="fa-solid fa-trash"></i> Hủy Quyền
+                            </button>
+                        ` : `
+                            <span class="text-[11px] bg-rose-100 text-rose-700 px-3 py-1 rounded-lg font-black uppercase tracking-wider shadow-sm border border-rose-200">Super Admin</span>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTeacherMgmtTab(tab) {
+            teacherMgmtActiveTab = tab;
+            let secEmails = document.getElementById('section-teacher-emails');
+            let secPin = document.getElementById('section-teacher-pin');
+            let btnEmails = document.getElementById('btn-tab-teacher-emails');
+            let btnPin = document.getElementById('btn-tab-teacher-pin');
+
+            if (tab === 'emails') {
+                if (secEmails) { secEmails.classList.remove('hidden'); secEmails.classList.add('flex'); }
+                if (secPin) { secPin.classList.add('hidden'); secPin.classList.remove('flex'); }
+                if (btnEmails) { btnEmails.className = 'px-4 py-2 rounded-xl text-xs font-black transition bg-white text-sky-600 shadow-sm'; }
+                if (btnPin) { btnPin.className = 'px-4 py-2 rounded-xl text-xs font-black transition text-slate-600 hover:text-slate-900'; }
+            } else {
+                if (secEmails) { secEmails.classList.add('hidden'); secEmails.classList.remove('flex'); }
+                if (secPin) { secPin.classList.remove('hidden'); secPin.classList.add('flex'); }
+                if (btnEmails) { btnEmails.className = 'px-4 py-2 rounded-xl text-xs font-black transition text-slate-600 hover:text-slate-900'; }
+                if (btnPin) { btnPin.className = 'px-4 py-2 rounded-xl text-xs font-black transition bg-white text-amber-600 shadow-sm'; }
+            }
+        }
+
+        function filterTeacherEmails() {
+            let input = document.getElementById('search-teacher-email');
+            let container = document.getElementById('teacher-email-list-container');
+            if (container) {
+                container.innerHTML = renderTeacherEmailListHtml(input ? input.value : '');
+            }
+        }
+
+        async function addAuthorizedTeacher() {
+            let input = document.getElementById('new-teacher-email');
+            let e = input ? input.value.trim().toLowerCase() : '';
+            if (!e || !e.includes('@') || !e.includes('.')) return showToast("Email không hợp lệ!", true);
+            if (state.authorizedEmails.map(x => (x || '').toLowerCase()).includes(e)) return showToast("Email này đã được cấp quyền!", true);
+
+            state.authorizedEmails.push(e);
+            try {
+                if (typeof db !== 'undefined' && db) {
+                    await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails });
+                }
+                if (typeof playSound === 'function') playSound('correct');
+                showToast("Đã cấp quyền truy cập thành công!");
+                if (input) input.value = '';
+                renderTeacherManagement(document.getElementById('admin-content-area'));
+            } catch(err) {
+                state.authorizedEmails.pop();
+                showToast("Lỗi hệ thống lưu trữ Firestore: " + err.message, true);
+            }
+        }
+
+        async function removeAuthorizedTeacher(e) {
+            if (e.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) return;
+            showConfirmModal("Hủy Quyền Quản Trị", `Bạn có chắc chắn muốn thu hồi quyền truy cập Quản trị của tài khoản:\n${e}?`, async () => {
+                let prev = [...state.authorizedEmails];
+                state.authorizedEmails = state.authorizedEmails.filter(x => x.toLowerCase() !== e.toLowerCase());
+                try {
+                    if (typeof db !== 'undefined' && db) {
+                        await db.collection("GameData").doc("AuthorizedTeachers").set({ list: state.authorizedEmails });
+                    }
+                    showToast("Đã xóa quyền tài khoản!");
+                    renderTeacherManagement(document.getElementById('admin-content-area'));
+                } catch(err) {
+                    state.authorizedEmails = prev;
+                    showToast("Lỗi hệ thống: " + err.message, true);
+                }
+            });
+        }
+
+        async function updateAdminPin() {
+            let currInput = document.getElementById('pin-current');
+            let newInput = document.getElementById('pin-new');
+            let confInput = document.getElementById('pin-confirm');
+
+            let currPin = currInput ? currInput.value.trim() : '';
+            let newPin = newInput ? newInput.value.trim() : '';
+            let confPin = confInput ? confInput.value.trim() : '';
+
+            if (!currPin) {
+                if (currInput) currInput.focus();
+                return showToast("Vui lòng nhập Mã PIN hiện tại!", true);
+            }
+            if (!(await verifyTeacherPinHash(currPin))) {
+                if (currInput) {
+                    currInput.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => currInput.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
+                return showToast("Mã PIN hiện tại không chính xác!", true);
+            }
+            if (!newPin || newPin.length < 4) {
+                if (newInput) newInput.focus();
+                return showToast("Mã PIN mới phải có ít nhất 4 ký tự!", true);
+            }
+            if (newPin !== confPin) {
+                if (confInput) {
+                    confInput.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => confInput.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
+                return showToast("Mã PIN xác nhận không khớp!", true);
+            }
+
+            let newHash = await getSHA256Hash(newPin);
+            if (!newHash) return showToast("Không thể mã hóa PIN mới!", true);
+
+            try {
+                localStorage.setItem('customTeacherPinHash', newHash);
+                window.customTeacherPinHash = newHash;
+
+                if (typeof db !== 'undefined' && db) {
+                    await db.collection("GameData").doc("SystemSettings").set({
+                        teacherPinHash: newHash,
+                        pinUpdatedAt: Date.now()
+                    }, { merge: true });
+                }
+
+                if (typeof playSound === 'function') playSound('correct');
+                showToast("Đã cập nhật Mã PIN Admin mới thành công!");
+                
+                if (currInput) currInput.value = '';
+                if (newInput) newInput.value = '';
+                if (confInput) confInput.value = '';
+            } catch(err) {
+                showToast("Lỗi lưu PIN mới: " + err.message, true);
+            }
+        }
 
         // Teacher Leaderboard Config Logic
         let teacherLbConfig = { resetAt: null, resetDateStr: null, resetBy: null, cycleTitle: "Toàn thời gian" };
@@ -6109,6 +6831,109 @@ Explanation: ${JSON.stringify(q.explanation || '')}`;
                     Đã hiểu & Đóng
                 </button>
             </div>
+        </div>
+    <!-- Modal Đặt Lại Mã PIN Admin (Reset PIN) -->
+    <div id="reset-pin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4 fade-in">
+        <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full relative shadow-2xl border-4 border-amber-100 text-center zoom-in">
+            <button onclick="closeResetPinModal()" class="absolute top-4 right-4 w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center font-black transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                <i class="fa-solid fa-key"></i>
+            </div>
+
+            <h3 class="text-xl font-black text-slate-800 uppercase tracking-tight mb-1">Đặt Lại Mã PIN Admin</h3>
+            <p class="text-xs font-bold text-slate-500 mb-5 leading-relaxed">
+                Xác thực Email Google Admin hoặc khôi phục mã PIN về mặc định (<b>hungtbs</b>).
+            </p>
+
+            <form onsubmit="event.preventDefault(); executeResetPinModal();" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Email Quản Trị Viên Xác Thực:</label>
+                    <input type="text" id="reset-pin-email" placeholder="tailieutoantbs@gmail.com..." required class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-amber-500 font-bold text-slate-800 text-sm shadow-inner">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Mới Mong Muốn:</label>
+                    <div class="relative">
+                        <input type="password" id="reset-pin-new" placeholder="Nhập PIN mới (ví dụ: hungtbs)..." required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-amber-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                        <button type="button" onclick="togglePasswordVisibility('reset-pin-new', 'toggle-reset-pin-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                            <i id="toggle-reset-pin-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <button type="submit" id="btn-submit-reset-pin" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-xl shadow-md transition btn-3d uppercase text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check-double"></i> Xác Nhận Lập Mã PIN Mới
+                    </button>
+                    
+                    <button type="button" onclick="restoreDefaultPinDirect()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-left text-amber-500"></i> Khôi Phục PIN Mặc Định (hungtbs)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Đổi Mã PIN / Mật Khẩu Admin từ Toolbar -->
+    <div id="change-password-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4 fade-in">
+        <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full relative shadow-2xl border-4 border-sky-100 text-center zoom-in">
+            <button onclick="closeChangePasswordModal()" class="absolute top-4 right-4 w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center font-black transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                <i class="fa-solid fa-key"></i>
+            </div>
+
+            <h3 class="text-xl font-black text-slate-800 uppercase tracking-tight mb-1">Đổi Mã PIN Admin</h3>
+            <p class="text-xs font-bold text-slate-500 mb-5 leading-relaxed">
+                Mã PIN mới sẽ được mã hóa SHA-256 bảo mật và cập nhật lên hệ thống.
+            </p>
+
+            <form onsubmit="event.preventDefault(); submitChangePasswordModal();" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Hiện Tại (hoặc PIN mặc định):</label>
+                    <div class="relative">
+                        <input type="password" id="modal-pin-curr" placeholder="Nhập PIN hiện tại" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                        <button type="button" onclick="togglePasswordVisibility('modal-pin-curr', 'toggle-modal-curr-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                            <i id="toggle-modal-curr-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Mã PIN Mới:</label>
+                    <div class="relative">
+                        <input type="password" id="modal-pin-new" placeholder="Nhập PIN mới" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                        <button type="button" onclick="togglePasswordVisibility('modal-pin-new', 'toggle-modal-new-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                            <i id="toggle-modal-new-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Xác Nhận PIN Mới:</label>
+                    <div class="relative">
+                        <input type="password" id="modal-pin-conf" placeholder="Nhập lại PIN mới" required class="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-xl outline-none focus:border-sky-500 font-bold text-slate-800 text-center tracking-widest text-base">
+                        <button type="button" onclick="togglePasswordVisibility('modal-pin-conf', 'toggle-modal-conf-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-sm transition" title="Hiện/Ẩn PIN">
+                            <i id="toggle-modal-conf-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <button type="submit" id="btn-submit-change-pin" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-black rounded-xl shadow-md transition btn-3d uppercase tracking-wider text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Mã PIN Mới
+                    </button>
+
+                    <button type="button" onclick="openResetPinModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-left text-amber-500"></i> Quên PIN? Đặt lại PIN
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </body>

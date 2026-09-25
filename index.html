@@ -456,7 +456,12 @@
                 <!-- Option 1: Teacher PIN -->
                 <div>
                     <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-key text-amber-500 mr-1"></i> Mã PIN Giáo viên / Admin:</label>
-                    <input type="password" id="teacher-login-pin" class="w-full p-3.5 border-2 border-slate-200 rounded-2xl focus:border-sky-500 outline-none font-black text-center text-xl tracking-widest text-slate-800 shadow-inner bg-slate-50" placeholder="••••••" onkeypress="if(event.key==='Enter') loginWithPin()">
+                    <div class="relative">
+                        <input type="password" id="teacher-login-pin" class="w-full pl-4 pr-12 py-3.5 border-2 border-slate-200 rounded-2xl focus:border-sky-500 outline-none font-black text-center text-xl tracking-widest text-slate-800 shadow-inner bg-slate-50" placeholder="••••••" onkeypress="if(event.key==='Enter') loginWithPin()">
+                        <button type="button" onclick="togglePasswordVisibility('teacher-login-pin', 'toggle-modal-pin-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-600 p-2 text-base transition" title="Hiện/Ẩn mã PIN">
+                            <i id="toggle-modal-pin-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                     <p class="text-[11px] text-slate-400 mt-1 italic text-center">Vui lòng nhập mã PIN Giáo viên đã được cấp</p>
                 </div>
 
@@ -838,18 +843,30 @@
         }
 
         async function loginWithPin() {
-            let pin = document.getElementById('teacher-login-pin')?.value.trim();
+            let input = document.getElementById('teacher-login-pin');
+            let pin = input?.value.trim();
             if (!pin) {
+                if (input) {
+                    input.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => input.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
                 return showToast("Vui lòng nhập mã PIN Giáo viên!", true);
             }
             if (await verifyTeacherPinHash(pin)) {
                 localStorage.setItem('devModeBypass', 'true');
+                if (typeof playSound === 'function') playSound('correct');
                 showToast("Đăng nhập Giáo viên thành công!");
                 closeTeacherLoginModal();
                 setTimeout(() => {
                     window.location.href = 'teacher.html';
                 }, 400);
             } else {
+                if (input) {
+                    input.classList.add('shake-wrong', 'border-rose-400');
+                    setTimeout(() => input.classList.remove('shake-wrong', 'border-rose-400'), 500);
+                }
+                if (typeof playSound === 'function') playSound('wrong');
                 showToast("Mã PIN không đúng!", true);
             }
         }

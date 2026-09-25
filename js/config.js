@@ -26,6 +26,13 @@ try {
         }
         if (firebase.firestore) {
             db = firebase.firestore();
+            // Automatically sync custom PIN hash from Firestore if available
+            db.collection("GameData").doc("SystemSettings").get().then(doc => {
+                if (doc.exists && doc.data().teacherPinHash) {
+                    window.customTeacherPinHash = doc.data().teacherPinHash;
+                    localStorage.setItem('customTeacherPinHash', doc.data().teacherPinHash);
+                }
+            }).catch(() => {});
         }
     }
 } catch(e) {
@@ -72,31 +79,75 @@ function showToast(msg, isError = false) {
 }
 
 /**
+ * Compute SHA-256 Hash of string
+ * @param {string} text
+ * @returns {Promise<string>}
+ */
+async function getSHA256Hash(text) {
+    if (!text) return '';
+    try {
+        if (window.crypto && crypto.subtle && typeof TextEncoder !== 'undefined') {
+            const msgUint8 = new TextEncoder().encode(String(text).trim());
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+    } catch(e) {
+        console.warn("Hash error:", e);
+    }
+    return '';
+}
+
+/**
  * Verify Teacher PIN securely using SHA-256 Hash
+ * Checks custom set PIN hash as well as system default hashes
  * @param {string} pin
  * @returns {Promise<boolean>}
  */
 async function verifyTeacherPinHash(pin) {
     if (!pin) return false;
     const cleanPin = String(pin).trim();
+    const hashHex = await getSHA256Hash(cleanPin);
+    if (!hashHex) return false;
+
     const validHashes = [
-        "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", // 123456
+        "040fd9c9173301faf82615c40a824bb04440291333f6c2f705b233cd1ffcfc73", // hungtbs
         "e0f9ffa369f5897f39a10f336b3e42bc226b699df5c2fcab834f4041f43cbcd2", // tbs2025
         "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", // admin
         "b7cc33dbf58be3931d5ae58744ab687df235018a3b8d213e3c645d4c154569b7"  // tbsmath
     ];
-    try {
-        if (window.crypto && crypto.subtle && typeof TextEncoder !== 'undefined') {
-            const msgUint8 = new TextEncoder().encode(cleanPin);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return validHashes.includes(hashHex);
-        }
-    } catch(e) {
-        console.warn("Crypto hash check error:", e);
+
+    const customHash = localStorage.getItem('customTeacherPinHash') || window.customTeacherPinHash;
+    if (customHash && hashHex === customHash) {
+        return true;
     }
-    return false;
+
+    return validHashes.includes(hashHex);
+}
+
+/**
+ * Toggle visibility of a password input field
+ * @param {string} inputId 
+ * @param {string} iconId 
+ */
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
 }
 
 /**
