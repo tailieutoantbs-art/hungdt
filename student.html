@@ -29,6 +29,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
     <script src="js/config.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -218,13 +219,45 @@
             let codeEl = document.getElementById('header-play-code');
             if (codeEl) codeEl.innerText = state.currentPlayCode;
 
+            if (typeof firebase === 'undefined' || !window.db) {
+                renderFirebaseErrorScreen("Không thể tải dịch vụ kết nối Firebase. Vui lòng kiểm tra kết nối mạng Internet hoặc tắt phần mềm chặn quảng cáo/tường lửa.");
+                return;
+            }
+
+            // Ensure anonymous authentication for student session if needed
+            if (window.firebase && firebase.auth && !firebase.auth().currentUser) {
+                try { await firebase.auth().signInAnonymously(); } catch(err) { console.warn("Anon auth fallback:", err); }
+            }
+
             try {
                 let snap = await db.collection("SharedGames").doc(state.currentPlayCode).get();
                 if(!snap.exists) throw new Error("Đề thi không tồn tại!");
                 let d = snap.data(); GAME_DATA = d.data; state.currentSettings = d.settings || {};
                 try { let snap = await db.collection("Students").get(); snap.forEach(doc => state.studentList.push(doc.data())); } catch(e){}
                 renderStudentSetupScreen();
-            } catch(e) { alert(e.message); window.location.href = 'index.html'; }
+            } catch(e) {
+                renderFirebaseErrorScreen(e.message || "Lỗi tải dữ liệu đề thi. Vui lòng thử lại!");
+            }
+        }
+
+        function renderFirebaseErrorScreen(msg) {
+            document.getElementById('app-content').innerHTML = `
+                <div class="glass-panel p-6 md:p-8 rounded-3xl w-full max-w-md text-center fade-in border-t-4 border-rose-500 bg-white/90 shadow-2xl">
+                    <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
+                        <i class="fa-solid fa-wifi"></i>
+                    </div>
+                    <h2 class="text-xl font-black text-rose-600 mb-2 uppercase tracking-wide">LỖI KẾT NỐI HỆ THỐNG</h2>
+                    <p class="text-xs font-bold text-slate-600 mb-6 leading-relaxed">${msg}</p>
+                    <div class="space-y-3">
+                        <button onclick="window.location.reload()" class="w-full py-3.5 bg-rose-500 text-white font-black rounded-xl text-sm hover:bg-rose-600 btn-3d tracking-wider uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Thử lại kết nối
+                        </button>
+                        <button onclick="window.location.href='index.html'" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i> Quay lại Trang Chủ
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -268,7 +301,10 @@
             let val = document.getElementById('indiv-id').value.trim();
             let box = document.getElementById('student-info-display');
             if(!val || !state.studentList.length) { box.classList.add('hidden'); return; }
-            let found = state.studentList.find(s => String(s.id).toLowerCase() === val.toLowerCase());
+            let found = state.studentList.find(s => 
+                String(s.id).trim().toLowerCase() === val.toLowerCase() || 
+                String(s.name).trim().toLowerCase() === val.toLowerCase()
+            );
             if(found) {
                 document.getElementById('display-name').innerText = found.name;
                 document.getElementById('display-class').innerText = "Lớp: " + found.cls;
@@ -277,7 +313,7 @@
         }
 
         async function checkResumeGame() {
-            let sId = document.getElementById('indiv-id').value.trim().toUpperCase();
+            let sId = document.getElementById('indiv-id').value.trim();
             let sPw = document.getElementById('student-personal-password').value.trim();
             if(!sId) { showToast("Vui lòng nhập Mã ID hoặc Tên thí sinh!", true); return; }
 
@@ -298,11 +334,24 @@
             btn.disabled = true;
 
             try {
-                let docSnap = await db.collection("Students").doc(sId).get();
-                if (!docSnap.exists) {
+                let sData = null;
+                let found = state.studentList.find(s => 
+                    String(s.id).trim().toLowerCase() === sId.toLowerCase() ||
+                    String(s.name).trim().toLowerCase() === sId.toLowerCase()
+                );
+                if (found) {
+                    sData = found;
+                } else {
+                    let docSnap = await db.collection("Students").doc(sId.toUpperCase()).get();
+                    if (docSnap && docSnap.exists) {
+                        sData = docSnap.data();
+                    }
+                }
+
+                if (!sData) {
                     throw new Error("Không tìm thấy mã học sinh này! Vui lòng liên hệ Giáo viên/Admin để được cấp tài khoản.");
                 }
-                let sData = docSnap.data();
+
                 if (sData.password !== sPw) {
                     throw new Error("Mật mã không chính xác!");
                 }

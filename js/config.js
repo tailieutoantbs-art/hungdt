@@ -26,6 +26,10 @@ try {
         }
         if (firebase.firestore) {
             db = firebase.firestore();
+            try {
+                // Enable long polling to bypass WebSockets firewall blocks
+                db.settings({ experimentalForceLongPolling: true });
+            } catch(err) {}
             // Automatically sync custom PIN hash from Firestore if available
             db.collection("GameData").doc("SystemSettings").get().then(doc => {
                 if (doc.exists && doc.data().teacherPinHash) {
