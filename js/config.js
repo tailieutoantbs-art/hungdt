@@ -18,7 +18,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase safely if loaded
-let db = null;
+var db = null;
+window.db = null;
 try {
     if (typeof firebase !== 'undefined') {
         if (!firebase.apps || !firebase.apps.length) {
@@ -26,6 +27,7 @@ try {
         }
         if (firebase.firestore) {
             db = firebase.firestore();
+            window.db = db;
             try {
                 // Enable long polling to bypass WebSockets firewall blocks
                 db.settings({ experimentalForceLongPolling: true });
